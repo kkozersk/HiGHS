@@ -42,10 +42,12 @@ HighsIndexCollection index_collection_from_set(std::set<HighsInt> const & index_
   index_collection.is_set_ = true;
   index_collection.set_ = std::vector<HighsInt>(index_set.begin(), index_set.end());
   index_collection.set_num_entries_ = index_set.size();
+  index_collection.dimension_ = index_set.size();
   return index_collection;
 }
 
 bool fix_master_variables(HighsLp & subproblem, std::set<HighsInt> const & master_variables, std::vector<double> const & master_values) {
+  // TODO: What max(master_values) > size?
   if (master_variables.size() != master_values.size())
     return false;
   auto index_collection = index_collection_from_set(master_variables);
