@@ -139,7 +139,7 @@ TEST_CASE("test-division-full-master", "[highs_benders]") {
     REQUIRE(disj_results.mixed_rows == std::vector<HighsInt>{});
 }
 
-TEST_CASE("test-overlapping-division-disjoint", "[highs_benders]") {
+TEST_CASE("test-division-disjoint", "[highs_benders]") {
     /*
       Matrix [
          1 0
@@ -156,4 +156,21 @@ TEST_CASE("test-overlapping-division-disjoint", "[highs_benders]") {
     auto disj_results = divide_disjoint_rows(csr_index, csr_starts, master_indices);
     REQUIRE(disj_results.master_only_rows == std::vector<HighsInt>{0});
     REQUIRE(disj_results.subproblem_only_rows == std::vector<HighsInt>{1});
+}
+TEST_CASE("test-index-collection-from-set", "[highs_benders]") {
+  auto index_collection = index_collection_from_set(std::set<HighsInt> {1, 2, 4, 7});
+  REQUIRE(!index_collection.is_interval_);
+  REQUIRE(!index_collection.is_mask_);
+  REQUIRE(index_collection.is_set_);
+  REQUIRE(index_collection.set_num_entries_ == 4);
+  REQUIRE(index_collection.set_ == std::vector<HighsInt> {1, 2, 4, 7});
+}
+
+TEST_CASE("test-index-collection-from-set-empty", "[highs_benders]") {
+  auto index_collection = index_collection_from_set(std::set<HighsInt> {});
+  REQUIRE(!index_collection.is_interval_);
+  REQUIRE(!index_collection.is_mask_);
+  REQUIRE(index_collection.is_set_);
+  REQUIRE(index_collection.set_num_entries_ == 0);
+  REQUIRE(index_collection.set_ == std::vector<HighsInt> {});
 }
