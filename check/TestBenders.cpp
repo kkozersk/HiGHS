@@ -36,14 +36,10 @@ TEST_CASE("test-division", "[highs_benders]") {
   std::vector<HighsInt> csr_index {0, 1, 0, 1};
   std::vector<HighsInt> csr_starts {0, 1, 2, 4};
   std::set<HighsInt> master_indices {0};
-  auto result = divide_overlapping_rows(csr_index, csr_starts, master_indices);
+  auto result = divide_rows(csr_index, csr_starts, master_indices);
   REQUIRE(result.master_rows == std::set<HighsInt>{0, 2});
   REQUIRE(result.subproblem_rows == std::set<HighsInt>{1, 2});
-
-  auto disj_result = divide_disjoint_rows(csr_index, csr_starts, master_indices);
-  REQUIRE(disj_result.master_only_rows == std::vector<HighsInt>{0});
-  REQUIRE(disj_result.subproblem_only_rows == std::vector<HighsInt>{1});
-  REQUIRE(disj_result.mixed_rows == std::vector<HighsInt>{2});
+  REQUIRE(result.mixed_rows == std::set<HighsInt>{2});
 }
   
 TEST_CASE("test-division-v2", "[highs_benders]") {
@@ -59,14 +55,10 @@ TEST_CASE("test-division-v2", "[highs_benders]") {
     std::vector<HighsInt> csr_index {0,1,2,0,2,0,1,2};
     std::vector<HighsInt> csr_starts {0,2,3,3,5,8};
     std::set<HighsInt> master_indices {0, 1};
-    auto result = divide_overlapping_rows(csr_index, csr_starts, master_indices);
+    auto result = divide_rows(csr_index, csr_starts, master_indices);
     REQUIRE(result.master_rows == std::set<HighsInt>{0, 3, 4});
     REQUIRE(result.subproblem_rows == std::set<HighsInt>{1, 3, 4});
-
-    auto disj_results = divide_disjoint_rows(csr_index, csr_starts, master_indices);
-    REQUIRE(disj_results.master_only_rows == std::vector<HighsInt>{0});
-    REQUIRE(disj_results.subproblem_only_rows == std::vector<HighsInt>{1});
-    REQUIRE(disj_results.mixed_rows == std::vector<HighsInt>{3, 4});
+    REQUIRE(result.mixed_rows == std::set<HighsInt>{3, 4});
 }
 
 TEST_CASE("test-division-v3", "[highs_benders]") {
@@ -83,14 +75,10 @@ TEST_CASE("test-division-v3", "[highs_benders]") {
     std::vector<HighsInt> csr_index {0,2,5,1,3,0,4,1,3,5,2,4,0,3,5};
     std::vector<HighsInt> csr_starts {0,3,5,7,10,12,15};
     std::set<HighsInt> master_indices {1, 2};
-    auto result = divide_overlapping_rows(csr_index, csr_starts, master_indices);
+    auto result = divide_rows(csr_index, csr_starts, master_indices);
     REQUIRE(result.master_rows == std::set<HighsInt>{0, 1, 3, 4});
     REQUIRE(result.subproblem_rows == std::set<HighsInt>{0, 1, 2, 3, 4, 5});
-
-    auto disj_results = divide_disjoint_rows(csr_index, csr_starts, master_indices);
-    REQUIRE(disj_results.master_only_rows == std::vector<HighsInt>{});
-    REQUIRE(disj_results.subproblem_only_rows == std::vector<HighsInt>{2, 5});
-    REQUIRE(disj_results.mixed_rows == std::vector<HighsInt>{0, 1, 3, 4});
+    REQUIRE(result.mixed_rows == std::set<HighsInt>{0, 1, 3, 4});
 }
 
 TEST_CASE("test-division-empty-master", "[highs_benders]") {
@@ -107,14 +95,10 @@ TEST_CASE("test-division-empty-master", "[highs_benders]") {
     std::vector<HighsInt> csr_index {0,2,5,1,3,0,4,1,3,5,2,4,0,3,5};
     std::vector<HighsInt> csr_starts {0,3,5,7,10,12,15};
     std::set<HighsInt> master_indices {};
-    auto result = divide_overlapping_rows(csr_index, csr_starts, master_indices);
+    auto result = divide_rows(csr_index, csr_starts, master_indices);
     REQUIRE(result.master_rows == std::set<HighsInt>{});
     REQUIRE(result.subproblem_rows == std::set<HighsInt>{0, 1, 2, 3, 4, 5});
-
-    auto disj_results = divide_disjoint_rows(csr_index, csr_starts, master_indices);
-    REQUIRE(disj_results.master_only_rows == std::vector<HighsInt>{});
-    REQUIRE(disj_results.subproblem_only_rows == std::vector<HighsInt>{0, 1, 2, 3, 4, 5});
-    REQUIRE(disj_results.mixed_rows == std::vector<HighsInt>{});
+    REQUIRE(result.mixed_rows == std::set<HighsInt>{});
 }
 
 TEST_CASE("test-division-full-master", "[highs_benders]") {
@@ -131,14 +115,10 @@ TEST_CASE("test-division-full-master", "[highs_benders]") {
     std::vector<HighsInt> csr_index {0,2,5,1,3,0,4,1,3,5,2,4,0,3,5};
     std::vector<HighsInt> csr_starts {0,3,5,7,10,12,15};
     std::set<HighsInt> master_indices {0, 1, 2, 3, 4, 5};
-    auto result = divide_overlapping_rows(csr_index, csr_starts, master_indices);
+    auto result = divide_rows(csr_index, csr_starts, master_indices);
     REQUIRE(result.master_rows == std::set<HighsInt>{0, 1, 2, 3, 4, 5});
     REQUIRE(result.subproblem_rows == std::set<HighsInt>{});
-
-    auto disj_results = divide_disjoint_rows(csr_index, csr_starts, master_indices);
-    REQUIRE(disj_results.master_only_rows == std::vector<HighsInt>{0, 1, 2, 3, 4, 5});
-    REQUIRE(disj_results.subproblem_only_rows == std::vector<HighsInt>{});
-    REQUIRE(disj_results.mixed_rows == std::vector<HighsInt>{});
+    REQUIRE(result.mixed_rows == std::set<HighsInt>{});
 }
 
 TEST_CASE("test-division-disjoint", "[highs_benders]") {
@@ -151,15 +131,11 @@ TEST_CASE("test-division-disjoint", "[highs_benders]") {
     std::vector<HighsInt> csr_index {0, 1};
     std::vector<HighsInt> csr_starts {0, 1, 2};
     std::set<HighsInt> master_indices {0};
-    auto result = divide_overlapping_rows(csr_index, csr_starts, master_indices);
+    auto result = divide_rows(csr_index, csr_starts, master_indices);
     REQUIRE(result.master_rows == std::set<HighsInt>{0});
     REQUIRE(result.subproblem_rows == std::set<HighsInt>{1});
-
-    auto disj_results = divide_disjoint_rows(csr_index, csr_starts, master_indices);
-    REQUIRE(disj_results.master_only_rows == std::vector<HighsInt>{0});
-    REQUIRE(disj_results.subproblem_only_rows == std::vector<HighsInt>{1});
 }
-TEST_CASE("test-index-collection-from-set", "[highs_benders]") {
+TEST_CASE("testresultindex-collection-set-set", "[highs_benders]") {
   auto index_collection = index_collection_from_set(std::set<HighsInt> {1, 2, 4, 7});
   REQUIRE(!index_collection.is_interval_);
   REQUIRE(!index_collection.is_mask_);
