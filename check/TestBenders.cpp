@@ -1,4 +1,5 @@
 #include "Benders.h"
+#include "Highs.h"
 #include "HighsInt.h"
 #include "catch.hpp"
 #include <cmath>
@@ -213,4 +214,45 @@ TEST_CASE("test-set-master-values-invalid-sizes", "[highs-benders]") {
   REQUIRE(!result);
   REQUIRE(lp.col_lower_ == std::vector<double> {0, 0});
   REQUIRE(lp.col_upper_ == std::vector<double> {inf, inf});
+}
+
+TEST_CASE("test-set-master-values-highs-instance", "[highs-benders]") {
+  /*
+    Matrix [
+      1 0
+      0 1
+      1 1
+    ], with first column being a complicating variable
+  */
+  std::vector<HighsInt> csr_index {0, 1, 0, 1};
+  std::vector<double> csr_values = {1, 1, 1, 1};
+  std::vector<HighsInt> csr_starts {0, 1, 2, 4};
+  std::set<HighsInt> master_indices {0};
+  std::vector<double> master_values {1};
+  HighsLp lp;
+  lp.num_col_ = 2;
+  lp.num_row_ = 3;
+  lp.col_lower_.assign(lp.num_col_, 0);
+  lp.col_upper_.assign(lp.num_col_, inf);
+  lp.col_cost_.assign(lp.num_col_, 0);
+  lp.row_lower_.assign(lp.num_row_, 0);
+  lp.row_upper_.assign(lp.num_row_, 0);
+  lp.a_matrix_.start_ = csr_starts;
+  lp.a_matrix_.index_ = csr_index;
+  lp.a_matrix_.value_ = csr_values;
+  Highs instance;
+  instance.passModel(lp);
+  auto result = fix_master_variables(instance, master_indices, master_values);
+  auto res_lp  = instance.getLp();
+  REQUIRE(result);
+  REQUIRE(res_lp.col_lower_ == std::vector<double> {1, 0});
+  REQUIRE(res_lp.col_upper_ == std::vector<double> {1, inf});
+
+}
+TEST_CASE("test-set-complement", "[highs-benders]") {
+  REQUIRE(sequence_complement({0, 1, 2}, 5) == std::set<HighsInt>{3, 4});
+  REQUIRE(sequence_complement({0}, 5) == std::set<HighsInt>{1, 2, 3, 4});
+  REQUIRE(sequence_complement({}, 5) == std::set<HighsInt>{0, 1, 2, 3, 4});
+  REQUIRE(sequence_complement({0, 3}, 2) == std::set<HighsInt>{1});
+  REQUIRE(sequence_complement({0, 3}, 0) == std::set<HighsInt>{});
 }

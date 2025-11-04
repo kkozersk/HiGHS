@@ -42,6 +42,12 @@ HighsIndexCollection index_collection_from_set(std::vector<HighsInt> const & ind
   return index_collection;
 }
 
+bool fix_master_variables(Highs & subproblem, std::set<HighsInt> const & master_variables, std::vector<double> const & master_values) {
+  for (auto i : master_variables)
+    subproblem.changeColBounds(i, master_values.at(i) , master_values.at(i));
+  return true;
+}
+
 bool fix_master_variables(HighsLp & subproblem, std::set<HighsInt> const & master_variables, std::vector<double> const & master_values) {
   // TODO: What max(master_values) > size?
   if (master_variables.size() != master_values.size())
@@ -61,7 +67,7 @@ std::set<HighsInt> sequence_complement(std::set<HighsInt> const & set, HighsInt 
 
 HighsLp create_master_problem(HighsLp problem, std::set<HighsInt> const & master_variables, RowDivision const & row_division) {
   problem.deleteCols(index_collection_from_set(row_division.subproblem_rows));
-  auto subproblem_variables = sequence_complement(master_variables, problem.num_row_);
+  auto subproblem_variables = sequence_complement(master_variables, problem.num_row_); // TODO: should it be here?
   problem.deleteRows(index_collection_from_set(subproblem_variables));
   return problem;
 }
@@ -80,17 +86,20 @@ BendersProblems decompose_problem(HighsLp const & problem, std::set<HighsInt> co
   return {master, subproblem};
 }
 
-void benders(HighsLp & problem, std::set<HighsInt> & master_variables) {
-  Highs highs_master, highs_subproblem;
+BendersProblems decompose_problem(HighsLp & problem, std::set<HighsInt> const & master_variables) {
   auto row_division = divide_rows(problem.a_matrix_, master_variables);
-  auto problems = decompose_problem(problem, master_variables, row_division);
+  return decompose_problem(problem, master_variables, row_division);
+}
+
+void benders(HighsLp & problem, std::set<HighsInt> & master_variables) {
+  auto problems = decompose_problem(problem, master_variables);
+  Highs highs_master, highs_subproblem;
   highs_subproblem.passModel(problems.subproblem);
+  highs_master.passModel(problems.master);
   for (int i = 0; i < 1; ++i) {
-    highs_master.passModel(problems.master);
     auto master_status = highs_master.run();
     auto const & master_solution = highs_master.getSolution();
-    fix_master_variables(problems.subproblem, master_variables, master_solution.col_value); // Won't work with mu added
-    highs_subproblem.passModel(problems.subproblem);
+    fix_master_variables(highs_subproblem, master_variables, master_solution.col_value); // Won't work with mu added
     auto subproblem_status = highs_subproblem.run();
     auto const & subproblem_solution = highs_subproblem.getSolution();
      // highs.resetGlobalScheduler(true);
