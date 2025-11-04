@@ -249,10 +249,45 @@ TEST_CASE("test-set-master-values-highs-instance", "[highs-benders]") {
   REQUIRE(res_lp.col_upper_ == std::vector<double> {1, inf});
 
 }
+
 TEST_CASE("test-set-complement", "[highs-benders]") {
   REQUIRE(sequence_complement({0, 1, 2}, 5) == std::set<HighsInt>{3, 4});
   REQUIRE(sequence_complement({0}, 5) == std::set<HighsInt>{1, 2, 3, 4});
   REQUIRE(sequence_complement({}, 5) == std::set<HighsInt>{0, 1, 2, 3, 4});
   REQUIRE(sequence_complement({0, 3}, 2) == std::set<HighsInt>{1});
   REQUIRE(sequence_complement({0, 3}, 0) == std::set<HighsInt>{});
+}
+
+TEST_CASE("test-create-subproblem", "[highs-benders]") {
+  /*
+    Matrix [
+      1 1 0
+      0 0 1
+      0 0 0
+      1 0 1
+      1 1 1
+    ], with complicating variables 0, 1
+  */
+  std::vector<HighsInt> csr_index {0,1,2,0,2,0,1,2};
+  std::vector<double> csr_values(8, 0);
+  std::vector<HighsInt> csr_starts {0,2,3,3,5,8};
+  HighsLp lp;
+  lp.offset_ = 5;
+  lp.num_col_ = 3;
+  lp.num_row_ = 5;
+  lp.col_lower_.assign(lp.num_col_, 0);
+  lp.col_upper_.assign(lp.num_col_, inf);
+  lp.col_cost_.assign(lp.num_col_, 1);
+  lp.row_lower_.assign(lp.num_row_, 1);
+  lp.row_upper_.assign(lp.num_row_, 1);
+  lp.a_matrix_.start_ = csr_starts;
+  lp.a_matrix_.index_ = csr_index;
+  lp.a_matrix_.value_ = csr_values;
+  std::set<HighsInt> master_variables {0, 1};
+
+  HighsLp expected = lp;
+  expected.offset_ = 0;
+  expected.col_cost_ = {0, 0, 1};
+  auto subproblem = create_subproblem(lp, master_variables);
+  REQUIRE(subproblem == expected);
 }
