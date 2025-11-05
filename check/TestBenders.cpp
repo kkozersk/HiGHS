@@ -315,12 +315,25 @@ TEST_CASE("test-get-multipliers", "[highs-benders]") {
 
   Highs subproblem;
   create_subproblem(subproblem, lp, master_variables);
+
   fix_master_variables(subproblem, master_variables, {0});
   auto status = subproblem.run();
   REQUIRE(status == HighsStatus::kOk);
+  REQUIRE(subproblem.getModelStatus() == HighsModelStatus::kOptimal);
   auto multipliers = get_all_multipliers(subproblem);
   REQUIRE(multipliers == std::vector<double> {2, 2, -1});
   auto master_multipliers = get_master_multipliers(subproblem, master_variables);
   REQUIRE(master_multipliers == std::vector<double> {2});
+
+  fix_master_variables(subproblem, master_variables, {2});
+  status = subproblem.run();
+  REQUIRE(status == HighsStatus::kOk);
+  REQUIRE(subproblem.getModelStatus() == HighsModelStatus::kInfeasible);
+  bool has_dual_ray;
+  double dual_ray[5];
+  subproblem.getDualRay(has_dual_ray, dual_ray);
+  REQUIRE(has_dual_ray);
+  REQUIRE(std::vector<double>(dual_ray, dual_ray + 5) == std::vector<double> {-1, 0, 0, 0, 0});
+  
 }
 
