@@ -2,6 +2,7 @@
 #include "HConst.h"
 #include "Highs.h"
 #include "HighsInt.h"
+#include "HighsStatus.h"
 #include "catch.hpp"
 #include <cmath>
 #include <set>
@@ -277,3 +278,49 @@ TEST_CASE("test-create-subproblem", "[highs-benders]") {
   result.ensureRowwise();
   REQUIRE(result  == expected);
 }
+
+TEST_CASE("test-get-multipliers", "[highs-benders]") {
+  /*
+    Problem
+    min [1 2 -1]^T x
+    s.t.
+      [1 1 0         = 1
+      0 0 1  [x0     <= 1
+      0 0 0   x1     = 0
+      1 0 1   x2]    <= 2
+      1 1 1]         >= 1.5
+      x >= 0
+    , with complicating variables 0
+
+  */
+  std::vector<HighsInt> csr_index {0,1,2,0,2,0,1,2};
+  std::vector<double> csr_values(8, 1);
+  std::vector<HighsInt> csr_starts {0,2,3,3,5,8};
+  HighsLp lp;
+  lp.offset_ = 5;
+  lp.num_col_ = 3;
+  lp.num_row_ = 5;
+  lp.col_lower_ = {0, 0, 0};
+  lp.col_upper_ = {inf, inf, inf};
+  lp.col_cost_ = {1, 2, -1};
+  lp.row_lower_ = {1, -inf, 0, -inf, 1.5};
+  lp.row_upper_ = {1, 1, 0, 2, inf};
+  lp.a_matrix_.format_ = MatrixFormat::kRowwise;
+  lp.a_matrix_.start_ = csr_starts;
+  lp.a_matrix_.index_ = csr_index;
+  lp.a_matrix_.value_ = csr_values;
+  lp.a_matrix_.num_row_ = 5;
+  lp.a_matrix_.num_col_ = 3;
+  std::set<HighsInt> master_variables {0};
+
+  Highs subproblem;
+  create_subproblem(subproblem, lp, master_variables);
+  fix_master_variables(subproblem, master_variables, {0});
+  auto status = subproblem.run();
+  REQUIRE(status == HighsStatus::kOk);
+  auto multipliers = get_all_multipliers(subproblem);
+  REQUIRE(multipliers == std::vector<double> {2, 2, -1});
+  auto master_multipliers = get_master_multipliers(subproblem, master_variables);
+  REQUIRE(master_multipliers == std::vector<double> {2});
+}
+

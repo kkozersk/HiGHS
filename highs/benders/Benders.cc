@@ -1,10 +1,13 @@
 #include "Benders.h"
+#include "HConst.h"
 #include "Highs.h"
 #include <algorithm>
 #include <cassert>
 #include <iterator>
+#include <numeric>
 #include <vector>
 #include "HighsInt.h"
+#include "HighsStatus.h"
 #include "HighsUtils.h"
 #include "HighsLpUtils.h"
 
@@ -72,15 +75,45 @@ void decompose_problem(BendersProblems & problems, HighsLp & base_problem, std::
   decompose_problem(problems, base_problem, master_variables, row_division);
 }
 
+std::vector<double> get_all_multipliers(Highs const & subproblem) {
+  std::vector<double> all_multipliers;
+  auto const & dual = subproblem.getSolution().row_dual;
+  auto const & A = subproblem.getLp().a_matrix_;
+  A.productTranspose(all_multipliers, dual);
+  return all_multipliers;
+}
+
+std::vector<double> get_master_multipliers(Highs const & subproblem, std::set<HighsInt> master_variables) {
+  auto all_multipliers = get_all_multipliers(subproblem);
+  std::vector<double> master_multipliers;
+  for (auto i : master_variables)
+    master_multipliers.push_back(all_multipliers.at(i));
+  return master_multipliers;
+}
+
+void add_objective_cut(Highs & master, Highs const & subproblem, std::set<HighsInt> master_variables, std::vector<double> master_values) {
+  double dual_objective;
+  subproblem.getDualObjectiveValue(dual_objective);
+  auto multipliers = get_master_multipliers(subproblem, master_variables);
+  auto old_value_multiple = std::inner_product(multipliers.begin(), multipliers.end(), master_values.begin(), 0.0);
+  master.addRow(dual_objective + old_value_multiple, kHighsInf, 0, nullptr, multipliers.data());
+}
+
 void benders(HighsLp & base_problem, std::set<HighsInt> & master_variables) {
   BendersProblems problems;
   decompose_problem(problems, base_problem, master_variables);
-  for (int i = 0; i < 1; ++i) {
-    auto master_status = problems.master.run();
-    auto const & master_solution = problems.master.getSolution();
-    fix_master_variables(problems.subproblem, master_variables, master_solution.col_value); // Won't work with mu added
-    auto subproblem_status = problems.subproblem.run();
-    auto const & subproblem_solution = problems.subproblem.getSolution();
+  auto & master = problems.master;
+  auto & subproblem = problems.subproblem;
+  std::vector<double> master_values(master_variables.size(), 0);
+  for (int i = 0; i < 2; ++i) {
+    fix_master_variables(subproblem, master_variables, master_values); // Won't work with mu added
+    if (subproblem.run() == HighsStatus::kOk)
+      add_objective_cut(master, subproblem, master_variables, master_values);
+    else
+      break;
+    auto master_status = master.run();
+    master_values = master.getSolution().col_value;
+    // auto const & subproblem_solution = problems.subproblem.getSolution();
      // highs.resetGlobalScheduler(true);
   }
 }
