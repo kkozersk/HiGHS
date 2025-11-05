@@ -1,4 +1,5 @@
 #include "Benders.h"
+#include "HConst.h"
 #include "Highs.h"
 #include "HighsInt.h"
 #include "catch.hpp"
@@ -137,17 +138,17 @@ TEST_CASE("test-division-disjoint", "[highs_benders]") {
     REQUIRE(result.subproblem_rows == std::set<HighsInt>{1});
 }
 TEST_CASE("testresultindex-collection-set-set", "[highs_benders]") {
-  auto index_collection = index_collection_from_set(std::set<HighsInt> {1, 2, 4, 7});
+  auto index_collection = index_collection_from_set(std::set<HighsInt> {1, 2, 4, 7}, 8);
   REQUIRE(!index_collection.is_interval_);
   REQUIRE(!index_collection.is_mask_);
   REQUIRE(index_collection.is_set_);
   REQUIRE(index_collection.set_num_entries_ == 4);
-  REQUIRE(index_collection.dimension_ == 4);
+  REQUIRE(index_collection.dimension_ == 8);
   REQUIRE(index_collection.set_ == std::vector<HighsInt> {1, 2, 4, 7});
 }
 
 TEST_CASE("test-index-collection-from-set-empty", "[highs_benders]") {
-  auto index_collection = index_collection_from_set(std::set<HighsInt> {});
+  auto index_collection = index_collection_from_set(std::set<HighsInt> {}, 0);
   REQUIRE(!index_collection.is_interval_);
   REQUIRE(!index_collection.is_mask_);
   REQUIRE(index_collection.is_set_);
@@ -258,6 +259,71 @@ TEST_CASE("test-set-complement", "[highs-benders]") {
   REQUIRE(sequence_complement({0, 3}, 0) == std::set<HighsInt>{});
 }
 
+TEST_CASE("test-create-master", "[highs-benders]") {
+  /*
+    Matrix [
+      1 1 0
+      0 0 1
+      0 0 0
+      1 0 1
+      1 1 1
+    ], with complicating variables 0, 1
+  */
+  std::vector<HighsInt> csr_index {0,1,2,0,2,0,1,2};
+  std::vector<double> csr_values(8, 1);
+  std::vector<HighsInt> csr_starts {0,2,3,3,5,8};
+  HighsLp lp;
+  lp.offset_ = 5;
+  lp.num_col_ = 3;
+  lp.num_row_ = 5;
+  lp.col_lower_ = {1, 2, 3};
+  lp.col_upper_ = {1, 2, 3};
+  lp.col_cost_ = {1, 2, 3};
+  lp.row_lower_ = {1, 2, 3, 4, 5};
+  lp.row_upper_ = {1, 2, 3, 4, 5};
+  lp.a_matrix_.format_ = MatrixFormat::kRowwise;
+  lp.a_matrix_.start_ = csr_starts;
+  lp.a_matrix_.index_ = csr_index;
+  lp.a_matrix_.value_ = csr_values;
+  lp.a_matrix_.num_row_ = 5;
+  lp.a_matrix_.num_col_ = 3;
+  std::set<HighsInt> master_variables {0, 1};
+
+  HighsLp expected;
+  expected.offset_ = 5;
+  expected.num_col_ = 2;
+  expected.num_row_ = 2;
+  expected.col_lower_ = {1, 2};
+  expected.col_upper_= {1, 2};
+  expected.col_cost_ = {1, 2};
+  expected.row_upper_ = {1, 3};
+  expected.row_lower_= {1, 3};
+  expected.a_matrix_.format_ = MatrixFormat::kRowwise; //TODO: can we leave it this way?
+  expected.a_matrix_.start_ = {0, 2, 2};
+  expected.a_matrix_.index_ = {0, 1};
+  expected.a_matrix_.value_ = {1, 1};
+  expected.a_matrix_.num_row_ = 2; //TODO: delete the empty row?
+  expected.a_matrix_.num_col_ = 2;
+
+  RowDivision rd;
+  rd.master_rows = {0};
+  rd.subproblem_rows = {1, 3, 4};
+  rd.mixed_rows = {3, 4};
+  auto master = create_master_problem2(lp, master_variables, rd);
+  master.ensureRowwise();
+  REQUIRE(master.a_matrix_.num_col_ == expected.a_matrix_.num_col_);
+  REQUIRE(master.a_matrix_.num_row_ == expected.a_matrix_.num_row_);
+  REQUIRE(master.a_matrix_.format_== expected.a_matrix_.format_);
+  REQUIRE(master.a_matrix_.start_== expected.a_matrix_.start_);
+  REQUIRE(master.a_matrix_.index_== expected.a_matrix_.index_);
+  REQUIRE(master.a_matrix_.value_ == expected.a_matrix_.value_);
+  REQUIRE(master.a_matrix_ == expected.a_matrix_);
+  REQUIRE(master.row_upper_ == expected.row_upper_);
+  REQUIRE(master.row_lower_ == expected.row_lower_);
+
+  REQUIRE(master == expected);
+}
+
 TEST_CASE("test-create-subproblem", "[highs-benders]") {
   /*
     Matrix [
@@ -269,7 +335,7 @@ TEST_CASE("test-create-subproblem", "[highs-benders]") {
     ], with complicating variables 0, 1
   */
   std::vector<HighsInt> csr_index {0,1,2,0,2,0,1,2};
-  std::vector<double> csr_values(8, 0);
+  std::vector<double> csr_values(8, 1);
   std::vector<HighsInt> csr_starts {0,2,3,3,5,8};
   HighsLp lp;
   lp.offset_ = 5;

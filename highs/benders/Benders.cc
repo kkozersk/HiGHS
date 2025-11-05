@@ -29,16 +29,16 @@ RowDivision divide_rows(HighsSparseMatrix & constraint_matrix, std::set<HighsInt
   return divide_rows(constraint_matrix.index_, constraint_matrix.start_, master_variables);
 }
 
-HighsIndexCollection index_collection_from_set(std::set<HighsInt> const & index_set) {
-  return index_collection_from_set(std::vector<HighsInt>(index_set.begin(), index_set.end()));
+HighsIndexCollection index_collection_from_set(std::set<HighsInt> const & index_set, HighsInt max_idx) {
+  return index_collection_from_set(std::vector<HighsInt>(index_set.begin(), index_set.end()), max_idx);
 }
 
-HighsIndexCollection index_collection_from_set(std::vector<HighsInt> const & index_set) {
+HighsIndexCollection index_collection_from_set(std::vector<HighsInt> const & index_set, HighsInt collection_dimension) {
   HighsIndexCollection index_collection;
   index_collection.is_set_ = true;
   index_collection.set_ = index_set;
   index_collection.set_num_entries_ = index_set.size();
-  index_collection.dimension_ = index_set.size();
+  index_collection.dimension_ = collection_dimension;
   return index_collection;
 }
 
@@ -52,7 +52,7 @@ bool fix_master_variables(HighsLp & subproblem, std::set<HighsInt> const & maste
   // TODO: What max(master_values) > size?
   if (master_variables.size() != master_values.size())
     return false;
-  auto index_collection = index_collection_from_set(master_variables);
+  auto index_collection = index_collection_from_set(master_variables, subproblem.num_col_);
   changeLpColBounds(subproblem, index_collection, master_values, master_values);
   return true;
 }
@@ -66,10 +66,25 @@ std::set<HighsInt> sequence_complement(std::set<HighsInt> const & set, HighsInt 
 }
 
 HighsLp create_master_problem(HighsLp problem, std::set<HighsInt> const & master_variables, RowDivision const & row_division) {
-  problem.deleteCols(index_collection_from_set(row_division.subproblem_rows));
-  auto subproblem_variables = sequence_complement(master_variables, problem.num_row_); // TODO: should it be here?
-  problem.deleteRows(index_collection_from_set(subproblem_variables));
+  problem.deleteRows(index_collection_from_set(row_division.subproblem_rows, problem.num_row_));
+  auto subproblem_variables = sequence_complement(master_variables, problem.num_col_); // TODO: should it be here?
+  //problem.a_matrix_.ensureColwise();
+  //problem.a_matrix_.ensureRowwise();
+  //problem.deleteCols(index_collection_from_set(subproblem_variables, problem.num_col_));
   return problem;
+}
+
+//TODO: remove
+inline std::vector<HighsInt> set_to_vector(std::set<HighsInt> const & set) { return {set.begin(), set.end()}; }
+
+HighsLp create_master_problem2(HighsLp problem, std::set<HighsInt> const & master_variables, RowDivision const & row_division) {
+  Highs master;
+  master.passModel(problem);
+  auto nonmaster_rows= set_to_vector(row_division.subproblem_rows);
+  master.deleteRows(nonmaster_rows.size(), nonmaster_rows.data());
+  auto subproblem_variables = set_to_vector(sequence_complement(master_variables, problem.num_col_)); // TODO: should it be here?
+  master.deleteCols(subproblem_variables.size(), subproblem_variables.data());
+  return master.getLp();
 }
 
 HighsLp create_subproblem(HighsLp problem, std::set<HighsInt> const & master_variables) {
