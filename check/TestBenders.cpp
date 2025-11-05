@@ -137,85 +137,66 @@ TEST_CASE("test-division-disjoint", "[highs_benders]") {
     REQUIRE(result.master_rows == std::set<HighsInt>{0});
     REQUIRE(result.subproblem_rows == std::set<HighsInt>{1});
 }
-TEST_CASE("testresultindex-collection-set-set", "[highs_benders]") {
-  auto index_collection = index_collection_from_set(std::set<HighsInt> {1, 2, 4, 7}, 8);
-  REQUIRE(!index_collection.is_interval_);
-  REQUIRE(!index_collection.is_mask_);
-  REQUIRE(index_collection.is_set_);
-  REQUIRE(index_collection.set_num_entries_ == 4);
-  REQUIRE(index_collection.dimension_ == 8);
-  REQUIRE(index_collection.set_ == std::vector<HighsInt> {1, 2, 4, 7});
-}
 
-TEST_CASE("test-index-collection-from-set-empty", "[highs_benders]") {
-  auto index_collection = index_collection_from_set(std::set<HighsInt> {}, 0);
-  REQUIRE(!index_collection.is_interval_);
-  REQUIRE(!index_collection.is_mask_);
-  REQUIRE(index_collection.is_set_);
-  REQUIRE(index_collection.set_num_entries_ == 0);
-  REQUIRE(index_collection.dimension_ == 0);
-  REQUIRE(index_collection.set_ == std::vector<HighsInt> {});
-}
+// TEST_CASE("test-set-master-values", "[highs-benders]") {
+//   /*
+//     Matrix [
+//       1 0
+//       0 1
+//       1 1
+//     ], with first column being a complicating variable
+//   */
+//   std::vector<HighsInt> csr_index {0, 1, 0, 1};
+//   std::vector<double> csr_values = {1, 1, 1, 1};
+//   std::vector<HighsInt> csr_starts {0, 1, 2, 4};
+//   std::set<HighsInt> master_indices {0};
+//   std::vector<double> master_values {1};
+//   HighsLp lp;
+//   lp.num_col_ = 2;
+//   lp.num_row_ = 3;
+//   lp.col_lower_.assign(lp.num_col_, 0);
+//   lp.col_upper_.assign(lp.num_col_, inf);
+//   lp.a_matrix_.start_ = csr_starts;
+//   lp.a_matrix_.index_ = csr_index;
+//   lp.a_matrix_.value_ = csr_values;
+//   auto result = fix_master_variables(lp, master_indices, master_values);
+//   REQUIRE(result);
+//   REQUIRE(lp.col_lower_ == std::vector<double> {1, 0});
+//   REQUIRE(lp.col_upper_ == std::vector<double> {1, inf});
 
-TEST_CASE("test-set-master-values", "[highs-benders]") {
-  /*
-    Matrix [
-      1 0
-      0 1
-      1 1
-    ], with first column being a complicating variable
-  */
-  std::vector<HighsInt> csr_index {0, 1, 0, 1};
-  std::vector<double> csr_values = {1, 1, 1, 1};
-  std::vector<HighsInt> csr_starts {0, 1, 2, 4};
-  std::set<HighsInt> master_indices {0};
-  std::vector<double> master_values {1};
-  HighsLp lp;
-  lp.num_col_ = 2;
-  lp.num_row_ = 3;
-  lp.col_lower_.assign(lp.num_col_, 0);
-  lp.col_upper_.assign(lp.num_col_, inf);
-  lp.a_matrix_.start_ = csr_starts;
-  lp.a_matrix_.index_ = csr_index;
-  lp.a_matrix_.value_ = csr_values;
-  auto result = fix_master_variables(lp, master_indices, master_values);
-  REQUIRE(result);
-  REQUIRE(lp.col_lower_ == std::vector<double> {1, 0});
-  REQUIRE(lp.col_upper_ == std::vector<double> {1, inf});
+// }
 
-}
+// TEST_CASE("test-set-master-values-invalid-sizes", "[highs-benders]") {
+//   /*
+//     Matrix [
+//       1 0
+//       0 1
+//       1 1
+//     ], with first column being a complicating variable
+//   */
+//   std::vector<HighsInt> csr_index {0, 1, 0, 1};
+//   std::vector<double> csr_values = {1, 1, 1, 1};
+//   std::vector<HighsInt> csr_starts {0, 1, 2, 4};
+//   std::set<HighsInt> master_indices {0};
+//   std::vector<double> master_values {1};
+//   HighsLp lp;
+//   lp.num_col_ = 2;
+//   lp.num_row_ = 3;
+//   lp.col_lower_.assign(lp.num_col_, 0);
+//   lp.col_upper_.assign(lp.num_col_, inf);
+//   lp.a_matrix_.start_ = csr_starts;
+//   lp.a_matrix_.index_ = csr_index;
+//   lp.a_matrix_.value_ = csr_values;
+//   auto result = fix_master_variables(lp, std::set<HighsInt>{0}, std::vector<double>{});
+//   REQUIRE(!result);
+//   REQUIRE(lp.col_lower_ == std::vector<double> {0, 0});
+//   REQUIRE(lp.col_upper_ == std::vector<double> {inf, inf});
 
-TEST_CASE("test-set-master-values-invalid-sizes", "[highs-benders]") {
-  /*
-    Matrix [
-      1 0
-      0 1
-      1 1
-    ], with first column being a complicating variable
-  */
-  std::vector<HighsInt> csr_index {0, 1, 0, 1};
-  std::vector<double> csr_values = {1, 1, 1, 1};
-  std::vector<HighsInt> csr_starts {0, 1, 2, 4};
-  std::set<HighsInt> master_indices {0};
-  std::vector<double> master_values {1};
-  HighsLp lp;
-  lp.num_col_ = 2;
-  lp.num_row_ = 3;
-  lp.col_lower_.assign(lp.num_col_, 0);
-  lp.col_upper_.assign(lp.num_col_, inf);
-  lp.a_matrix_.start_ = csr_starts;
-  lp.a_matrix_.index_ = csr_index;
-  lp.a_matrix_.value_ = csr_values;
-  auto result = fix_master_variables(lp, std::set<HighsInt>{0}, std::vector<double>{});
-  REQUIRE(!result);
-  REQUIRE(lp.col_lower_ == std::vector<double> {0, 0});
-  REQUIRE(lp.col_upper_ == std::vector<double> {inf, inf});
-
-  result = fix_master_variables(lp, std::set<HighsInt>{}, std::vector<double>{1});
-  REQUIRE(!result);
-  REQUIRE(lp.col_lower_ == std::vector<double> {0, 0});
-  REQUIRE(lp.col_upper_ == std::vector<double> {inf, inf});
-}
+//   result = fix_master_variables(lp, std::set<HighsInt>{}, std::vector<double>{1});
+//   REQUIRE(!result);
+//   REQUIRE(lp.col_lower_ == std::vector<double> {0, 0});
+//   REQUIRE(lp.col_upper_ == std::vector<double> {inf, inf});
+// }
 
 TEST_CASE("test-set-master-values-highs-instance", "[highs-benders]") {
   /*
@@ -309,9 +290,11 @@ TEST_CASE("test-create-master", "[highs-benders]") {
   rd.master_rows = {0};
   rd.subproblem_rows = {1, 3, 4};
   rd.mixed_rows = {3, 4};
-  auto master = create_master_problem(lp, master_variables, rd);
-  master.ensureRowwise();
-  REQUIRE(master == expected);
+  Highs master;
+  create_master_problem(master, lp, master_variables, rd.subproblem_rows);
+  auto result = master.getLp();
+  result.ensureRowwise();
+  REQUIRE(result == expected);
 }
 
 TEST_CASE("test-create-subproblem", "[highs-benders]") {
@@ -339,11 +322,17 @@ TEST_CASE("test-create-subproblem", "[highs-benders]") {
   lp.a_matrix_.start_ = csr_starts;
   lp.a_matrix_.index_ = csr_index;
   lp.a_matrix_.value_ = csr_values;
+  lp.a_matrix_.format_ = MatrixFormat::kRowwise;
+  lp.a_matrix_.num_col_ = 3;
+  lp.a_matrix_.num_row_ = 5;
   std::set<HighsInt> master_variables {0, 1};
 
   HighsLp expected = lp;
   expected.offset_ = 0;
   expected.col_cost_ = {0, 0, 1};
-  auto subproblem = create_subproblem(lp, master_variables);
-  REQUIRE(subproblem == expected);
+  Highs subproblem;
+  create_subproblem(subproblem, lp, master_variables);
+  auto result = subproblem.getLp();
+  result.ensureRowwise();
+  REQUIRE(result  == expected);
 }

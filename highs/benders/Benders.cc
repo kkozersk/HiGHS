@@ -29,31 +29,9 @@ RowDivision divide_rows(HighsSparseMatrix & constraint_matrix, std::set<HighsInt
   return divide_rows(constraint_matrix.index_, constraint_matrix.start_, master_variables);
 }
 
-HighsIndexCollection index_collection_from_set(std::set<HighsInt> const & index_set, HighsInt max_idx) {
-  return index_collection_from_set(std::vector<HighsInt>(index_set.begin(), index_set.end()), max_idx);
-}
-
-HighsIndexCollection index_collection_from_set(std::vector<HighsInt> const & index_set, HighsInt collection_dimension) {
-  HighsIndexCollection index_collection;
-  index_collection.is_set_ = true;
-  index_collection.set_ = index_set;
-  index_collection.set_num_entries_ = index_set.size();
-  index_collection.dimension_ = collection_dimension;
-  return index_collection;
-}
-
 bool fix_master_variables(Highs & subproblem, std::set<HighsInt> const & master_variables, std::vector<double> const & master_values) {
   for (auto i : master_variables)
     subproblem.changeColBounds(i, master_values.at(i) , master_values.at(i));
-  return true;
-}
-
-bool fix_master_variables(HighsLp & subproblem, std::set<HighsInt> const & master_variables, std::vector<double> const & master_values) {
-  // TODO: What max(master_values) > size?
-  if (master_variables.size() != master_values.size())
-    return false;
-  auto index_collection = index_collection_from_set(master_variables, subproblem.num_col_);
-  changeLpColBounds(subproblem, index_collection, master_values, master_values);
   return true;
 }
 
@@ -68,46 +46,41 @@ std::set<HighsInt> sequence_complement(std::set<HighsInt> const & set, HighsInt 
 //TODO: remove
 inline std::vector<HighsInt> set_to_vector(std::set<HighsInt> const & set) { return {set.begin(), set.end()}; }
 
-HighsLp create_master_problem(HighsLp problem, std::set<HighsInt> const & master_variables, RowDivision const & row_division) {
-  Highs master;
-  master.passModel(problem);
-  auto nonmaster_rows= set_to_vector(row_division.subproblem_rows);
+void create_master_problem(Highs & master, HighsLp const & base_problem, std::set<HighsInt> const & master_variables, std::set<HighsInt> const & subproblem_rows) {
+  master.passModel(base_problem);
+  auto nonmaster_rows = set_to_vector(subproblem_rows);
   master.deleteRows(nonmaster_rows.size(), nonmaster_rows.data());
-  auto subproblem_variables = set_to_vector(sequence_complement(master_variables, problem.num_col_)); // TODO: should it be here?
+  auto subproblem_variables = set_to_vector(sequence_complement(master_variables, base_problem.num_col_)); // TODO: should it be here?
   master.deleteCols(subproblem_variables.size(), subproblem_variables.data());
-  return master.getLp();
 }
 
-HighsLp create_subproblem(HighsLp problem, std::set<HighsInt> const & master_variables) {
-  problem.offset_ = 0;
-  for (auto i: master_variables)
-    problem.col_cost_.at(i) = 0;
-  return problem;
+void create_subproblem(Highs & subproblem, HighsLp const & base_problem, std::set<HighsInt> const & master_variables) {
+  subproblem.passModel(base_problem);
+  subproblem.changeObjectiveOffset(0);
+  auto nonsub_variables = set_to_vector(master_variables);
+  std::vector<double> zeros (master_variables.size(), 0);
+  subproblem.changeColsCost(master_variables.size(), nonsub_variables.data(), zeros.data());
 }
 
-BendersProblems decompose_problem(HighsLp const & problem, std::set<HighsInt> const & master_variables, RowDivision const & row_division) {
-  // TODO: Not optimal!
-  auto master = create_master_problem(problem, master_variables, row_division);
-  auto subproblem = create_subproblem(problem, master_variables);
-  return {master, subproblem};
+void decompose_problem(BendersProblems & problems, HighsLp const & base_problem, std::set<HighsInt> const & master_variables, RowDivision const & row_division) {
+  create_master_problem(problems.master, base_problem, master_variables, row_division.subproblem_rows);
+  create_subproblem(problems.subproblem, base_problem, master_variables);
 }
 
-BendersProblems decompose_problem(HighsLp & problem, std::set<HighsInt> const & master_variables) {
-  auto row_division = divide_rows(problem.a_matrix_, master_variables);
-  return decompose_problem(problem, master_variables, row_division);
+void decompose_problem(BendersProblems & problems, HighsLp & base_problem, std::set<HighsInt> const & master_variables) {
+  auto row_division = divide_rows(base_problem.a_matrix_, master_variables);
+  decompose_problem(problems, base_problem, master_variables, row_division);
 }
 
-void benders(HighsLp & problem, std::set<HighsInt> & master_variables) {
-  auto problems = decompose_problem(problem, master_variables);
-  Highs highs_master, highs_subproblem;
-  highs_subproblem.passModel(problems.subproblem);
-  highs_master.passModel(problems.master);
+void benders(HighsLp & base_problem, std::set<HighsInt> & master_variables) {
+  BendersProblems problems;
+  decompose_problem(problems, base_problem, master_variables);
   for (int i = 0; i < 1; ++i) {
-    auto master_status = highs_master.run();
-    auto const & master_solution = highs_master.getSolution();
-    fix_master_variables(highs_subproblem, master_variables, master_solution.col_value); // Won't work with mu added
-    auto subproblem_status = highs_subproblem.run();
-    auto const & subproblem_solution = highs_subproblem.getSolution();
+    auto master_status = problems.master.run();
+    auto const & master_solution = problems.master.getSolution();
+    fix_master_variables(problems.subproblem, master_variables, master_solution.col_value); // Won't work with mu added
+    auto subproblem_status = problems.subproblem.run();
+    auto const & subproblem_solution = problems.subproblem.getSolution();
      // highs.resetGlobalScheduler(true);
   }
 }
