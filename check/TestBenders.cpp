@@ -159,6 +159,7 @@ TEST_CASE("test-set-master-values-highs-instance", "[highs-benders]") {
   lp.col_cost_.assign(lp.num_col_, 0);
   lp.row_lower_.assign(lp.num_row_, 0);
   lp.row_upper_.assign(lp.num_row_, 0);
+  lp.a_matrix_.format_ = MatrixFormat::kRowwise;
   lp.a_matrix_.start_ = csr_starts;
   lp.a_matrix_.index_ = csr_index;
   lp.a_matrix_.value_ = csr_values;
