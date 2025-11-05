@@ -65,19 +65,10 @@ std::set<HighsInt> sequence_complement(std::set<HighsInt> const & set, HighsInt 
   return complement;
 }
 
-HighsLp create_master_problem(HighsLp problem, std::set<HighsInt> const & master_variables, RowDivision const & row_division) {
-  problem.deleteRows(index_collection_from_set(row_division.subproblem_rows, problem.num_row_));
-  auto subproblem_variables = sequence_complement(master_variables, problem.num_col_); // TODO: should it be here?
-  //problem.a_matrix_.ensureColwise();
-  //problem.a_matrix_.ensureRowwise();
-  //problem.deleteCols(index_collection_from_set(subproblem_variables, problem.num_col_));
-  return problem;
-}
-
 //TODO: remove
 inline std::vector<HighsInt> set_to_vector(std::set<HighsInt> const & set) { return {set.begin(), set.end()}; }
 
-HighsLp create_master_problem2(HighsLp problem, std::set<HighsInt> const & master_variables, RowDivision const & row_division) {
+HighsLp create_master_problem(HighsLp problem, std::set<HighsInt> const & master_variables, RowDivision const & row_division) {
   Highs master;
   master.passModel(problem);
   auto nonmaster_rows= set_to_vector(row_division.subproblem_rows);

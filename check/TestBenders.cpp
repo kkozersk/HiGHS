@@ -309,18 +309,8 @@ TEST_CASE("test-create-master", "[highs-benders]") {
   rd.master_rows = {0};
   rd.subproblem_rows = {1, 3, 4};
   rd.mixed_rows = {3, 4};
-  auto master = create_master_problem2(lp, master_variables, rd);
+  auto master = create_master_problem(lp, master_variables, rd);
   master.ensureRowwise();
-  REQUIRE(master.a_matrix_.num_col_ == expected.a_matrix_.num_col_);
-  REQUIRE(master.a_matrix_.num_row_ == expected.a_matrix_.num_row_);
-  REQUIRE(master.a_matrix_.format_== expected.a_matrix_.format_);
-  REQUIRE(master.a_matrix_.start_== expected.a_matrix_.start_);
-  REQUIRE(master.a_matrix_.index_== expected.a_matrix_.index_);
-  REQUIRE(master.a_matrix_.value_ == expected.a_matrix_.value_);
-  REQUIRE(master.a_matrix_ == expected.a_matrix_);
-  REQUIRE(master.row_upper_ == expected.row_upper_);
-  REQUIRE(master.row_lower_ == expected.row_lower_);
-
   REQUIRE(master == expected);
 }
 

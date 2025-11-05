@@ -25,7 +25,6 @@ bool fix_master_variables(Highs & subproblem, std::set<HighsInt> const & master_
 bool fix_master_variables(HighsLp & subproblem, std::set<HighsInt> const & master_variables, std::vector<double> const & master_values);
 std::set<HighsInt> sequence_complement(std::set<HighsInt> const & set, HighsInt max_number);
 HighsLp create_master_problem(HighsLp problem, std::set<HighsInt> const & master_variables, RowDivision const & row_division);
-HighsLp create_master_problem2(HighsLp problem, std::set<HighsInt> const & master_variables, RowDivision const & row_division);
 HighsLp create_subproblem(HighsLp problem, std::set<HighsInt> const & master_variables); 
 BendersProblems decompose_problem(HighsLp const & problem, std::set<HighsInt> const & master_variables, RowDivision const & row_division); 
 BendersProblems decompose_problem(HighsLp & problem, std::set<HighsInt> const & master_variables);
