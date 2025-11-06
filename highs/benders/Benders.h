@@ -39,7 +39,8 @@ void decompose_problem(BendersProblems & problems, HighsLp & base_problem, std::
 BendersProblems decompose_problem(HighsLp const & problem, std::set<HighsInt> const & master_variables, RowDivision const & row_division); 
 BendersProblems decompose_problem(HighsLp & problem, std::set<HighsInt> const & master_variables);
 std::vector<double> get_all_multipliers(Highs const & subproblem);
-std::vector<double> get_master_multipliers(Highs const & subproblem, std::set<HighsInt> master_variables);
-NonZeroVector create_nonzero_vector(std::vector<double> base_vector);
-void add_objective_cut(Highs & master, Highs const & subproblem, std::set<HighsInt> master_variables, std::vector<double> master_values);
+std::vector<double> get_master_multipliers(Highs const & subproblem, std::set<HighsInt> const & master_variables);
+NonZeroVector create_nonzero_vector(std::vector<double> const & base_vector);
+NonZeroVector add_mu_entry(NonZeroVector vector, HighsInt mu_index);
+void add_objective_cut(Highs & master, Highs const & subproblem, std::set<HighsInt> const & master_variables, std::vector<double> const & master_values);
 void benders(HighsLp & problem, std::set<HighsInt> & master_variables);

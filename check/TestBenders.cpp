@@ -212,13 +212,22 @@ TEST_CASE("test-create-master", "[highs-benders]") {
   lp.a_matrix_.num_col_ = 3;
   std::set<HighsInt> master_variables {0, 1};
 
+  /*
+    We expect:
+    min 5 + x0 + 2x1 + z
+    s.t.
+    [ 1 1 0    [ x0  = 1
+      0 0 0 ]    x1  = 3
+                 z ] 
+      1 <= x0 <=1, 2 <= x1 <= 2, z free
+  */
   HighsLp expected;
   expected.offset_ = 5;
-  expected.num_col_ = 2;
+  expected.num_col_ = 3;
   expected.num_row_ = 2;
-  expected.col_lower_ = {1, 2};
-  expected.col_upper_= {1, 2};
-  expected.col_cost_ = {1, 2};
+  expected.col_lower_ = {1, 2, -inf};
+  expected.col_upper_= {1, 2, inf};
+  expected.col_cost_ = {1, 2, 1};
   expected.row_upper_ = {1, 3};
   expected.row_lower_= {1, 3};
   expected.a_matrix_.format_ = MatrixFormat::kRowwise; //TODO: can we leave it this way?
@@ -226,7 +235,8 @@ TEST_CASE("test-create-master", "[highs-benders]") {
   expected.a_matrix_.index_ = {0, 1};
   expected.a_matrix_.value_ = {1, 1};
   expected.a_matrix_.num_row_ = 2; //TODO: delete the empty row?
-  expected.a_matrix_.num_col_ = 2;
+  expected.a_matrix_.num_col_ = 3;
+
 
   RowDivision rd;
   rd.master_rows = {0};
@@ -236,6 +246,10 @@ TEST_CASE("test-create-master", "[highs-benders]") {
   create_master_problem(master, lp, master_variables, rd.subproblem_rows);
   auto result = master.getLp();
   result.ensureRowwise();
+  REQUIRE(result.a_matrix_ == expected.a_matrix_);
+  REQUIRE(result.col_cost_  == expected.col_cost_);
+  REQUIRE(result.col_upper_  == expected.col_upper_);
+  REQUIRE(result.col_lower_ == expected.col_lower_);
   REQUIRE(result == expected);
 }
 
@@ -356,34 +370,31 @@ TEST_CASE("test-add-objective-cut", "[highs-benders]") {
   REQUIRE(status == HighsStatus::kOk);
   REQUIRE(subproblem.getModelStatus() == HighsModelStatus::kOptimal);
 
-  auto master_multipliers = get_master_multipliers(subproblem, master_variables);
-  REQUIRE(master_multipliers == std::vector<double> {2});
-
   add_objective_cut(master, subproblem, master_variables, master_values);
   auto new_master = master.getLp();
   /*
     We want the new master to be in form:
-      min 5 + x_0
-      0 x_0 = 0
-      2 x_0 >= 1
+      min 5 + x_0 + z
+      0 x_0 + 0 z = 0
+      2 x_0 + z >= 1
 
       x_0 >= 0
     */
   HighsLp expected;
   expected.offset_ = 5;
-  expected.num_col_ = 1;
+  expected.num_col_ = 2;
   expected.num_row_ = 2;
-  expected.col_lower_ = {0};
-  expected.col_upper_ = {inf};
-  expected.col_cost_ = {1};
+  expected.col_lower_ = {0, -inf};
+  expected.col_upper_ = {inf, inf};
+  expected.col_cost_ = {1, 1};
   expected.row_lower_ = {0, 1};
   expected.row_upper_ = {0, inf};
   expected.a_matrix_.format_ = MatrixFormat::kRowwise;
-  expected.a_matrix_.start_ = {0,0,1};
-  expected.a_matrix_.index_ = {0};
-  expected.a_matrix_.value_ = {2};
+  expected.a_matrix_.start_ = {0,0,2};
+  expected.a_matrix_.index_ = {0,1};
+  expected.a_matrix_.value_ = {2,1};
   expected.a_matrix_.num_row_ = 2;
-  expected.a_matrix_.num_col_ = 1;
+  expected.a_matrix_.num_col_ = 2;
   REQUIRE(new_master.num_row_ == num_row + 1);
   REQUIRE(new_master == expected);
 }

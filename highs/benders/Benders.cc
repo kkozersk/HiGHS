@@ -55,6 +55,7 @@ void create_master_problem(Highs & master, HighsLp const & base_problem, std::se
   master.deleteRows(nonmaster_rows.size(), nonmaster_rows.data());
   auto subproblem_variables = set_to_vector(sequence_complement(master_variables, base_problem.num_col_)); // TODO: should it be here?
   master.deleteCols(subproblem_variables.size(), subproblem_variables.data());
+  master.addCol(1, -kHighsInf, kHighsInf, 0, nullptr, nullptr);
 }
 
 void create_subproblem(Highs & subproblem, HighsLp const & base_problem, std::set<HighsInt> const & master_variables) {
@@ -84,7 +85,7 @@ std::vector<double> get_all_multipliers(Highs const & subproblem) {
   return all_multipliers;
 }
 
-std::vector<double> get_master_multipliers(Highs const & subproblem, std::set<HighsInt> master_variables) {
+std::vector<double> get_master_multipliers(Highs const & subproblem, std::set<HighsInt> const & master_variables) {
   auto all_multipliers = get_all_multipliers(subproblem);
   std::vector<double> master_multipliers;
   for (auto i : master_variables)
@@ -92,7 +93,7 @@ std::vector<double> get_master_multipliers(Highs const & subproblem, std::set<Hi
   return master_multipliers;
 }
 
-NonZeroVector create_nonzero_vector(std::vector<double> base_vector) {
+NonZeroVector create_nonzero_vector(std::vector<double> const & base_vector) {
   HighsInt number_of_nonzeros = 0;
   std::vector<HighsInt> nonzero_indices;
   std::vector<double> nonzero_values;
@@ -106,12 +107,19 @@ NonZeroVector create_nonzero_vector(std::vector<double> base_vector) {
   return {number_of_nonzeros, nonzero_indices, nonzero_values};
 }
 
-void add_objective_cut(Highs & master, Highs const & subproblem, std::set<HighsInt> master_variables, std::vector<double> master_values) {
+NonZeroVector add_mu_entry(NonZeroVector vector, HighsInt mu_index) {
+  vector.number_of_nonzeros += 1;
+  vector.nonzero_indices.push_back(mu_index);
+  vector.nonzero_values.push_back(1);
+  return vector;
+}
+
+void add_objective_cut(Highs & master, Highs const & subproblem, std::set<HighsInt> const & master_variables, std::vector<double> const & master_values) {
   double dual_objective;
   subproblem.getDualObjectiveValue(dual_objective);
   auto multipliers = get_master_multipliers(subproblem, master_variables);
   auto old_value_multiple = std::inner_product(multipliers.begin(), multipliers.end(), master_values.begin(), 0.0);
-  auto nonzero_multipliers = create_nonzero_vector(multipliers);
+  auto nonzero_multipliers = add_mu_entry(create_nonzero_vector(multipliers), master_variables.size());
   master.addRow(dual_objective + old_value_multiple, kHighsInf,
                  nonzero_multipliers.number_of_nonzeros,
                  nonzero_multipliers.nonzero_indices.data(),
@@ -134,10 +142,10 @@ void benders(HighsLp & base_problem, std::set<HighsInt> & master_variables) {
   std::vector<double> dual_ray (base_problem.num_col_);
   std::vector<double> master_values(master_variables.size(), 0);
   double UBD = kHighsInf, LBD = -kHighsInf;
+  auto starting_values =  std::vector<double>(master_variables.size(), 0);
+  fix_master_variables(subproblem, master_variables, starting_values);
   while (UBD - LBD > 1e-3) {
-    fix_master_variables(subproblem, master_variables, master_values); // Won't work with mu added
-    if (subproblem.run() == HighsStatus::kError)
-      break;
+    if (subproblem.run() == HighsStatus::kError) break;
     if (subproblem.getModelStatus() == HighsModelStatus::kInfeasible) {
       bool has_dual_ray;
       subproblem.getDualRay(has_dual_ray, dual_ray.data());
@@ -148,10 +156,10 @@ void benders(HighsLp & base_problem, std::set<HighsInt> & master_variables) {
        UBD = std::min(UBD, subproblem.getObjectiveValue());
        add_objective_cut(master, subproblem, master_variables, master_values);
     }
-    if (master.run() == HighsStatus::kError)
-      break;
+    if (master.run() == HighsStatus::kError) break;
     LBD = master.getObjectiveValue();
-    master_values = master.getSolution().col_value;
+    auto master_values = master.getSolution().col_value;
+    fix_master_variables(subproblem, master_variables, master_values); // Won't work with mu added
   }
 }
 
