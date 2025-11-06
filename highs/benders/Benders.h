@@ -20,6 +20,11 @@ struct NonZeroVector {
   HighsInt number_of_nonzeros;
   std::vector<HighsInt> nonzero_indices;
   std::vector<double> nonzero_values;
+  bool operator==(NonZeroVector const & other) const {
+    return number_of_nonzeros == other.number_of_nonzeros &&
+      nonzero_indices == other.nonzero_indices &&
+      nonzero_values == other.nonzero_values;
+  }
 };
 
 HighsInt find_row_index(std::vector<HighsInt> const & csr_starts, HighsInt index);

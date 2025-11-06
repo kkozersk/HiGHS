@@ -388,3 +388,10 @@ TEST_CASE("test-add-objective-cut", "[highs-benders]") {
   REQUIRE(new_master == expected);
 }
 
+TEST_CASE("test-create_nonzero-vector", "[highs-benders]") {
+  REQUIRE(create_nonzero_vector({1, 2}) == NonZeroVector {2, {0, 1}, {1, 2}});
+  REQUIRE(create_nonzero_vector({1, 1, 1}) == NonZeroVector {3, {0, 1, 2}, {1, 1, 1}});
+  REQUIRE(create_nonzero_vector({1, 0, 2, 0, 0, 3, 0}) == NonZeroVector {3, {0, 2, 5}, {1, 2, 3}});
+  REQUIRE(create_nonzero_vector({0, 0}) == NonZeroVector {0, {}, {}});
+  REQUIRE(create_nonzero_vector({}) == NonZeroVector {0, {}, {}});
+ }
