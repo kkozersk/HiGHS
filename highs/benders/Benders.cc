@@ -75,6 +75,7 @@ void decompose_problem(BendersProblems & problems, HighsLp & base_problem, std::
   decompose_problem(problems, base_problem, master_variables, row_division);
 }
 
+// this can be done with reduced costs!
 std::vector<double> get_all_multipliers(Highs const & subproblem) {
   std::vector<double> all_multipliers;
   auto const & dual = subproblem.getSolution().row_dual;
@@ -91,30 +92,66 @@ std::vector<double> get_master_multipliers(Highs const & subproblem, std::set<Hi
   return master_multipliers;
 }
 
+NonZeroVector create_nonzero_vector(std::vector<double> base_vector) {
+  HighsInt number_of_nonzeros = 0;
+  std::vector<HighsInt> nonzero_indices;
+  std::vector<double> nonzero_values;
+  double vector_entry;
+  for (int i = 0; i < base_vector.size(); ++i)
+    if ((vector_entry = base_vector.at(i)) != 0) {
+      nonzero_indices.push_back(i);
+      nonzero_values.push_back(vector_entry);
+      ++number_of_nonzeros;
+    }
+  return {number_of_nonzeros, nonzero_indices, nonzero_values};
+}
+
 void add_objective_cut(Highs & master, Highs const & subproblem, std::set<HighsInt> master_variables, std::vector<double> master_values) {
   double dual_objective;
   subproblem.getDualObjectiveValue(dual_objective);
   auto multipliers = get_master_multipliers(subproblem, master_variables);
   auto old_value_multiple = std::inner_product(multipliers.begin(), multipliers.end(), master_values.begin(), 0.0);
-  master.addRow(dual_objective + old_value_multiple, kHighsInf, 0, nullptr, multipliers.data());
+  auto nonzero_multipliers = create_nonzero_vector(multipliers);
+  master.addRow(dual_objective + old_value_multiple, kHighsInf,
+                 nonzero_multipliers.number_of_nonzeros,
+                 nonzero_multipliers.nonzero_indices.data(),
+                 nonzero_multipliers.nonzero_values.data());
 }
+
+// void add_feasibility_cut(Highs & master, Highs const & subproblem, std::set<HighsInt> master_variables, std::vector<double> master_values) {
+//   double dual_objective;
+//   subproblem.getDualObjectiveValue(dual_objective);
+//   auto multipliers = get_master_multipliers(subproblem, master_variables);
+//   auto old_value_multiple = std::inner_product(multipliers.begin(), multipliers.end(), master_values.begin(), 0.0);
+//   master.addRow(dual_objective + old_value_multiple, kHighsInf, 0, nullptr, multipliers.data());
+// }
 
 void benders(HighsLp & base_problem, std::set<HighsInt> & master_variables) {
   BendersProblems problems;
   decompose_problem(problems, base_problem, master_variables);
   auto & master = problems.master;
   auto & subproblem = problems.subproblem;
+  std::vector<double> dual_ray (base_problem.num_col_);
   std::vector<double> master_values(master_variables.size(), 0);
-  for (int i = 0; i < 2; ++i) {
+  double UBD = kHighsInf, LBD = -kHighsInf;
+  while (UBD - LBD > 1e-3) {
     fix_master_variables(subproblem, master_variables, master_values); // Won't work with mu added
-    if (subproblem.run() == HighsStatus::kOk)
-      add_objective_cut(master, subproblem, master_variables, master_values);
-    else
+    if (subproblem.run() == HighsStatus::kError)
       break;
-    auto master_status = master.run();
+    if (subproblem.getModelStatus() == HighsModelStatus::kInfeasible) {
+      bool has_dual_ray;
+      subproblem.getDualRay(has_dual_ray, dual_ray.data());
+      // add_feasibility_cut(master, subproblem, master_variables, master_values);
+    }
+    else {
+      // TODO: maximizing subproblem
+       UBD = std::min(UBD, subproblem.getObjectiveValue());
+       add_objective_cut(master, subproblem, master_variables, master_values);
+    }
+    if (master.run() == HighsStatus::kError)
+      break;
+    LBD = master.getObjectiveValue();
     master_values = master.getSolution().col_value;
-    // auto const & subproblem_solution = problems.subproblem.getSolution();
-     // highs.resetGlobalScheduler(true);
   }
 }
 

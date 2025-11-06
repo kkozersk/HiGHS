@@ -279,10 +279,10 @@ TEST_CASE("test-create-subproblem", "[highs-benders]") {
   REQUIRE(result  == expected);
 }
 
-TEST_CASE("test-get-multipliers", "[highs-benders]") {
+HighsLp get_simple_test_problem() {
   /*
     Problem
-    min [1 2 -1]^T x
+    min 5 + [1 2 -1]^T x
     s.t.
       [1 1 0         = 1
       0 0 1  [x0     <= 1
@@ -290,8 +290,6 @@ TEST_CASE("test-get-multipliers", "[highs-benders]") {
       1 0 1   x2]    <= 2
       1 1 1]         >= 1.5
       x >= 0
-    , with complicating variables 0
-
   */
   std::vector<HighsInt> csr_index {0,1,2,0,2,0,1,2};
   std::vector<double> csr_values(8, 1);
@@ -311,7 +309,12 @@ TEST_CASE("test-get-multipliers", "[highs-benders]") {
   lp.a_matrix_.value_ = csr_values;
   lp.a_matrix_.num_row_ = 5;
   lp.a_matrix_.num_col_ = 3;
-  std::set<HighsInt> master_variables {0};
+  return lp;
+}
+
+TEST_CASE("test-get-multipliers", "[highs-benders]") {
+  auto lp = get_simple_test_problem();
+  std::set<HighsInt> master_variables {0}; //  with complicating variables 0
 
   Highs subproblem;
   create_subproblem(subproblem, lp, master_variables);
@@ -334,6 +337,54 @@ TEST_CASE("test-get-multipliers", "[highs-benders]") {
   subproblem.getDualRay(has_dual_ray, dual_ray);
   REQUIRE(has_dual_ray);
   REQUIRE(std::vector<double>(dual_ray, dual_ray + 5) == std::vector<double> {-1, 0, 0, 0, 0});
-  
+}
+
+TEST_CASE("test-add-objective-cut", "[highs-benders]") {
+  auto lp = get_simple_test_problem();
+  std::set<HighsInt> master_variables {0}; //  with complicating variables 0
+  BendersProblems problems;
+  decompose_problem(problems, lp, master_variables);
+  auto & master = problems.master;
+  auto & subproblem = problems.subproblem;
+
+  auto num_col = master.getLp().num_col_;
+  auto num_row = master.getLp().num_row_;
+
+  std::vector<double> master_values {0};
+  fix_master_variables(subproblem, master_variables, master_values);
+  auto status = subproblem.run();
+  REQUIRE(status == HighsStatus::kOk);
+  REQUIRE(subproblem.getModelStatus() == HighsModelStatus::kOptimal);
+
+  auto master_multipliers = get_master_multipliers(subproblem, master_variables);
+  REQUIRE(master_multipliers == std::vector<double> {2});
+
+  add_objective_cut(master, subproblem, master_variables, master_values);
+  auto new_master = master.getLp();
+  /*
+    We want the new master to be in form:
+      min 5 + x_0
+      0 x_0 = 0
+      2 x_0 >= 1
+
+      x_0 >= 0
+    */
+  HighsLp expected;
+  expected.offset_ = 5;
+  expected.num_col_ = 1;
+  expected.num_row_ = 2;
+  expected.col_lower_ = {0};
+  expected.col_upper_ = {inf};
+  expected.col_cost_ = {1};
+  expected.row_lower_ = {0, 1};
+  expected.row_upper_ = {0, inf};
+  expected.a_matrix_.format_ = MatrixFormat::kRowwise;
+  expected.a_matrix_.start_ = {0,0,1};
+  expected.a_matrix_.index_ = {0};
+  expected.a_matrix_.value_ = {2};
+  expected.a_matrix_.num_row_ = 2;
+  expected.a_matrix_.num_col_ = 1;
+  REQUIRE(new_master.num_row_ == num_row + 1);
+  REQUIRE(new_master == expected);
 }
 
