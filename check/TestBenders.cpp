@@ -2,6 +2,7 @@
 #include "HConst.h"
 #include "Highs.h"
 #include "HighsInt.h"
+#include "HighsSolution.h"
 #include "HighsStatus.h"
 #include "catch.hpp"
 #include <cmath>
@@ -360,7 +361,7 @@ TEST_CASE("test-add-objective-cut", "[highs-benders]") {
   decompose_problem(problems, lp, master_variables);
   auto & master = problems.master;
   auto & subproblem = problems.subproblem;
-
+  
   auto num_col = master.getLp().num_col_;
   auto num_row = master.getLp().num_row_;
 
@@ -369,8 +370,8 @@ TEST_CASE("test-add-objective-cut", "[highs-benders]") {
   auto status = subproblem.run();
   REQUIRE(status == HighsStatus::kOk);
   REQUIRE(subproblem.getModelStatus() == HighsModelStatus::kOptimal);
-
-  add_objective_cut(master, subproblem, master_variables, master_values);
+  
+  add_cut(problems, master_variables, master_values, CutType::Objective);
   auto new_master = master.getLp();
   /*
     We want the new master to be in form:
@@ -406,3 +407,79 @@ TEST_CASE("test-create_nonzero-vector", "[highs-benders]") {
   REQUIRE(create_nonzero_vector({0, 0}) == NonZeroVector {0, {}, {}});
   REQUIRE(create_nonzero_vector({}) == NonZeroVector {0, {}, {}});
  }
+
+TEST_CASE("test-discover-master-variables", "[highs-benders]") {
+  REQUIRE(discover_master_variables({"EC1", "EC2", "EG1", "EH2", "ECC", "EC4"}, "EC\\d") == std::set<HighsInt> {0, 1, 5});
+  REQUIRE(discover_master_variables({"EC1", "EC2", "EG1", "EH2", "ECC", "EC4"}, "EX") == std::set<HighsInt> {});
+  REQUIRE(discover_master_variables({}, "EC\\d") == std::set<HighsInt> {});
+}
+
+TEST_CASE("test-add-feasibility-cut", "[highs-benders]") {
+  auto lp = get_simple_test_problem();
+  std::set<HighsInt> master_variables {0}; //  with complicating variables 0
+  BendersProblems problems;
+  decompose_problem(problems, lp, master_variables);
+  auto & master = problems.master;
+  auto & subproblem = problems.subproblem;
+
+  auto num_col = master.getLp().num_col_;
+  auto num_row = master.getLp().num_row_;
+
+  std::vector<double> master_values {2};
+  fix_master_variables(subproblem, master_variables, master_values);
+  auto status = subproblem.run();
+  REQUIRE(status == HighsStatus::kOk);
+  REQUIRE(subproblem.getModelStatus() == HighsModelStatus::kInfeasible);
+  solve_feasibility_subproblem(subproblem);
+  add_cut(problems, master_variables, master_values, CutType::Feasibility);
+  auto new_master = master.getLp();
+  /*
+    We want the new master to be in form:
+      min 5 + x_0 + z
+      0 x_0 + 0 z = 0
+      -2 x_0 + 0z >= -2
+
+      x_0 >= 0
+    */
+  HighsLp expected;
+  expected.offset_ = 5;
+  expected.num_col_ = 2;
+  expected.num_row_ = 2;
+  expected.col_lower_ = {0, -inf};
+  expected.col_upper_ = {inf, inf};
+  expected.col_cost_ = {1, 1};
+  expected.row_lower_ = {0, -2};
+  expected.row_upper_ = {0, inf};
+  expected.a_matrix_.format_ = MatrixFormat::kRowwise;
+  expected.a_matrix_.start_ = {0,0,1};
+  expected.a_matrix_.index_ = {0};
+  expected.a_matrix_.value_ = {-1}; //?
+  expected.a_matrix_.num_row_ = 2;
+  expected.a_matrix_.num_col_ = 2;
+  // REQUIRE(new_master.num_row_ == num_row + 1);
+  // REQUIRE(expected.col_lower_ ==  new_master.col_lower_);
+  // REQUIRE(expected.col_upper_ ==  new_master.col_upper_);
+  // REQUIRE(expected.col_cost_ == new_master.col_cost_ );
+  // REQUIRE(expected.row_lower_ ==  new_master.row_lower_);
+  // REQUIRE(expected.row_upper_ ==  new_master.row_upper_);
+  // REQUIRE(new_master == expected);
+  bool has_dual_ray;
+  std::vector<double> duals(6, 10);
+  subproblem.getDualRay(has_dual_ray, duals.data());
+  double dual_obj;
+  std::vector<double> unb(5);
+  subproblem.getDualObjectiveValue(dual_obj);
+  auto sol = subproblem.getSolution();
+  sol.row_dual = duals;
+  computeDualObjectiveValue(subproblem.getModel(), sol, dual_obj);
+  subproblem.getDualUnboundednessDirection(has_dual_ray, unb.data());
+  REQUIRE(unb == std::vector<double> {-1, 0, 0, 0, 0});
+  REQUIRE(dual_obj == 0);
+  REQUIRE(sol.col_value == std::vector<double> {}); // 2 0 0 
+  REQUIRE(sol.row_value  == std::vector<double> {}); // 2 0 0 2 2
+  REQUIRE(sol.col_dual  == std::vector<double> {}); // 0 0.00007 0.000008
+  REQUIRE(sol.row_dual == std::vector<double> {}); // 0 0 0 0 0
+  REQUIRE(duals == std::vector<double> {});
+
+
+}

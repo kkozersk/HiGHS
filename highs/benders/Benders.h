@@ -1,5 +1,6 @@
 #pragma once
 #include <set>
+#include <regex>
 #include "HighsInt.h"
 #include "Highs.h"
 #include "HighsLp.h"
@@ -27,6 +28,15 @@ struct NonZeroVector {
   }
 };
 
+struct BendersIterationInfo {
+  double UBD;
+  double LBD;
+  bool was_subproblem_feasible;
+  bool was_error;
+};
+
+enum CutType { Objective, Feasibility };
+
 HighsInt find_row_index(std::vector<HighsInt> const & csr_starts, HighsInt index);
 RowDivision divide_rows(std::vector<HighsInt> const & csr_index, std::vector<HighsInt> const & csr_starts, std::set<HighsInt> const & master_variables); 
 RowDivision divide_rows(HighsSparseMatrix & constraint_matrix, std::set<HighsInt> const & master_variables);
@@ -42,5 +52,10 @@ std::vector<double> get_all_multipliers(Highs const & subproblem);
 std::vector<double> get_master_multipliers(Highs const & subproblem, std::set<HighsInt> const & master_variables);
 NonZeroVector create_nonzero_vector(std::vector<double> const & base_vector);
 NonZeroVector add_mu_entry(NonZeroVector vector, HighsInt mu_index);
-void add_objective_cut(Highs & master, Highs const & subproblem, std::set<HighsInt> const & master_variables, std::vector<double> const & master_values);
-void benders(HighsLp & problem, std::set<HighsInt> & master_variables);
+void add_cut(BendersProblems & problems, std::set<HighsInt> const & master_variables, std::vector<double> const & master_values, CutType cut_type);
+void solve_feasibility_subproblem(Highs & subproblem);
+std::set<HighsInt> discover_master_variables(std::vector<std::string> const & variable_names, std::regex const & master_name_pattern);
+std::set<HighsInt> discover_master_variables(std::vector<std::string> const & variable_names, std::string const & master_name_pattern);
+BendersIterationInfo solve_subproblem(Highs & subproblem, BendersIterationInfo info);
+BendersIterationInfo solve_master(Highs & master, BendersIterationInfo info);
+void benders(HighsLp & base_problem, std::string const & master_name_pattern, double eps=1e-3);
