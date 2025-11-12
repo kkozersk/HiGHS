@@ -175,60 +175,56 @@ std::set<HighsInt> discover_master_variables(std::vector<std::string> const & va
     // subproblem.setSolution(solution);
 // }
 
-BendersIterationInfo solve_subproblem(Highs & subproblem, BendersIterationInfo info) {
-  info.was_error = subproblem.run() == HighsStatus::kError;
+BendersIterationInfo solve_subproblem(Highs & subproblem, BendersIterationInfo info, std::set<HighsInt> const & master_variables, std::vector<double> const & master_values) {
+  fix_master_variables(subproblem, master_variables, master_values);
+  info.was_error = info.was_error || subproblem.run() == HighsStatus::kError;
   info.was_subproblem_feasible = subproblem.getModelStatus() == HighsModelStatus::kOptimal;
-  // if (info.was_subproblem_feasible) // TODO: maximization
-    // info.UBD = d::min(info.UBD, subproblem.getObjectiveValue());
-  // else
-    // solve_feasibility_subproblem(subproblem);
   return info;
 }
 
 
-BendersIterationInfo solve_feasibility_subproblem(Highs & feas_subproblem, BendersIterationInfo info) {
-  info.was_error = feas_subproblem.run() == HighsStatus::kError;
-  return info;
-}
+// BendersIterationInfo solve_feasibility_subproblem(Highs & feas_subproblem) {
+//   BendersIterationInfo info;
+//   info.was_error = feas_subproblem.run() == HighsStatus::kError;
+//   return info;
+// }
 
 BendersIterationInfo solve_master(Highs & master, BendersIterationInfo info) {
-  info.was_error = master.run() == HighsStatus::kError;
-  // info.LBD = master.getObjectiveValue();
+  info.was_error = info.was_error || master.run() == HighsStatus::kError;
   return info;
 }
 
-double benders(HighsLp & base_problem, std::string const & master_name_pattern, std::vector<double> starting_point, double eps) { 
+double calculate_solution_cost(Highs const & master, Highs const & subproblem, std::set<HighsInt> const & master_variables) {
+  double subproblem_cost = subproblem.getObjectiveValue();
+  double master_cost = master.getObjectiveValue();
+  int no_master_vars = master_variables.size();
+  auto const & master_solution = master.getSolution().col_value;
+  auto const & master_costs = master.getLp().col_cost_;
+  double mu_cost = std::inner_product(master_solution.begin() + no_master_vars, master_solution.end(), master_costs.begin() + no_master_vars, 0.);
+  return subproblem_cost + master_cost - mu_cost;
+}
+
+double benders(HighsLp & base_problem, std::string const & master_name_pattern, std::vector<double> const & starting_point, double eps) { 
   auto master_variables = discover_master_variables(base_problem.col_names_, master_name_pattern);
   return benders(base_problem, master_variables, starting_point, eps);
 }
 
-double benders(HighsLp & base_problem, std::set<HighsInt> const & master_variables, std::vector<double> starting_point, double eps) { 
-  auto master_colcost = base_problem.col_cost_;
-  BendersProblems problems;
-  decompose_problem(problems, base_problem, master_variables);
+double benders(HighsLp & base_problem, std::set<HighsInt> const & master_variables, std::vector<double> const & starting_point, double eps) { 
+  BendersProblems problems; decompose_problem(problems, base_problem, master_variables);
   BendersIterationInfo info;
   auto master_values = starting_point;
   int iter = 0;
   double UBD = kHighsInf, LBD = -kHighsInf;
-  double offset;
-  problems.master.getObjectiveOffset(offset);
   while (UBD - LBD > eps && !info.was_error && ++iter < 1e2) {
-    fix_master_variables(problems.subproblem, master_variables, master_values);
-    info = solve_subproblem(problems.subproblem, info);
+    info = solve_subproblem(problems.subproblem, info, master_variables, master_values);
     if (info.was_subproblem_feasible) {
-      auto sol = problems.subproblem.getSolution().col_value;
-      double master_cost = 0;
-      for (auto i : master_variables) {
-        master_cost += sol.at(i) * master_colcost.at(i);
-      }
-      double subobj = problems.subproblem.getObjectiveValue();
-      double new_solution = offset + master_cost +  subobj;
-      UBD = std::min(UBD, new_solution);
+      double solution_cost = calculate_solution_cost(problems.master, problems.subproblem, master_variables);
+      // TODO: maximization?
+      UBD = std::min(UBD, solution_cost);
       add_cut(problems.master, problems.subproblem, master_variables, master_values, CutType::Objective);
     }
     else {
-      fix_master_variables(problems.feas_subproblem, master_variables, master_values);
-      info = solve_feasibility_subproblem(problems.feas_subproblem, info);
+      info = solve_subproblem(problems.feas_subproblem, info,  master_variables, master_values);
       add_cut(problems.master, problems.feas_subproblem, master_variables, master_values, CutType::Feasibility);
     }
     info = solve_master(problems.master, info);

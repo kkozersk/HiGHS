@@ -34,8 +34,6 @@ struct NonZeroVector {
 };
 
 struct BendersIterationInfo {
-  double UBD=kHighsInf;
-  double LBD=-kHighsInf;
   bool was_subproblem_feasible=true;
   bool was_error=false;
 };
@@ -64,10 +62,11 @@ void add_nonzero_col(Highs & problem, double col_cost, double col_lower, double 
 // void add_cut(BendersProblems & problems, std::set<HighsInt> const & master_variables, std::vector<double> const & master_values, CutType cut_type);
 void add_cut(Highs & master, Highs const & subproblem, std::set<HighsInt> const & master_variables, std::vector<double> const & master_values, CutType cut_type);
 // void solve_feasibility_subproblem(Highs & subproblem);
-BendersIterationInfo solve_feasibility_subproblem(Highs & feas_subproblem, BendersIterationInfo info); 
+// BendersIterationInfo solve_feasibility_subproblem(Highs & feas_subproblem); 
 std::set<HighsInt> discover_master_variables(std::vector<std::string> const & variable_names, std::regex const & master_name_pattern);
 std::set<HighsInt> discover_master_variables(std::vector<std::string> const & variable_names, std::string const & master_name_pattern);
-BendersIterationInfo solve_subproblem(Highs & subproblem, BendersIterationInfo info);
+BendersIterationInfo solve_subproblem(Highs & subproblem, BendersIterationInfo info, std::set<HighsInt> const & master_variables, std::vector<double> const & master_values);
 BendersIterationInfo solve_master(Highs & master, BendersIterationInfo info);
-double benders(HighsLp & base_problem, std::set<HighsInt> const & master_variables, std::vector<double> starting_point, double eps=1e-3);
-double benders(HighsLp & base_problem, std::string const & master_name_pattern, std::vector<double> starting_point, double eps=1e-3);
+double calculate_solution_cost(Highs const & master, Highs const & subproblem, std::set<HighsInt> const & master_variables); 
+double benders(HighsLp & base_problem, std::set<HighsInt> const & master_variables, std::vector<double> const & starting_point, double eps=1e-3);
+double benders(HighsLp & base_problem, std::string const & master_name_pattern, std::vector<double> const & starting_point, double eps=1e-3);
