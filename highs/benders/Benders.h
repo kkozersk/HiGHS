@@ -7,6 +7,9 @@
 #include "HighsLp.h"
 #include "HighsSparseMatrix.h"
 
+//TODO: REMOVE
+const double mu_lb = -1e4;
+
 struct RowDivision {
   std::set<HighsInt> master_rows;
   std::set<HighsInt> subproblem_rows;
@@ -42,6 +45,7 @@ enum CutType { Objective, Feasibility };
 HighsInt find_row_index(std::vector<HighsInt> const & csr_starts, HighsInt index);
 RowDivision divide_rows(std::vector<HighsInt> const & csr_index, std::vector<HighsInt> const & csr_starts, std::set<HighsInt> const & master_variables); 
 RowDivision divide_rows(HighsSparseMatrix & constraint_matrix, std::set<HighsInt> const & master_variables);
+void fix_variable(Highs & problem, HighsInt variable_index, double value);
 bool fix_master_variables(Highs & subproblem, std::set<HighsInt> const & master_variables, std::vector<double> const & master_values);
 std::set<HighsInt> sequence_complement(std::set<HighsInt> const & set, HighsInt max_number);
 void create_master_problem(Highs & master, HighsLp const & base_problem, std::set<HighsInt> const & master_variables, std::set<HighsInt> const & subproblem_rows);
@@ -65,4 +69,5 @@ std::set<HighsInt> discover_master_variables(std::vector<std::string> const & va
 std::set<HighsInt> discover_master_variables(std::vector<std::string> const & variable_names, std::string const & master_name_pattern);
 BendersIterationInfo solve_subproblem(Highs & subproblem, BendersIterationInfo info);
 BendersIterationInfo solve_master(Highs & master, BendersIterationInfo info);
-void benders(HighsLp & base_problem, std::string const & master_name_pattern, double eps=1e-3);
+double benders(HighsLp & base_problem, std::set<HighsInt> const & master_variables, std::vector<double> starting_point, double eps=1e-3);
+double benders(HighsLp & base_problem, std::string const & master_name_pattern, std::vector<double> starting_point, double eps=1e-3);

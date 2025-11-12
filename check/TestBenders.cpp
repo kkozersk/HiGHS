@@ -1,4 +1,6 @@
 #include "Benders.h"
+#include "HCheckConfig.h"
+#include "FilereaderLp.h"
 #include "HConst.h"
 #include "Highs.h"
 #include "HighsInt.h"
@@ -44,6 +46,39 @@ HighsLp get_simple_test_problem() {
   return lp;
 }
 
+HighsLp get_second_test_problem() {
+  /*
+  min  [1 5 3 4 5 -6]^T x
+  [
+  	1 1  0  0 0 0      <=  4  
+  	1 0 -1 0 0 0       <=  0
+  	0 2  1 0 1 0   x   >=  3
+  	1 1  0 1 0 0       ==  5 
+  	0 0  0 0 1 0       <=  2
+  	1 0  0 0 0 1       ==  1
+  ]
+      x >= 0
+  */
+  std::vector<HighsInt> csr_index {0,1, 0,2, 1,2,4, 0,1,3, 4, 0,5};
+  std::vector<double> csr_values {1,1, 1,-1, 2,1,1, 1,1,1, 1, 1,1 };
+  std::vector<HighsInt> csr_starts {0,2,4,7,10,11,13};
+  HighsLp lp;
+  lp.offset_ = 0;
+  lp.num_col_ = 6;
+  lp.num_row_ = 6;
+  lp.col_lower_ = {0, 0, 0, 0, 0, 0};
+  lp.col_upper_ = {inf, inf, inf, inf, inf, inf};
+  lp.col_cost_ = {1, 5, 3, 4, 5, -6};
+  lp.row_lower_ = {-inf, -inf, 3, 5, -inf, 1};
+  lp.row_upper_ = {4, 0, inf, 5, 2, 1};
+  lp.a_matrix_.format_ = MatrixFormat::kRowwise;
+  lp.a_matrix_.start_ = csr_starts;
+  lp.a_matrix_.index_ = csr_index;
+  lp.a_matrix_.value_ = csr_values;
+  lp.a_matrix_.num_row_ = 6;
+  lp.a_matrix_.num_col_ = 6;
+  return lp;
+}
 TEST_CASE("test-find-column-index", "[highs_benders]") {
     /*
       Matrix [
@@ -259,7 +294,7 @@ TEST_CASE("test-create-master", "[highs-benders]") {
   expected.offset_ = 5;
   expected.num_col_ = 3;
   expected.num_row_ = 2;
-  expected.col_lower_ = {1, 2, -inf};
+  expected.col_lower_ = {1, 2, mu_lb};
   expected.col_upper_= {1, 2, inf};
   expected.col_cost_ = {1, 2, 1};
   expected.row_upper_ = {1, 3};
@@ -466,7 +501,7 @@ TEST_CASE("test-add-objective-cut", "[highs-benders]") {
   expected.offset_ = 5;
   expected.num_col_ = 2;
   expected.num_row_ = 2;
-  expected.col_lower_ = {0, -inf};
+  expected.col_lower_ = {0, mu_lb};
   expected.col_upper_ = {inf, inf};
   expected.col_cost_ = {1, 1};
   expected.row_lower_ = {0, 1};
@@ -537,7 +572,7 @@ TEST_CASE("test-add-feasibility-cut", "[highs-benders]") {
   expected.offset_ = 5;
   expected.num_col_ = 2;
   expected.num_row_ = 2;
-  expected.col_lower_ = {0, -inf};
+  expected.col_lower_ = {0, mu_lb};
   expected.col_upper_ = {inf, inf};
   expected.col_cost_ = {1, 1};
   expected.row_lower_ = {0, -1};
@@ -559,4 +594,64 @@ TEST_CASE("test-add-feasibility-cut", "[highs-benders]") {
   REQUIRE(expected.row_lower_ ==  new_master.row_lower_);
   REQUIRE(expected.row_upper_ ==  new_master.row_upper_);
   REQUIRE(new_master == expected);
+}
+
+TEST_CASE("test-solve-simple-system", "[highs-benders]") {
+  auto lp = get_simple_test_problem();
+  lp.col_names_ = {"m1", "s1", "s2"};
+  Highs nodecomp;
+  nodecomp.passModel(lp);
+  nodecomp.run();
+  auto expected = nodecomp.getObjectiveValue();
+  auto res = benders(lp, "m\\d", {2});
+  REQUIRE(std::abs(res - expected) < 1e-3);
+}
+
+TEST_CASE("test-solve-simple-system-2", "[highs-benders]") {
+  auto lp = get_simple_test_problem();
+  lp.col_names_ = {"m1", "s1", "s2"};
+  Highs nodecomp;
+  nodecomp.passModel(lp);
+  nodecomp.run();
+  auto expected = nodecomp.getObjectiveValue();
+  // auto res = benders(lp, "m\\d", {2});
+  auto res = benders(lp, std::set<HighsInt>{0, 2}, {2, 0});
+  REQUIRE(res == expected);
+  REQUIRE(std::abs(res - expected) < 1e-3);
+}
+
+TEST_CASE("test-solve-second-system", "[highs-benders]") {
+  auto lp = get_second_test_problem();
+  lp.col_names_ = {"m1", "m2", "m3", "s1", "s2", "s3"};
+  Highs nodecomp;
+  nodecomp.passModel(lp);
+  nodecomp.run();
+  auto expected = nodecomp.getObjectiveValue();
+  // auto res = benders(lp, "m\\d", {0, 1.5, 0});
+  auto res = benders(lp, "m\\d", {0, 0, 0});
+  REQUIRE(std::abs(res - expected) < 1e-1);
+}
+
+TEST_CASE("test-solve-blending", "[highs-benders]") {
+  auto path = std::string(HIGHS_DIR) + "/check/instances/blending.mps";
+  Highs nodecomp;
+  nodecomp.readModel(path);
+  auto lp = nodecomp.getLp();
+  nodecomp.run();
+  auto expected = nodecomp.getObjectiveValue();
+  lp.ensureRowwise();
+  auto res = benders(lp, "P0", std::vector<double> (40, 0));
+  REQUIRE(std::abs(res - expected) < 1e-3);
+}
+
+TEST_CASE("test-solve-afiro", "[highs-benders]") {
+  auto path = std::string(HIGHS_DIR) + "/check/instances/afiro.mps";
+  Highs nodecomp;
+  nodecomp.readModel(path);
+  auto lp = nodecomp.getLp();
+  nodecomp.run();
+  auto expected = nodecomp.getObjectiveValue();
+  lp.ensureRowwise();
+  auto res = benders(lp, "X0\\d", std::vector<double> (40, 0));
+  REQUIRE(std::abs(res - expected) < 1e-3);
 }
