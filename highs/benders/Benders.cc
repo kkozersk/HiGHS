@@ -101,23 +101,22 @@ void decompose_problem(BendersProblems & problems, HighsLp & base_problem, std::
 }
 
 // this can be done with reduced costs!
-std::vector<double> get_all_multipliers(Highs const & subproblem) {
-  std::vector<double> all_multipliers;
-  auto const & dual = subproblem.getSolution().row_dual;
-  auto const & A = subproblem.getLp().a_matrix_;
-  A.productTranspose(all_multipliers, dual);
-  auto const & x = subproblem.getSolution().col_dual;
-  std::vector<double> v(subproblem.getLp().num_col_);
-  std::transform(x.begin(), x.end(), v.begin(), [](double z) {return -z; });
-  return v;
-  return all_multipliers;
-}
+// std::vector<double> get_all_multipliers(Highs const & subproblem) {
+//   std::vector<double> all_multipliers;
+//   auto const & dual = subproblem.getSolution().row_dual;
+//   auto const & A = subproblem.getLp().a_matrix_;
+//   A.productTranspose(all_multipliers, dual);
+//   auto const & x = subproblem.getSolution().col_dual;
+//   std::vector<double> v(subproblem.getLp().num_col_);
+//   std::transform(x.begin(), x.end(), v.begin(), [](double z) {return -z; });
+//   return v;
+//   return all_multipliers;
+// }
 
 std::vector<double> get_master_multipliers(Highs const & subproblem, std::set<HighsInt> const & master_variables) {
-  auto all_multipliers = get_all_multipliers(subproblem);
+  auto const & reduced_costs = subproblem.getSolution().col_dual;
   std::vector<double> master_multipliers;
-  for (auto i : master_variables)
-    master_multipliers.push_back(all_multipliers.at(i));
+  for (auto i : master_variables) master_multipliers.push_back(-reduced_costs.at(i));
   return master_multipliers;
 }
 
