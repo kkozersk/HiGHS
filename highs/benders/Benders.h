@@ -53,7 +53,7 @@ void decompose_problem(BendersProblems & problems, HighsLp const & base_problem,
 void decompose_problem(BendersProblems & problems, HighsLp & base_problem, std::set<HighsInt> const & master_variables);
 BendersProblems decompose_problem(HighsLp const & problem, std::set<HighsInt> const & master_variables, RowDivision const & row_division); 
 BendersProblems decompose_problem(HighsLp & problem, std::set<HighsInt> const & master_variables);
-std::vector<double> get_all_multipliers(Highs const & subproblem);
+// std::vector<double> get_all_multipliers(Highs const & subproblem);
 std::vector<double> get_master_multipliers(Highs const & subproblem, std::set<HighsInt> const & master_variables);
 NonZeroVector create_nonzero_vector(std::vector<double> const & base_vector);
 NonZeroVector add_mu_entry(NonZeroVector vector, HighsInt mu_index);

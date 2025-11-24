@@ -3,16 +3,14 @@
 #include "Highs.h"
 #include <algorithm>
 #include <cassert>
+#include <functional>
 #include <iterator>
 #include <numeric>
-#include <stdexcept>
 #include <vector>
 #include <regex>
 #include "HighsInt.h"
 #include "HighsStatus.h"
-#include "HighsUtils.h"
 #include "HighsLpUtils.h"
-#include "highs_c_api.h"
 
 
 HighsInt find_row_index(std::vector<HighsInt> const & csr_starts, HighsInt index) {
@@ -108,6 +106,10 @@ std::vector<double> get_all_multipliers(Highs const & subproblem) {
   auto const & dual = subproblem.getSolution().row_dual;
   auto const & A = subproblem.getLp().a_matrix_;
   A.productTranspose(all_multipliers, dual);
+  auto const & x = subproblem.getSolution().col_dual;
+  std::vector<double> v(subproblem.getLp().num_col_);
+  std::transform(x.begin(), x.end(), v.begin(), [](double z) {return -z; });
+  return v;
   return all_multipliers;
 }
 
@@ -154,6 +156,14 @@ void add_cut(Highs & master, Highs const & subproblem, std::set<HighsInt> const 
   add_nonzero_row(master, dual_objective + old_value_multiple, kHighsInf, nonzero_multipliers);
 }
 
+// void add_cut(Highs & master, double dual_objective, std::vector<double> const & dual_ray, std::set<HighsInt> const & master_variables, std::vector<double> const & master_values, CutType cut_type) {
+//   auto multipliers = get_master_multipliers(subproblem, master_variables);
+//   auto old_value_multiple = std::inner_product(multipliers.begin(), multipliers.end(), master_values.begin(), 0.0);
+//   auto nonzero_multipliers = create_nonzero_vector(multipliers);
+//   if (cut_type == CutType::Objective) nonzero_multipliers = add_mu_entry(nonzero_multipliers, master_variables.size());
+//   add_nonzero_row(master, dual_objective + old_value_multiple, kHighsInf, nonzero_multipliers);
+// }
+
 std::set<HighsInt> discover_master_variables(std::vector<std::string> const & variable_names, std::regex const & master_name_pattern) {
   std::set<HighsInt> master_variables;
   for (int i = 0; i < variable_names.size(); ++i)
@@ -166,14 +176,17 @@ std::set<HighsInt> discover_master_variables(std::vector<std::string> const & va
   return discover_master_variables(variable_names, std::regex(master_name_pattern));
 }
 
-// void solve_feasibility_subproblem(Highs & subproblem) {
-    // bool has_dual_ray;
-    // std::vector<double> dual_ray (subproblem.getLp().num_row_);
-    // subproblem.getDualRay(has_dual_ray, dual_ray.data());
-    // auto solution = subproblem.getSolution();
-    // solution.row_dual = dual_ray;
-    // subproblem.setSolution(solution);
-// }
+std::pair<std::vector<double>, double> solve_feasibility_subproblem(Highs & subproblem) {
+ bool has_dual_ray;
+ std::vector<double> dual_ray (subproblem.getLp().num_row_);
+ subproblem.getDualRay(has_dual_ray, dual_ray.data());
+ auto const & row_lower = subproblem.getLp().row_lower_;
+ auto const & row_upper = subproblem.getLp().row_upper_;
+ double dual_objective = 0;
+ for (int i = 0; i < subproblem.getLp().num_row_; ++i)
+   dual_objective += row_upper.at(i) < kHighsInf ? row_upper.at(i) : row_lower.at(i);
+ return {dual_ray, dual_objective};
+}
 
 BendersIterationInfo solve_subproblem(Highs & subproblem, BendersIterationInfo info, std::set<HighsInt> const & master_variables, std::vector<double> const & master_values) {
   fix_master_variables(subproblem, master_variables, master_values);
