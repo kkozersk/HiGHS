@@ -40,6 +40,11 @@ struct BendersIterationInfo {
 
 enum CutType { Objective, Feasibility };
 
+struct CutData {
+  std::vector<double> master_multipliers;
+  double dual_objective;
+};
+
 HighsInt find_row_index(std::vector<HighsInt> const & csr_starts, HighsInt index);
 RowDivision divide_rows(std::vector<HighsInt> const & csr_index, std::vector<HighsInt> const & csr_starts, std::set<HighsInt> const & master_variables); 
 RowDivision divide_rows(HighsSparseMatrix & constraint_matrix, std::set<HighsInt> const & master_variables);
@@ -61,6 +66,7 @@ void add_nonzero_row(Highs & problem, double lower, double upper, NonZeroVector 
 void add_nonzero_col(Highs & problem, double col_cost, double col_lower, double col_upper, NonZeroVector const & col_vector);
 // void add_cut(BendersProblems & problems, std::set<HighsInt> const & master_variables, std::vector<double> const & master_values, CutType cut_type);
 void add_cut(Highs & master, Highs const & subproblem, std::set<HighsInt> const & master_variables, std::vector<double> const & master_values, CutType cut_type);
+void add_cut(Highs & master, CutData const & cut, std::set<HighsInt> const & master_variables, std::vector<double> const & master_values, CutType cut_type);
 // void solve_feasibility_subproblem(Highs & subproblem);
 // BendersIterationInfo solve_feasibility_subproblem(Highs & feas_subproblem); 
 std::set<HighsInt> discover_master_variables(std::vector<std::string> const & variable_names, std::regex const & master_name_pattern);

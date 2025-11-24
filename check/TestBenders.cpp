@@ -605,7 +605,10 @@ TEST_CASE("test-solve-simple-system", "[highs-benders]") {
   nodecomp.run();
   auto expected = nodecomp.getObjectiveValue();
   auto res = benders(lp, "m\\d", {2});
+  REQUIRE(expected == 5);
+  REQUIRE(res == 5);
   REQUIRE(std::abs(res - expected) < 1e-3);
+
 }
 
 TEST_CASE("test-solve-simple-system-2", "[highs-benders]") {
@@ -630,7 +633,7 @@ TEST_CASE("test-solve-second-system", "[highs-benders]") {
   auto expected = nodecomp.getObjectiveValue();
   // auto res = benders(lp, "m\\d", {0, 1.5, 0});
   auto res = benders(lp, "m\\d", {0, 0, 0});
-  REQUIRE(std::abs(res - expected) < 1e-1);
+  REQUIRE(std::abs(res - expected) < 1e-3);
 }
 
 TEST_CASE("test-solve-blending", "[highs-benders]") {
