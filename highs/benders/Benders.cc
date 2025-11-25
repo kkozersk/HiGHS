@@ -210,7 +210,7 @@ std::set<HighsInt> discover_master_variables(std::vector<std::string> const & va
 std::vector<double> get_dual_costs(HighsLp const & lp) {
   std::vector<double> dual_prices (lp.num_row_);
   for (int i = 0; i < lp.num_row_; ++i)
-    dual_prices.at(i) = lp.row_upper_.at(i) < kHighsInf ? lp.row_upper_.at(i) : lp.row_lower_.at(i);
+    dual_prices[i] = lp.row_upper_.at(i) < kHighsInf ? lp.row_upper_.at(i) : lp.row_lower_.at(i);
   return dual_prices;
 }
 
