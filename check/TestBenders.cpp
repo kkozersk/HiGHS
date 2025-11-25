@@ -109,8 +109,8 @@ TEST_CASE("test-division", "[highs_benders]") {
   std::vector<HighsInt> csr_starts {0, 1, 2, 4};
   std::set<HighsInt> master_indices {0};
   auto result = divide_rows(csr_index, csr_starts, master_indices);
-  REQUIRE(result.master_rows == std::set<HighsInt>{0, 2});
-  REQUIRE(result.subproblem_rows == std::set<HighsInt>{1, 2});
+  REQUIRE(result.inset_only_rows == std::set<HighsInt>{0, 2});
+  REQUIRE(result.other_rows == std::set<HighsInt>{1, 2});
   REQUIRE(result.mixed_rows == std::set<HighsInt>{2});
 }
   
@@ -128,8 +128,8 @@ TEST_CASE("test-division-v2", "[highs_benders]") {
     std::vector<HighsInt> csr_starts {0,2,3,3,5,8};
     std::set<HighsInt> master_indices {0, 1};
     auto result = divide_rows(csr_index, csr_starts, master_indices);
-    REQUIRE(result.master_rows == std::set<HighsInt>{0, 3, 4});
-    REQUIRE(result.subproblem_rows == std::set<HighsInt>{1, 3, 4});
+    REQUIRE(result.inset_only_rows == std::set<HighsInt>{0, 3, 4});
+    REQUIRE(result.other_rows == std::set<HighsInt>{1, 3, 4});
     REQUIRE(result.mixed_rows == std::set<HighsInt>{3, 4});
 }
 
@@ -148,8 +148,8 @@ TEST_CASE("test-division-v3", "[highs_benders]") {
     std::vector<HighsInt> csr_starts {0,3,5,7,10,12,15};
     std::set<HighsInt> master_indices {1, 2};
     auto result = divide_rows(csr_index, csr_starts, master_indices);
-    REQUIRE(result.master_rows == std::set<HighsInt>{0, 1, 3, 4});
-    REQUIRE(result.subproblem_rows == std::set<HighsInt>{0, 1, 2, 3, 4, 5});
+    REQUIRE(result.inset_only_rows == std::set<HighsInt>{0, 1, 3, 4});
+    REQUIRE(result.other_rows == std::set<HighsInt>{0, 1, 2, 3, 4, 5});
     REQUIRE(result.mixed_rows == std::set<HighsInt>{0, 1, 3, 4});
 }
 
@@ -168,8 +168,8 @@ TEST_CASE("test-division-empty-master", "[highs_benders]") {
     std::vector<HighsInt> csr_starts {0,3,5,7,10,12,15};
     std::set<HighsInt> master_indices {};
     auto result = divide_rows(csr_index, csr_starts, master_indices);
-    REQUIRE(result.master_rows == std::set<HighsInt>{});
-    REQUIRE(result.subproblem_rows == std::set<HighsInt>{0, 1, 2, 3, 4, 5});
+    REQUIRE(result.inset_only_rows== std::set<HighsInt>{});
+    REQUIRE(result.other_rows == std::set<HighsInt>{0, 1, 2, 3, 4, 5});
     REQUIRE(result.mixed_rows == std::set<HighsInt>{});
 }
 
@@ -188,8 +188,8 @@ TEST_CASE("test-division-full-master", "[highs_benders]") {
     std::vector<HighsInt> csr_starts {0,3,5,7,10,12,15};
     std::set<HighsInt> master_indices {0, 1, 2, 3, 4, 5};
     auto result = divide_rows(csr_index, csr_starts, master_indices);
-    REQUIRE(result.master_rows == std::set<HighsInt>{0, 1, 2, 3, 4, 5});
-    REQUIRE(result.subproblem_rows == std::set<HighsInt>{});
+    REQUIRE(result.inset_only_rows == std::set<HighsInt>{0, 1, 2, 3, 4, 5});
+    REQUIRE(result.other_rows == std::set<HighsInt>{});
     REQUIRE(result.mixed_rows == std::set<HighsInt>{});
 }
 
@@ -204,8 +204,8 @@ TEST_CASE("test-division-disjoint", "[highs_benders]") {
     std::vector<HighsInt> csr_starts {0, 1, 2};
     std::set<HighsInt> master_indices {0};
     auto result = divide_rows(csr_index, csr_starts, master_indices);
-    REQUIRE(result.master_rows == std::set<HighsInt>{0});
-    REQUIRE(result.subproblem_rows == std::set<HighsInt>{1});
+    REQUIRE(result.inset_only_rows == std::set<HighsInt>{0});
+    REQUIRE(result.other_rows == std::set<HighsInt>{1});
 }
 
 TEST_CASE("test-set-master-values-highs-instance", "[highs-benders]") {
@@ -308,11 +308,11 @@ TEST_CASE("test-create-master", "[highs-benders]") {
 
 
   RowDivision rd;
-  rd.master_rows = {0};
-  rd.subproblem_rows = {1, 3, 4};
+  rd.inset_only_rows = {0};
+  rd.other_rows = {1, 3, 4};
   rd.mixed_rows = {3, 4};
   Highs master;
-  create_master_problem(master, lp, master_variables, rd.subproblem_rows);
+  create_master_problem(master, lp, master_variables, rd.other_rows);
   auto result = master.getLp();
   result.ensureRowwise();
   REQUIRE(result.a_matrix_ == expected.a_matrix_);
@@ -657,5 +657,67 @@ TEST_CASE("test-solve-afiro", "[highs-benders]") {
   auto expected = nodecomp.getObjectiveValue();
   lp.ensureRowwise();
   auto res = benders(lp, "X0\\d", std::vector<double> (40, 0));
+  REQUIRE(std::abs(res - expected) < 1e-3);
+}
+TEST_CASE("2test-solve-simple-system", "[highs-benders]") {
+  auto lp = get_simple_test_problem();
+  lp.col_names_ = {"m1", "s1", "s2"};
+  Highs nodecomp;
+  nodecomp.passModel(lp);
+  nodecomp.run();
+  auto expected = nodecomp.getObjectiveValue();
+  auto res = benders2(lp, "m\\d", {2});
+  REQUIRE(expected == 5);
+  REQUIRE(res == 5);
+  REQUIRE(std::abs(res - expected) < 1e-3);
+
+}
+
+TEST_CASE("2test-solve-simple-system-2", "[highs-benders]") {
+  auto lp = get_simple_test_problem();
+  lp.col_names_ = {"m1", "s1", "s2"};
+  Highs nodecomp;
+  nodecomp.passModel(lp);
+  nodecomp.run();
+  auto expected = nodecomp.getObjectiveValue();
+  // auto res = benders(lp, "m\\d", {2});
+  auto res = benders2(lp, std::set<HighsInt>{0, 2}, {2, 0});
+  REQUIRE(res == expected);
+  REQUIRE(std::abs(res - expected) < 1e-3);
+}
+
+TEST_CASE("2test-solve-second-system", "[highs-benders]") {
+  auto lp = get_second_test_problem();
+  lp.col_names_ = {"m1", "m2", "m3", "s1", "s2", "s3"};
+  Highs nodecomp;
+  nodecomp.passModel(lp);
+  nodecomp.run();
+  auto expected = nodecomp.getObjectiveValue();
+  // auto res = benders(lp, "m\\d", {0, 1.5, 0});
+  auto res = benders2(lp, "m\\d", {0, 0, 0});
+  REQUIRE(std::abs(res - expected) < 1e-3);
+}
+
+TEST_CASE("2test-solve-blending", "[highs-benders]") {
+  auto path = std::string(HIGHS_DIR) + "/check/instances/blending.mps";
+  Highs nodecomp;
+  nodecomp.readModel(path);
+  auto lp = nodecomp.getLp();
+  nodecomp.run();
+  auto expected = nodecomp.getObjectiveValue();
+  lp.ensureRowwise();
+  auto res = benders2(lp, "P0", std::vector<double> (40, 0));
+  REQUIRE(std::abs(res - expected) < 1e-3);
+}
+
+TEST_CASE("2test-solve-afiro", "[highs-benders]") {
+  auto path = std::string(HIGHS_DIR) + "/check/instances/afiro.mps";
+  Highs nodecomp;
+  nodecomp.readModel(path);
+  auto lp = nodecomp.getLp();
+  nodecomp.run();
+  auto expected = nodecomp.getObjectiveValue();
+  lp.ensureRowwise();
+  auto res = benders2(lp, "X0\\d", std::vector<double> (40, 0));
   REQUIRE(std::abs(res - expected) < 1e-3);
 }

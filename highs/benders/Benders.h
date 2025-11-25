@@ -11,8 +11,8 @@
 const double mu_lb = -1e4;
 
 struct RowDivision {
-  std::set<HighsInt> master_rows;
-  std::set<HighsInt> subproblem_rows;
+  std::set<HighsInt> inset_only_rows;
+  std::set<HighsInt> other_rows;
   std::set<HighsInt> mixed_rows;
 };
 
@@ -20,6 +20,11 @@ struct BendersProblems {
   Highs master;
   Highs subproblem;
   Highs feas_subproblem;
+};
+
+struct MultiBendersProblems {
+  Highs master;
+  std::vector<Highs> subproblems;
 };
 
 struct NonZeroVector {
@@ -51,7 +56,7 @@ RowDivision divide_rows(HighsSparseMatrix & constraint_matrix, std::set<HighsInt
 void fix_variable(Highs & problem, HighsInt variable_index, double value);
 bool fix_master_variables(Highs & subproblem, std::set<HighsInt> const & master_variables, std::vector<double> const & master_values);
 std::set<HighsInt> sequence_complement(std::set<HighsInt> const & set, HighsInt max_number);
-void create_master_problem(Highs & master, HighsLp const & base_problem, std::set<HighsInt> const & master_variables, std::set<HighsInt> const & subproblem_rows);
+void create_master_problem(Highs & master, HighsLp const & base_problem, std::set<HighsInt> const & master_variables, std::set<HighsInt> const & subproblem_rows, int no_subproblems=1);
 void create_subproblem(Highs & subproblem, HighsLp const & base_problem, std::set<HighsInt> const & master_variables);
 void create_feasibility_subproblem(Highs & feas_subproblem, HighsLp const & base_problem, std::set<HighsInt> const & master_variables, std::set<HighsInt> const & mixed_rows);
 void decompose_problem(BendersProblems & problems, HighsLp const & base_problem, std::set<HighsInt> const & master_variables, RowDivision const & row_division);
@@ -65,14 +70,18 @@ NonZeroVector add_mu_entry(NonZeroVector vector, HighsInt mu_index);
 void add_nonzero_row(Highs & problem, double lower, double upper, NonZeroVector const & row_vector);
 void add_nonzero_col(Highs & problem, double col_cost, double col_lower, double col_upper, NonZeroVector const & col_vector);
 // void add_cut(BendersProblems & problems, std::set<HighsInt> const & master_variables, std::vector<double> const & master_values, CutType cut_type);
-void add_cut(Highs & master, Highs const & subproblem, std::set<HighsInt> const & master_variables, std::vector<double> const & master_values, CutType cut_type);
-void add_cut(Highs & master, CutData const & cut, std::set<HighsInt> const & master_variables, std::vector<double> const & master_values, CutType cut_type);
+void add_cut(Highs & master, CutData const & cut, std::set<HighsInt> const & master_variables, std::vector<double> const & master_values, CutType cut_type, int subproblem_no=0);
+void add_cut(Highs & master, Highs const & subproblem, std::set<HighsInt> const & master_variables, std::vector<double> const & master_values, CutType cut_type, int subproblem_no=0);
 // void solve_feasibility_subproblem(Highs & subproblem);
 // BendersIterationInfo solve_feasibility_subproblem(Highs & feas_subproblem); 
 std::set<HighsInt> discover_master_variables(std::vector<std::string> const & variable_names, std::regex const & master_name_pattern);
 std::set<HighsInt> discover_master_variables(std::vector<std::string> const & variable_names, std::string const & master_name_pattern);
 BendersIterationInfo solve_subproblem(Highs & subproblem, BendersIterationInfo info, std::set<HighsInt> const & master_variables, std::vector<double> const & master_values);
 BendersIterationInfo solve_master(Highs & master, BendersIterationInfo info);
-double calculate_solution_cost(Highs const & master, Highs const & subproblem, std::set<HighsInt> const & master_variables); 
+double calculate_solution_cost(Highs const & master, double subproblem_cost, std::set<HighsInt> const & master_variables, std::vector<double> const & master_values);
+double calculate_solution_cost(Highs const & master, Highs const & subproblem, std::set<HighsInt> const & master_variables, std::vector<double> const & master_values);
 double benders(HighsLp & base_problem, std::set<HighsInt> const & master_variables, std::vector<double> const & starting_point, double eps=1e-3);
 double benders(HighsLp & base_problem, std::string const & master_name_pattern, std::vector<double> const & starting_point, double eps=1e-3);
+double multi_benders(HighsLp & base_problem, std::set<HighsInt> const & master_variables, std::vector<std::set<HighsInt>> const & subproblem_variables, std::vector<double> const & starting_point, double eps=1e-3);  
+double benders2(HighsLp & base_problem, std::set<HighsInt> const & master_variables, std::vector<double> const & starting_point, double eps=1e-3);
+double benders2(HighsLp & base_problem, std::string const & master_name_pattern, std::vector<double> const & starting_point, double eps=1e-3);

@@ -9,6 +9,7 @@
 #include <vector>
 #include <regex>
 #include "HighsInt.h"
+#include "HighsSparseMatrix.h"
 #include "HighsStatus.h"
 #include "HighsLpUtils.h"
 
@@ -55,13 +56,14 @@ std::set<HighsInt> sequence_complement(std::set<HighsInt> const & set, HighsInt 
 //TODO: remove
 inline std::vector<HighsInt> set_to_vector(std::set<HighsInt> const & set) { return {set.begin(), set.end()}; }
 
-void create_master_problem(Highs & master, HighsLp const & base_problem, std::set<HighsInt> const & master_variables, std::set<HighsInt> const & subproblem_rows) {
+void create_master_problem(Highs & master, HighsLp const & base_problem, std::set<HighsInt> const & master_variables, std::set<HighsInt> const & subproblem_rows, int no_subproblems) {
   master.passModel(base_problem);
   auto nonmaster_rows = set_to_vector(subproblem_rows);
   master.deleteRows(nonmaster_rows.size(), nonmaster_rows.data());
   auto subproblem_variables = set_to_vector(sequence_complement(master_variables, base_problem.num_col_)); // TODO: should it be here?
   master.deleteCols(subproblem_variables.size(), subproblem_variables.data());
-  master.addCol(1, mu_lb, kHighsInf, 0, nullptr, nullptr);
+  for (int i = 0; i < no_subproblems; ++i)
+    master.addCol(1, mu_lb, kHighsInf, 0, nullptr, nullptr);
 }
 
 void create_subproblem(Highs & subproblem, HighsLp const & base_problem, std::set<HighsInt> const & master_variables) {
@@ -70,6 +72,17 @@ void create_subproblem(Highs & subproblem, HighsLp const & base_problem, std::se
   auto nonsub_variables = set_to_vector(master_variables);
   std::vector<double> zeros (master_variables.size(), 0);
   subproblem.changeColsCost(master_variables.size(), nonsub_variables.data(), zeros.data());
+}
+
+void create_subproblem(Highs & subproblem, HighsLp const & base_problem, std::set<HighsInt> const & master_variables, std::set<HighsInt> const & other_rows, std::set<HighsInt> const & subproblem_variables) {
+  //TODO: change UB, LB
+  subproblem.passModel(base_problem);
+  subproblem.changeObjectiveOffset(0);
+  auto nonsub_variables = set_to_vector(sequence_complement(subproblem_variables, base_problem.num_col_));
+  std::vector<double> zeros (nonsub_variables.size(), 0);
+  subproblem.changeColsCost(nonsub_variables.size(), nonsub_variables.data(), zeros.data());
+  auto nonsub_rows = set_to_vector(other_rows);
+  subproblem.deleteRows(nonsub_rows.size(), nonsub_rows.data());
 }
 
 void add_nonzero_col(Highs & problem, double col_cost, double col_lower, double col_upper, NonZeroVector const & col_vector) {
@@ -90,7 +103,7 @@ void create_feasibility_subproblem(Highs & feas_subproblem, HighsLp const & base
 }
 
 void decompose_problem(BendersProblems & problems, HighsLp const & base_problem, std::set<HighsInt> const & master_variables, RowDivision const & row_division) {
-  create_master_problem(problems.master, base_problem, master_variables, row_division.subproblem_rows);
+  create_master_problem(problems.master, base_problem, master_variables, row_division.other_rows);
   create_subproblem(problems.subproblem, base_problem, master_variables);
   create_feasibility_subproblem(problems.feas_subproblem, base_problem, master_variables, row_division.mixed_rows);
 }
@@ -100,6 +113,30 @@ void decompose_problem(BendersProblems & problems, HighsLp & base_problem, std::
   decompose_problem(problems, base_problem, master_variables, row_division);
 }
 
+std::set<HighsInt> index_set_union(std::set<HighsInt> const & a, std::set<HighsInt> const & b) {
+  auto avec = set_to_vector(a);
+  auto bvec = set_to_vector(b);
+  std::set<HighsInt> a_union_b;
+  std::set_union(avec.begin(), avec.end(), bvec.begin(), bvec.end(), std::inserter(a_union_b, a_union_b.begin()));
+  return a_union_b;
+}
+
+void decompose_problem(MultiBendersProblems & problems, HighsLp & base_problem, std::set<HighsInt> const & master_variables, std::vector<std::set<HighsInt>> const & subproblems_variables) {
+  auto row_division = divide_rows(base_problem.a_matrix_, master_variables);
+  create_master_problem(problems.master, base_problem, master_variables, row_division.other_rows, subproblems_variables.size());
+  problems.subproblems = std::vector<Highs> (subproblems_variables.size());
+  for (int i = 0; i < subproblems_variables.size(); ++i) {
+    std::set<HighsInt> const & subproblem_variables = subproblems_variables.at(i);
+    // auto sv = set_to_vector(subproblem_vars);
+    // auto mv = set_to_vector(master_variables);
+    // std::set<HighsInt> in_subproblem_vars;
+    // std::set_union(sv.begin(), sv.end(), mv.begin(), mv.end(), std::inserter(in_subproblem_vars, in_subproblem_vars.begin()));
+    auto master_and_subproblem_vars = index_set_union(subproblem_variables, master_variables);
+    row_division = divide_rows(base_problem.a_matrix_, master_and_subproblem_vars);
+    assert(row_division.mixed_rows == std::set<HighsInt> {});
+    create_subproblem(problems.subproblems.at(i), base_problem, master_variables, row_division.other_rows, subproblem_variables);
+  }
+}
 // this can be done with reduced costs!
 // std::vector<double> get_all_multipliers(Highs const & subproblem) {
 //   std::vector<double> all_multipliers;
@@ -145,18 +182,18 @@ void add_nonzero_row(Highs & problem, double lower, double upper, NonZeroVector 
   problem.addRow(lower, upper, row_vector.number_of_nonzeros, row_vector.nonzero_indices.data(), row_vector.nonzero_values.data());
 }
 
-void add_cut(Highs & master, CutData const & cut, std::set<HighsInt> const & master_variables, std::vector<double> const & master_values, CutType cut_type) {
+void add_cut(Highs & master, CutData const & cut, std::set<HighsInt> const & master_variables, std::vector<double> const & master_values, CutType cut_type, int subproblem_no) {
   auto old_value_multiple = std::inner_product(cut.master_multipliers.begin(), cut.master_multipliers.end(), master_values.begin(), 0.0);
   auto nonzero_multipliers = create_nonzero_vector(cut.master_multipliers);
-  if (cut_type == CutType::Objective) nonzero_multipliers = add_mu_entry(nonzero_multipliers, master_variables.size());
+  if (cut_type == CutType::Objective) nonzero_multipliers = add_mu_entry(nonzero_multipliers, master_variables.size() + subproblem_no);
   add_nonzero_row(master, cut.dual_objective + old_value_multiple, kHighsInf, nonzero_multipliers);
 }
 
-void add_cut(Highs & master, Highs const & subproblem, std::set<HighsInt> const & master_variables, std::vector<double> const & master_values, CutType cut_type) {
+void add_cut(Highs & master, Highs const & subproblem, std::set<HighsInt> const & master_variables, std::vector<double> const & master_values, CutType cut_type, int subproblem_no) {
   double dual_objective;
   subproblem.getDualObjectiveValue(dual_objective);
   auto multipliers = get_master_multipliers(subproblem, master_variables);
-  add_cut(master, {multipliers, dual_objective}, master_variables, master_values, cut_type);
+  add_cut(master, {multipliers, dual_objective}, master_variables, master_values, cut_type, subproblem_no);
   // auto old_value_multiple = std::inner_product(multipliers.begin(), multipliers.end(), master_values.begin(), 0.0);
   // auto nonzero_multipliers = create_nonzero_vector(multipliers);
   // if (cut_type == CutType::Objective) nonzero_multipliers = add_mu_entry(nonzero_multipliers, master_variables.size());
@@ -183,21 +220,34 @@ std::set<HighsInt> discover_master_variables(std::vector<std::string> const & va
   return discover_master_variables(variable_names, std::regex(master_name_pattern));
 }
 
+std::vector<double> get_dual_costs(HighsLp const & lp) {
+  std::vector<double> dual_prices (lp.num_row_);
+  for (int i = 0; i < lp.num_row_; ++i)
+    dual_prices.at(i) = lp.row_upper_.at(i) < kHighsInf ? lp.row_upper_.at(i) : lp.row_lower_.at(i);
+  return dual_prices;
+}
+
+std::vector<double> calculate_negated_reduced_costs(HighsSparseMatrix const & A, std::vector<double> const & dual) {
+  std::vector<double> negated_prices;
+  A.productTranspose(negated_prices, dual);
+  return negated_prices;
+}
+
 CutData solve_feasibility_subproblem(Highs & subproblem, std::set<HighsInt> const & master_variables) {
   bool has_dual_ray;
   std::vector<double> dual_ray (subproblem.getLp().num_row_);
   subproblem.getDualRay(has_dual_ray, dual_ray.data());
-  auto const & row_lower = subproblem.getLp().row_lower_;
-  auto const & row_upper = subproblem.getLp().row_upper_;
-  std::vector<double> dual_prices (subproblem.getLp().num_row_);
-  for (int i = 0; i < subproblem.getLp().num_row_; ++i)
-    dual_prices.at(i) = (row_upper.at(i) < kHighsInf ? row_upper.at(i) : row_lower.at(i));
-  double dual_objective = std::abs(std::inner_product(dual_ray.begin(), dual_ray.end(), dual_prices.begin(), 0));
-  std::vector<double> all_multipliers;
-  auto const & A = subproblem.getLp().a_matrix_;
-  A.productTranspose(all_multipliers, dual_ray);
-  std::vector<double> master_multipliers;
-  for (auto i : master_variables) master_multipliers.push_back(all_multipliers.at(i));
+  auto dual_costs = get_dual_costs(subproblem.getLp());
+  // auto const & row_lower = subproblem.getLp().row_lower_;
+  // auto const & row_upper = subproblem.getLp().row_upper_;
+  // std::vector<double> dual_prices (subproblem.getLp().num_row_);
+  // for (int i = 0; i < subproblem.getLp().num_row_; ++i)
+  //   dual_prices.at(i) = (row_upper.at(i) < kHighsInf ? row_upper.at(i) : row_lower.at(i));
+  double dual_objective = std::abs(std::inner_product(dual_ray.begin(), dual_ray.end(), dual_costs.begin(), 0));
+  auto all_multipliers = calculate_negated_reduced_costs(subproblem.getLp().a_matrix_, dual_ray);
+  std::vector<double> master_multipliers(master_variables.size());
+  std::transform(master_variables.begin(), master_variables.end(), master_multipliers.begin(),
+                  [&all_multipliers](HighsInt idx){ return all_multipliers.at(idx); });
   return {master_multipliers, dual_objective};
 }
 
@@ -220,14 +270,16 @@ BendersIterationInfo solve_master(Highs & master, BendersIterationInfo info) {
   return info;
 }
 
-double calculate_solution_cost(Highs const & master, Highs const & subproblem, std::set<HighsInt> const & master_variables) {
-  double subproblem_cost = subproblem.getObjectiveValue();
-  double master_cost = master.getObjectiveValue();
-  int no_master_vars = master_variables.size();
-  auto const & master_solution = master.getSolution().col_value;
+double calculate_solution_cost(Highs const & master, double subproblem_cost, std::set<HighsInt> const & master_variables, std::vector<double> const & master_values) {
   auto const & master_costs = master.getLp().col_cost_;
-  double mu_cost = std::inner_product(master_solution.begin() + no_master_vars, master_solution.end(), master_costs.begin() + no_master_vars, 0.);
-  return subproblem_cost + master_cost - mu_cost;
+  int no_master_vars = master_variables.size();
+  double master_cost = std::inner_product(master_values.begin(), master_values.begin() + no_master_vars, master_costs.begin(), 0.);
+  double offset; master.getObjectiveOffset(offset);
+  return subproblem_cost + master_cost + offset;
+}
+
+double calculate_solution_cost(Highs const & master, Highs const & subproblem, std::set<HighsInt> const & master_variables, std::vector<double> const & master_values) {
+  return calculate_solution_cost(master, subproblem.getObjectiveValue(), master_variables, master_values);
 }
 
 double benders(HighsLp & base_problem, std::string const & master_name_pattern, std::vector<double> const & starting_point, double eps) { 
@@ -244,8 +296,7 @@ double benders(HighsLp & base_problem, std::set<HighsInt> const & master_variabl
   while (UBD - LBD > eps && !info.was_error && ++iter < 1e2) {
     info = solve_subproblem(problems.subproblem, info, master_variables, master_values);
     if (info.was_subproblem_feasible) {
-      double solution_cost = calculate_solution_cost(problems.master, problems.subproblem, master_variables);
-      // TODO: maximization?
+      double solution_cost = calculate_solution_cost(problems.master, problems.subproblem, master_variables, master_values);
       UBD = std::min(UBD, solution_cost);
       if (UBD - LBD <= eps) break;
       add_cut(problems.master, problems.subproblem, master_variables, master_values, CutType::Objective);
@@ -253,8 +304,6 @@ double benders(HighsLp & base_problem, std::set<HighsInt> const & master_variabl
     }
     else {
       auto cut = solve_feasibility_subproblem(problems.subproblem, master_variables);
-      // info = solve_subproblem(problems.feas_subproblem, info,  master_variables, master_values);
-      // add_cut(problems.master, problems.feas_subproblem, master_variables, master_values, CutType::Feasibility);
       add_cut(problems.master, cut, master_variables, master_values, CutType::Feasibility);
     }
     info = solve_master(problems.master, info);
@@ -264,3 +313,49 @@ double benders(HighsLp & base_problem, std::set<HighsInt> const & master_variabl
   return UBD;
 }
 
+double multi_benders(HighsLp & base_problem, std::set<HighsInt> const & master_variables,
+                     std::vector<std::set<HighsInt>> const & subproblems_variables,
+                     std::vector<double> const & starting_point, double eps) { 
+  MultiBendersProblems problems;
+  decompose_problem(problems, base_problem, master_variables, subproblems_variables);
+  BendersIterationInfo info;
+  auto master_values = starting_point;
+  int iter = 0;
+  double UBD = kHighsInf, LBD = -kHighsInf;
+  while (UBD - LBD > eps && !info.was_error && ++iter < 1e2) {
+    double subproblem_costs = 0;
+    bool all_feasible = true;
+    for (int i = 0; i < subproblems_variables.size(); ++i) {
+      auto & subproblem = problems.subproblems.at(i);
+      info = solve_subproblem(subproblem, info, master_variables, master_values);
+      if (info.was_subproblem_feasible) {
+        subproblem_costs += subproblem.getObjectiveValue();
+        add_cut(problems.master, subproblem, master_variables, master_values, CutType::Objective, i);
+      }
+      else {
+        all_feasible = false;
+        auto cut = solve_feasibility_subproblem(subproblem, master_variables);
+        add_cut(problems.master, cut, master_variables, master_values, CutType::Feasibility, i);
+      }
+    }
+    if (all_feasible) {
+        double solution_cost = calculate_solution_cost(problems.master, subproblem_costs, master_variables, master_values);
+        UBD = std::min(UBD, solution_cost);
+        if (UBD - LBD <= eps) break;
+    }
+    info = solve_master(problems.master, info);
+    master_values = problems.master.getSolution().col_value;
+    LBD = problems.master.getObjectiveValue();
+  }
+  return UBD;
+}
+
+double benders2(HighsLp & base_problem, std::set<HighsInt> const & master_variables, std::vector<double> const & starting_point, double eps) {
+  auto subproblem_variables = sequence_complement(master_variables, base_problem.num_col_);
+  return multi_benders(base_problem, master_variables, {subproblem_variables}, starting_point, eps);
+} 
+
+double benders2(HighsLp & base_problem, std::string const & master_name_pattern, std::vector<double> const & starting_point, double eps) { 
+  auto master_variables = discover_master_variables(base_problem.col_names_, master_name_pattern);
+  return benders2(base_problem, master_variables, starting_point, eps);
+}
