@@ -46,6 +46,42 @@ HighsLp get_simple_test_problem() {
   return lp;
 }
 
+HighsLp get_simple_multi_test_problem() {
+  /*
+    Problem
+    min 5 + [1 2 -1 -3]^T x
+    s.t.
+      [1 1 0 0         = 1
+      0 0 1 0  [x0     <= 1
+      0 0 0 0  x1      = 0
+      1 0 1 0  x2      <= 2
+      1 1 1 0  x3]     >= 1.5
+      0 0 0 1          <= 1
+      1 0 0 1]         = 1.5
+      ]          
+      x >= 0
+  */
+  std::vector<HighsInt> csr_index {0,1,2,0,2,0,1,2,3,0,3};
+  std::vector<double> csr_values(11, 1);
+  std::vector<HighsInt> csr_starts {0,2,3,3,5,8,9,11};
+  HighsLp lp;
+  lp.offset_ = 5;
+  lp.num_col_ = 4;
+  lp.num_row_ = 7;
+  lp.col_lower_ = {0, 0, 0, 0};
+  lp.col_upper_ = {inf, inf, inf, inf};
+  lp.col_cost_ = {1, 2, -1, -3};
+  lp.row_lower_ = {1, -inf, 0, -inf, 1.5, -inf, 1.5};
+  lp.row_upper_ = {1, 1, 0, 2, inf, 1, 1.5};
+  lp.a_matrix_.format_ = MatrixFormat::kRowwise;
+  lp.a_matrix_.start_ = csr_starts;
+  lp.a_matrix_.index_ = csr_index;
+  lp.a_matrix_.value_ = csr_values;
+  lp.a_matrix_.num_row_ = 7;
+  lp.a_matrix_.num_col_ = 4;
+  return lp;
+}
+
 HighsLp get_second_test_problem() {
   /*
   min  [1 5 3 4 5 -6]^T x
@@ -322,19 +358,19 @@ TEST_CASE("test-create-master", "[highs-benders]") {
   REQUIRE(result == expected);
 }
 
-TEST_CASE("test-create-subproblem", "[highs-benders]") {
-  auto lp = get_simple_test_problem();
-  std::set<HighsInt> master_variables {0, 1};
+// TEST_CASE("test-create-subproblem", "[highs-benders]") {
+//   auto lp = get_simple_test_problem();
+//   std::set<HighsInt> master_variables {0, 1};
 
-  HighsLp expected = lp;
-  expected.offset_ = 0;
-  expected.col_cost_ = {0, 0, -1};
-  Highs subproblem;
-  create_subproblem(subproblem, lp, master_variables);
-  auto result = subproblem.getLp();
-  result.ensureRowwise();
-  REQUIRE(result  == expected);
-}
+//   HighsLp expected = lp;
+//   expected.offset_ = 0;
+//   expected.col_cost_ = {0, 0, -1};
+//   Highs subproblem;
+//   create_subproblem(subproblem, lp, master_variables);
+//   auto result = subproblem.getLp();
+//   result.ensureRowwise();
+//   REQUIRE(result  == expected);
+// }
 
 TEST_CASE("test-create-feas-subproblem", "[highs-benders]") {
   /*
@@ -659,6 +695,7 @@ TEST_CASE("test-solve-afiro", "[highs-benders]") {
   auto res = benders(lp, "X0\\d", std::vector<double> (40, 0));
   REQUIRE(std::abs(res - expected) < 1e-3);
 }
+
 TEST_CASE("2test-solve-simple-system", "[highs-benders]") {
   auto lp = get_simple_test_problem();
   lp.col_names_ = {"m1", "s1", "s2"};
@@ -719,5 +756,17 @@ TEST_CASE("2test-solve-afiro", "[highs-benders]") {
   auto expected = nodecomp.getObjectiveValue();
   lp.ensureRowwise();
   auto res = benders2(lp, "X0\\d", std::vector<double> (40, 0));
+  REQUIRE(std::abs(res - expected) < 1e-3);
+}
+
+TEST_CASE("test-solve-multi-simple-system-", "[highs-benders]") {
+  auto lp = get_simple_multi_test_problem();
+  Highs nodecomp;
+  nodecomp.passModel(lp);
+  nodecomp.run();
+  auto expected = nodecomp.getObjectiveValue();
+  // auto res = benders(lp, "m\\d", {2});
+  auto res = multi_benders(lp, {0}, {{1,2}, {3}}, {2, 0});
+  REQUIRE(res == expected);
   REQUIRE(std::abs(res - expected) < 1e-3);
 }

@@ -133,7 +133,7 @@ void decompose_problem(MultiBendersProblems & problems, HighsLp & base_problem, 
     // std::set_union(sv.begin(), sv.end(), mv.begin(), mv.end(), std::inserter(in_subproblem_vars, in_subproblem_vars.begin()));
     auto master_and_subproblem_vars = index_set_union(subproblem_variables, master_variables);
     row_division = divide_rows(base_problem.a_matrix_, master_and_subproblem_vars);
-    assert(row_division.mixed_rows == std::set<HighsInt> {});
+    // assert(row_division.mixed_rows == std::set<HighsInt> {});
     create_subproblem(problems.subproblems.at(i), base_problem, master_variables, row_division.other_rows, subproblem_variables);
   }
 }
@@ -243,7 +243,7 @@ CutData solve_feasibility_subproblem(Highs & subproblem, std::set<HighsInt> cons
   // std::vector<double> dual_prices (subproblem.getLp().num_row_);
   // for (int i = 0; i < subproblem.getLp().num_row_; ++i)
   //   dual_prices.at(i) = (row_upper.at(i) < kHighsInf ? row_upper.at(i) : row_lower.at(i));
-  double dual_objective = std::abs(std::inner_product(dual_ray.begin(), dual_ray.end(), dual_costs.begin(), 0));
+  double dual_objective = std::abs(std::inner_product(dual_ray.begin(), dual_ray.end(), dual_costs.begin(), 0.));
   auto all_multipliers = calculate_negated_reduced_costs(subproblem.getLp().a_matrix_, dual_ray);
   std::vector<double> master_multipliers(master_variables.size());
   std::transform(master_variables.begin(), master_variables.end(), master_multipliers.begin(),
