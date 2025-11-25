@@ -38,6 +38,10 @@ void fix_variable(Highs & problem, HighsInt variable_index, double value) {
   problem.changeColBounds(variable_index, value, value);
 }
 
+void unfreeze_mu(Highs & master, std::set<HighsInt> const & master_variables, HighsInt subproblem_no) {
+  master.changeColBounds(master_variables.size() + subproblem_no, -kHighsInf, kHighsInf);
+}
+
 bool fix_master_variables(Highs & subproblem, std::set<HighsInt> const & master_variables, std::vector<double> const & master_values) {
   int master_index = 0;
   for (auto subproblem_index : master_variables)
@@ -63,7 +67,7 @@ void create_master_problem(Highs & master, HighsLp const & base_problem, std::se
   auto subproblem_variables = set_to_vector(sequence_complement(master_variables, base_problem.num_col_)); // TODO: should it be here?
   master.deleteCols(subproblem_variables.size(), subproblem_variables.data());
   for (int i = 0; i < no_subproblems; ++i)
-    master.addCol(1, mu_lb, kHighsInf, 0, nullptr, nullptr);
+    master.addCol(1, 0, 0, 0, nullptr, nullptr);
 }
 
 void create_subproblem(Highs & subproblem, HighsLp const & base_problem, std::set<HighsInt> const & master_variables) {
@@ -276,6 +280,7 @@ double benders(HighsLp & base_problem, std::set<HighsInt> const & master_variabl
   auto master_values = starting_point;
   int iter = 0;
   double UBD = kHighsInf, LBD = -kHighsInf;
+  bool any_objective_cuts = false;
   while (UBD - LBD > eps && !info.was_error && ++iter < 1e2) {
     info = solve_subproblem(problems.subproblem, info, master_variables, master_values);
     if (info.was_subproblem_feasible) {
@@ -283,7 +288,10 @@ double benders(HighsLp & base_problem, std::set<HighsInt> const & master_variabl
       UBD = std::min(UBD, solution_cost);
       if (UBD - LBD <= eps) break;
       add_cut(problems.master, problems.subproblem, master_variables, master_values, CutType::Objective);
-
+      if (!any_objective_cuts) {
+        any_objective_cuts = true;
+        unfreeze_mu(problems.master, master_variables);
+      }
     }
     else {
       auto cut = solve_feasibility_subproblem(problems.subproblem, master_variables);
@@ -305,13 +313,19 @@ double multi_benders(HighsLp & base_problem, std::set<HighsInt> const & master_v
   auto master_values = starting_point;
   int iter = 0;
   double UBD = kHighsInf, LBD = -kHighsInf;
+  int no_subproblems = subproblems_variables.size();
+  std::vector<bool> any_objective_cuts(no_subproblems, false);
   while (UBD - LBD > eps && !info.was_error && ++iter < 1e2) {
     double subproblem_costs = 0;
     bool all_feasible = true;
-    for (int i = 0; i < subproblems_variables.size(); ++i) {
+    for (int i = 0; i < no_subproblems; ++i) {
       auto & subproblem = problems.subproblems.at(i);
       info = solve_subproblem(subproblem, info, master_variables, master_values);
       if (info.was_subproblem_feasible) {
+        if (!any_objective_cuts[i]) {
+          any_objective_cuts[i] = true;
+          unfreeze_mu(problems.master, master_variables, i);
+        }
         subproblem_costs += subproblem.getObjectiveValue();
         add_cut(problems.master, subproblem, master_variables, master_values, CutType::Objective, i);
       }

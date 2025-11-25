@@ -324,14 +324,14 @@ TEST_CASE("test-create-master", "[highs-benders]") {
     [ 1 1 0    [ x0  = 1
       0 0 0 ]    x1  = 3
                  z ] 
-      1 <= x0 <=1, 2 <= x1 <= 2, z free
+      1 <= x0 <=1, 2 <= x1 <= 2, z = 0
   */
   HighsLp expected;
   expected.offset_ = 5;
   expected.num_col_ = 3;
   expected.num_row_ = 2;
-  expected.col_lower_ = {1, 2, mu_lb};
-  expected.col_upper_= {1, 2, inf};
+  expected.col_lower_ = {1, 2, 0};
+  expected.col_upper_= {1, 2, 0};
   expected.col_cost_ = {1, 2, 1};
   expected.row_upper_ = {1, 3};
   expected.row_lower_= {1, 3};
@@ -525,6 +525,7 @@ TEST_CASE("test-add-objective-cut", "[highs-benders]") {
   REQUIRE(subproblem.getModelStatus() == HighsModelStatus::kOptimal);
   
   add_cut(master, subproblem, master_variables, master_values, CutType::Objective);
+  unfreeze_mu(master, master_variables);
   auto new_master = master.getLp();
   /*
     We want the new master to be in form:
@@ -532,13 +533,13 @@ TEST_CASE("test-add-objective-cut", "[highs-benders]") {
       0 x_0 + 0 z = 0
       2 x_0 + z >= 1
 
-      x_0 >= 0
+      x_0 >= 0, z free
     */
   HighsLp expected;
   expected.offset_ = 5;
   expected.num_col_ = 2;
   expected.num_row_ = 2;
-  expected.col_lower_ = {0, mu_lb};
+  expected.col_lower_ = {0, -inf};
   expected.col_upper_ = {inf, inf};
   expected.col_cost_ = {1, 1};
   expected.row_lower_ = {0, 1};

@@ -8,7 +8,7 @@
 #include "HighsSparseMatrix.h"
 
 //TODO: REMOVE
-const double mu_lb = -1e4;
+// const double mu_lb = -1e4;
 
 struct RowDivision {
   std::set<HighsInt> inset_only_rows;
@@ -54,6 +54,7 @@ HighsInt find_row_index(std::vector<HighsInt> const & csr_starts, HighsInt index
 RowDivision divide_rows(std::vector<HighsInt> const & csr_index, std::vector<HighsInt> const & csr_starts, std::set<HighsInt> const & master_variables); 
 RowDivision divide_rows(HighsSparseMatrix & constraint_matrix, std::set<HighsInt> const & master_variables);
 void fix_variable(Highs & problem, HighsInt variable_index, double value);
+void unfreeze_mu(Highs & master, std::set<HighsInt> const & master_variables, HighsInt subproblem_no=0);
 bool fix_master_variables(Highs & subproblem, std::set<HighsInt> const & master_variables, std::vector<double> const & master_values);
 std::set<HighsInt> sequence_complement(std::set<HighsInt> const & set, HighsInt max_number);
 void create_master_problem(Highs & master, HighsLp const & base_problem, std::set<HighsInt> const & master_variables, std::set<HighsInt> const & subproblem_rows, int no_subproblems=1);
