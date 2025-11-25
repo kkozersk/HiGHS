@@ -19,7 +19,7 @@ struct RowDivision {
 struct BendersProblems {
   Highs master;
   Highs subproblem;
-  Highs feas_subproblem;
+  // Highs feas_subproblem;
 };
 
 struct MultiBendersProblems {

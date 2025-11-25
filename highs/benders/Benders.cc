@@ -75,12 +75,12 @@ void create_subproblem(Highs & subproblem, HighsLp const & base_problem, std::se
 }
 
 void create_subproblem(Highs & subproblem, HighsLp const & base_problem, std::set<HighsInt> const & master_variables, std::set<HighsInt> const & other_rows, std::set<HighsInt> const & subproblem_variables) {
-  //TODO: change UB, LB
   subproblem.passModel(base_problem);
   subproblem.changeObjectiveOffset(0);
   auto nonsub_variables = set_to_vector(sequence_complement(subproblem_variables, base_problem.num_col_));
   std::vector<double> zeros (nonsub_variables.size(), 0);
   subproblem.changeColsCost(nonsub_variables.size(), nonsub_variables.data(), zeros.data());
+  subproblem.changeColsBounds(nonsub_variables.size(), nonsub_variables.data(),  zeros.data(), zeros.data());
   auto nonsub_rows = set_to_vector(other_rows);
   subproblem.deleteRows(nonsub_rows.size(), nonsub_rows.data());
 }
@@ -105,7 +105,7 @@ void create_feasibility_subproblem(Highs & feas_subproblem, HighsLp const & base
 void decompose_problem(BendersProblems & problems, HighsLp const & base_problem, std::set<HighsInt> const & master_variables, RowDivision const & row_division) {
   create_master_problem(problems.master, base_problem, master_variables, row_division.other_rows);
   create_subproblem(problems.subproblem, base_problem, master_variables);
-  create_feasibility_subproblem(problems.feas_subproblem, base_problem, master_variables, row_division.mixed_rows);
+  // create_feasibility_subproblem(problems.feas_subproblem, base_problem, master_variables, row_division.mixed_rows);
 }
 
 void decompose_problem(BendersProblems & problems, HighsLp & base_problem, std::set<HighsInt> const & master_variables) {
@@ -127,28 +127,11 @@ void decompose_problem(MultiBendersProblems & problems, HighsLp & base_problem, 
   problems.subproblems = std::vector<Highs> (subproblems_variables.size());
   for (int i = 0; i < subproblems_variables.size(); ++i) {
     std::set<HighsInt> const & subproblem_variables = subproblems_variables.at(i);
-    // auto sv = set_to_vector(subproblem_vars);
-    // auto mv = set_to_vector(master_variables);
-    // std::set<HighsInt> in_subproblem_vars;
-    // std::set_union(sv.begin(), sv.end(), mv.begin(), mv.end(), std::inserter(in_subproblem_vars, in_subproblem_vars.begin()));
     auto master_and_subproblem_vars = index_set_union(subproblem_variables, master_variables);
     row_division = divide_rows(base_problem.a_matrix_, master_and_subproblem_vars);
-    // assert(row_division.mixed_rows == std::set<HighsInt> {});
     create_subproblem(problems.subproblems.at(i), base_problem, master_variables, row_division.other_rows, subproblem_variables);
   }
 }
-// this can be done with reduced costs!
-// std::vector<double> get_all_multipliers(Highs const & subproblem) {
-//   std::vector<double> all_multipliers;
-//   auto const & dual = subproblem.getSolution().row_dual;
-//   auto const & A = subproblem.getLp().a_matrix_;
-//   A.productTranspose(all_multipliers, dual);
-//   auto const & x = subproblem.getSolution().col_dual;
-//   std::vector<double> v(subproblem.getLp().num_col_);
-//   std::transform(x.begin(), x.end(), v.begin(), [](double z) {return -z; });
-//   return v;
-//   return all_multipliers;
-// }
 
 std::vector<double> get_master_multipliers(Highs const & subproblem, std::set<HighsInt> const & master_variables) {
   auto const & reduced_costs = subproblem.getSolution().col_dual;

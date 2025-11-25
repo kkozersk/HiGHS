@@ -567,71 +567,71 @@ TEST_CASE("test-discover-master-variables", "[highs-benders]") {
   REQUIRE(discover_master_variables({}, "EC\\d") == std::set<HighsInt> {});
 }
 
-TEST_CASE("test-add-feasibility-cut", "[highs-benders]") {
-  auto lp = get_simple_test_problem();
-  std::set<HighsInt> master_variables {0}; //  with complicating variables 0
-  BendersProblems problems;
-  decompose_problem(problems, lp, master_variables);
-  auto & master = problems.master;
-  auto & subproblem = problems.subproblem;
-  auto & feas_subproblem = problems.feas_subproblem;
+// TEST_CASE("test-add-feasibility-cut", "[highs-benders]") {
+//   auto lp = get_simple_test_problem();
+//   std::set<HighsInt> master_variables {0}; //  with complicating variables 0
+//   BendersProblems problems;
+//   decompose_problem(problems, lp, master_variables);
+//   auto & master = problems.master;
+//   auto & subproblem = problems.subproblem;
+//   auto & feas_subproblem = problems.feas_subproblem;
 
-  auto num_col = master.getLp().num_col_;
-  auto num_row = master.getLp().num_row_;
+//   auto num_col = master.getLp().num_col_;
+//   auto num_row = master.getLp().num_row_;
 
-  std::vector<double> master_values {2};
-  fix_master_variables(subproblem, master_variables, master_values);
-  auto status = HighsStatus::kOk;
-  // auto status = subproblem.run();
-  REQUIRE(status == HighsStatus::kOk);
-  // REQUIRE(subproblem.getModelStatus() == HighsModelStatus::kInfeasible);
-  fix_master_variables(feas_subproblem, master_variables, master_values);
-  status = feas_subproblem.run();
-  REQUIRE(status == HighsStatus::kOk);
-  REQUIRE(feas_subproblem.getModelStatus() == HighsModelStatus::kOptimal);
+//   std::vector<double> master_values {2};
+//   fix_master_variables(subproblem, master_variables, master_values);
+//   auto status = HighsStatus::kOk;
+//   // auto status = subproblem.run();
+//   REQUIRE(status == HighsStatus::kOk);
+//   // REQUIRE(subproblem.getModelStatus() == HighsModelStatus::kInfeasible);
+//   fix_master_variables(feas_subproblem, master_variables, master_values);
+//   status = feas_subproblem.run();
+//   REQUIRE(status == HighsStatus::kOk);
+//   REQUIRE(feas_subproblem.getModelStatus() == HighsModelStatus::kOptimal);
 
-  double dual_objective;
-  feas_subproblem.getDualObjectiveValue(dual_objective);
-  auto multipliers = get_master_multipliers(feas_subproblem, master_variables);
-  auto old_value_multiple = std::inner_product(multipliers.begin(), multipliers.end(), master_values.begin(), 0.0);
-  auto nonzero_multipliers = create_nonzero_vector(multipliers);
-  add_cut(master, feas_subproblem, master_variables, master_values, CutType::Feasibility);
-  auto new_master = master.getLp();
-  /*
-    We want the new master to be in form:
-      min 5 + x_0 + z
-      0 x_0 + 0 z = 0
-      -1 x_0 + 0z >= -1
+//   double dual_objective;
+//   feas_subproblem.getDualObjectiveValue(dual_objective);
+//   auto multipliers = get_master_multipliers(feas_subproblem, master_variables);
+//   auto old_value_multiple = std::inner_product(multipliers.begin(), multipliers.end(), master_values.begin(), 0.0);
+//   auto nonzero_multipliers = create_nonzero_vector(multipliers);
+//   add_cut(master, feas_subproblem, master_variables, master_values, CutType::Feasibility);
+//   auto new_master = master.getLp();
+//   /*
+//     We want the new master to be in form:
+//       min 5 + x_0 + z
+//       0 x_0 + 0 z = 0
+//       -1 x_0 + 0z >= -1
 
-      x_0 >= 0
-    */
-  HighsLp expected;
-  expected.offset_ = 5;
-  expected.num_col_ = 2;
-  expected.num_row_ = 2;
-  expected.col_lower_ = {0, mu_lb};
-  expected.col_upper_ = {inf, inf};
-  expected.col_cost_ = {1, 1};
-  expected.row_lower_ = {0, -1};
-  expected.row_upper_ = {0, inf};
-  expected.a_matrix_.format_ = MatrixFormat::kRowwise;
-  expected.a_matrix_.start_ = {0,0,1};
-  expected.a_matrix_.index_ = {0};
-  expected.a_matrix_.value_ = {-1}; //?
-  expected.a_matrix_.num_row_ = 2;
-  expected.a_matrix_.num_col_ = 2;
-  REQUIRE(new_master.num_row_ == num_row + 1);
-  REQUIRE(expected.a_matrix_.start_  ==  new_master.a_matrix_.start_);
-  REQUIRE(expected.a_matrix_.index_ ==  new_master.a_matrix_.index_);
-  REQUIRE(expected.a_matrix_.value_ ==  new_master.a_matrix_.value_);
-  REQUIRE(expected.a_matrix_ ==  new_master.a_matrix_);
-  REQUIRE(expected.col_lower_ ==  new_master.col_lower_);
-  REQUIRE(expected.col_upper_ ==  new_master.col_upper_);
-  REQUIRE(expected.col_cost_ == new_master.col_cost_ );
-  REQUIRE(expected.row_lower_ ==  new_master.row_lower_);
-  REQUIRE(expected.row_upper_ ==  new_master.row_upper_);
-  REQUIRE(new_master == expected);
-}
+//       x_0 >= 0
+//     */
+//   HighsLp expected;
+//   expected.offset_ = 5;
+//   expected.num_col_ = 2;
+//   expected.num_row_ = 2;
+//   expected.col_lower_ = {0, mu_lb};
+//   expected.col_upper_ = {inf, inf};
+//   expected.col_cost_ = {1, 1};
+//   expected.row_lower_ = {0, -1};
+//   expected.row_upper_ = {0, inf};
+//   expected.a_matrix_.format_ = MatrixFormat::kRowwise;
+//   expected.a_matrix_.start_ = {0,0,1};
+//   expected.a_matrix_.index_ = {0};
+//   expected.a_matrix_.value_ = {-1}; //?
+//   expected.a_matrix_.num_row_ = 2;
+//   expected.a_matrix_.num_col_ = 2;
+//   REQUIRE(new_master.num_row_ == num_row + 1);
+//   REQUIRE(expected.a_matrix_.start_  ==  new_master.a_matrix_.start_);
+//   REQUIRE(expected.a_matrix_.index_ ==  new_master.a_matrix_.index_);
+//   REQUIRE(expected.a_matrix_.value_ ==  new_master.a_matrix_.value_);
+//   REQUIRE(expected.a_matrix_ ==  new_master.a_matrix_);
+//   REQUIRE(expected.col_lower_ ==  new_master.col_lower_);
+//   REQUIRE(expected.col_upper_ ==  new_master.col_upper_);
+//   REQUIRE(expected.col_cost_ == new_master.col_cost_ );
+//   REQUIRE(expected.row_lower_ ==  new_master.row_lower_);
+//   REQUIRE(expected.row_upper_ ==  new_master.row_upper_);
+//   REQUIRE(new_master == expected);
+// }
 
 TEST_CASE("test-solve-simple-system", "[highs-benders]") {
   auto lp = get_simple_test_problem();
