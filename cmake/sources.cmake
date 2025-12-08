@@ -8,6 +8,7 @@ set(include_dirs
   $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/highs/io>
   $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/highs/ipm>
   $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/highs/ipm/ipx>
+  $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/highs/benders>
   $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/highs/ipm/basiclu>
   $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/highs/lp_data>
   $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/highs/mip>
@@ -102,6 +103,14 @@ set(basiclu_headers
   ipm/basiclu/lu_file.h
   ipm/basiclu/lu_internal.h
   ipm/basiclu/lu_list.h)
+
+set(benders_sources
+  benders/Benders.cc
+)
+
+set(benders_headers
+  benders/Benders.h
+)
 
 set(ipx_sources
   ipm/ipx/basiclu_kernel.cc

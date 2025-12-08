@@ -758,6 +758,7 @@ if(NOT FAST_BUILD)
     ${PROJECT_SOURCE_DIR}/highs/io
     ${PROJECT_SOURCE_DIR}/highs/pdlp/cupdlp
     ${PROJECT_SOURCE_DIR}/highs/ipm/ipx
+    ${PROJECT_SOURCE_DIR}/highs/benders
     ${PROJECT_SOURCE_DIR}/highs/ipm/basiclu
     ${PROJECT_SOURCE_DIR}/highs/lp_data
     ${PROJECT_SOURCE_DIR}/highs/mip

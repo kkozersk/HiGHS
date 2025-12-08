@@ -4,8 +4,8 @@ endif()
 
 # Define library.
 include(sources)
-set(sources ${highs_sources} ${cupdlp_sources} ${ipx_sources} ${basiclu_sources})
-set(headers ${highs_headers} ${cupdlp_headers} ${ipx_headers} ${basiclu_headers})
+set(sources ${highs_sources} ${cupdlp_sources} ${ipx_sources} ${benders_sources} ${basiclu_sources})
+set(headers ${highs_headers} ${cupdlp_headers} ${ipx_headers} ${benders_headers} ${basiclu_headers})
 
 if(HIPO)
   set(sources ${sources} ${hipo_sources} ${factor_highs_sources} ${hipo_util_sources})
