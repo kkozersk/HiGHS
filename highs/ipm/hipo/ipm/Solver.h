@@ -128,7 +128,9 @@ class Solver {
   void terminate();
   bool prepareIter();
   bool predictor();
-  bool correctors();
+  bool correctors(bool correct_sigma=true);
+  void recentring();
+  bool isWellCentered();
 
   // ===================================================================================
   // Load model and parameters into ipx and set the last iterate as starting

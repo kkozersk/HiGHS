@@ -4,6 +4,7 @@
 #include <cmath>
 #include <iostream>
 
+#include "hipo/ipm/Parameters.h"
 #include "ipm/hipo/auxiliary/Log.h"
 #include "parallel/HighsParallel.h"
 
@@ -66,6 +67,7 @@ void Solver::runIpm() {
     if (correctors()) break;
     makeStep();
   }
+  recentring();
 
   terminate();
 }
@@ -156,16 +158,51 @@ bool Solver::predictor() {
   return false;
 }
 
-bool Solver::correctors() {
+bool Solver::correctors(bool correct_sigma) {
   // Compute multiple centrality correctors.
   // Return true if an error occurred.
 
   if (checkInterrupt()) return true;
 
-  sigmaCorrectors();
+  if (correct_sigma) sigmaCorrectors();
   if (centralityCorrectors()) return true;
 
   return false;
+}
+
+void Solver::recentring() {
+  it_->data.back().sigma = sigma_ = 1;
+  it_->computeMu();
+  double frozen_mu = it_->mu;
+  int iter = 0;
+  while (!isWellCentered() && iter++ < 100) {
+    if (prepareIter()) break;
+    if (correctors(false)) break;
+    makeStep();
+    it_->mu = frozen_mu;
+  }
+}
+
+bool Solver::isWellCentered() {
+  std::vector<double>& xl = it_->xl;
+  std::vector<double>& xu = it_->xu;
+  std::vector<double>& zl = it_->zl;
+  std::vector<double>& zu = it_->zu;
+  double mu = it_->mu;
+
+  for (Int i = 0; i < n_; ++i) {
+    if (model_.hasLb(i)) {
+      double prod = xl[i] * zl[i];
+      if (prod < sigma_ * mu * kGammaCorrector || prod > sigma_ * mu / kGammaCorrector) 
+        return false;
+    }
+    if (model_.hasUb(i)) {
+      double prod = xu[i] * zu[i];
+      if (prod < sigma_ * mu * kGammaCorrector || prod > sigma_ * mu / kGammaCorrector) 
+        return false;
+    }
+  }
+  return true;
 }
 
 bool Solver::prepareIpx() {
@@ -790,7 +827,7 @@ void Solver::residualsMcc() {
   std::vector<double>& zu = it_->zu;
   std::vector<double>& res5 = it_->res5;
   std::vector<double>& res6 = it_->res6;
-  double& mu = it_->mu;
+  double mu = it_->mu;
 
   // clear existing residuals
   it_->clearRes();
