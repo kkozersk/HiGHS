@@ -335,6 +335,9 @@ class Solver {
   void printSummary() const;
 };
 
+using VecRef = std::vector<double> const &;
+bool isWellCentered(double mu, double gamma, Model const & model, VecRef xl, VecRef zl, VecRef xu, VecRef zu); 
+
 }  // namespace hipo
 
 #endif

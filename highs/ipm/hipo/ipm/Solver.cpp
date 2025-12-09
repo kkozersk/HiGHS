@@ -186,15 +186,7 @@ void Solver::recentring() {
 inline bool is_between(double num, double lb, double ub) { return lb <= num && num <= ub; }
 
 bool Solver::isWellCentered() {
-  double xz_lb = sigma_ * it_->mu * kGammaCorrector;
-  double xz_ub = sigma_ * it_->mu / kGammaCorrector;
-  for (Int i = 0; i < n_; ++i) {
-    if (model_.hasLb(i) && !is_between(it_->xl[i] * it_->zl[i], xz_lb, xz_ub))
-      return false;
-    if (model_.hasUb(i) && !is_between(it_->xu[i] * it_->zu[i], xz_lb, xz_ub))
-      return false;
-  }
-  return true;
+  return hipo::isWellCentered(sigma_ * it_-> mu, kGammaCorrector, model_, it_->xl, it_->zl, it_->xu, it_->zu);
 }
 
 bool Solver::prepareIpx() {
@@ -1626,4 +1618,14 @@ bool Solver::solved() const { return statusIsSolved(); }
 bool Solver::stopped() const { return statusIsStopped(); }
 bool Solver::failed() const { return statusIsFailed(); }
 
+bool isWellCentered(double mu, double gamma, Model const & model, VecRef xl, VecRef zl, VecRef xu, VecRef zu) {
+  double xz_lb = mu * gamma, xz_ub = mu / gamma;
+  for (Int i = 0; i < model.n(); ++i) {
+    if (model.hasLb(i) && !is_between(xl[i] * zl[i], xz_lb, xz_ub))
+      return false;
+    if (model.hasUb(i) && !is_between(xu[i] * zu[i], xz_lb, xz_ub))
+      return false;
+  }
+  return true;
+}
 }  // namespace hipo

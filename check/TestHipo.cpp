@@ -2,6 +2,7 @@
 #include "Highs.h"
 #include "catch.hpp"
 #include "io/Filereader.h"
+#include "ipm/hipo/ipm/Model.h"
 #include "ipm/hipo/ipm/Solver.h"
 #include "ipm/hipo/ipm/Status.h"
 #include "lp_data/HighsCallback.h"
@@ -84,4 +85,71 @@ TEST_CASE("test-hipo-deterministic", "[highs_hipo]") {
   REQUIRE(solution_1.row_value == solution_2.row_value);
   REQUIRE(solution_1.col_dual == solution_2.col_dual);
   REQUIRE(solution_1.row_dual == solution_2.row_dual);
+}
+
+TEST_CASE("test-is-centred-solutions", "[highs_hipo]") {
+  hipo::Model model;
+  std::vector<double> zeros(4, 0);
+  std::vector<hipo::Int> dummy_matrix (5,0);
+  std::vector<double> lb {0, 0, -INFINITY, -INFINITY};
+  std::vector<double> ub {2, INFINITY, 3.5, INFINITY};
+  std::vector<char> dummy_cons {'<'};
+  auto res = model.init(4, 0, zeros.data(), zeros.data(), lb.data(), ub.data(),
+     dummy_matrix.data(), dummy_matrix.data(), zeros.data(), dummy_cons.data(), 0);
+  REQUIRE(res == 0);
+  std::vector<double>
+      xl {1, 1.5, 0, 0},
+      zl {1, 1, 0, 0},
+      xu {1, 0, 1, 0},
+      zu {1, 0, 1, 0};
+  double mu = 1.125;
+  double gamma = 0.01;
+  REQUIRE(hipo::isWellCentered(mu, gamma, model, xl, zl, xu, zu));
+
+  gamma = 0.8;
+  REQUIRE(!hipo::isWellCentered(mu, gamma, model, xl, zl, xu, zu));
+
+  mu = 49./40.;
+  REQUIRE(hipo::isWellCentered(mu, gamma, model, xl, zl, xu, zu));
+}
+
+TEST_CASE("test-eps-centring", "[highs_hipo]") {
+  hipo::Model model;
+  std::vector<double> zeros(4, 0);
+  std::vector<hipo::Int> dummy_matrix (5,0);
+  std::vector<double> lb {0, 0, 0, 0};
+  std::vector<double> ub {INFINITY, INFINITY, INFINITY, INFINITY};
+  std::vector<char> dummy_cons {'<'};
+  auto res = model.init(4, 0, zeros.data(), zeros.data(), lb.data(), ub.data(),
+     dummy_matrix.data(), dummy_matrix.data(), zeros.data(), dummy_cons.data(), 0);
+  REQUIRE(res == 0);
+  auto eps = 1e-8;
+  std::vector<double>
+      xl (4,eps),
+      zl (4,eps),
+      xu (4,0),
+      zu (4,0);
+  double gamma = 1;
+  double mu = eps * eps;
+  REQUIRE(hipo::isWellCentered(mu, gamma, model, xl, zl, xu, zu));
+}
+
+TEST_CASE("test-no-bound-centring", "[highs_hipo]") {
+  hipo::Model model;
+  std::vector<double> zeros(4, 0);
+  std::vector<hipo::Int> dummy_matrix (5,0);
+  std::vector<double> lb {-INFINITY, -INFINITY, -INFINITY, -INFINITY};
+  std::vector<double> ub {INFINITY, INFINITY, INFINITY, INFINITY};
+  std::vector<char> dummy_cons {'<'};
+  auto res = model.init(4, 0, zeros.data(), zeros.data(), lb.data(), ub.data(),
+     dummy_matrix.data(), dummy_matrix.data(), zeros.data(), dummy_cons.data(), 0);
+  REQUIRE(res == 0);
+  std::vector<double>
+      xl (4,0),
+      zl (4,0),
+      xu (4,0),
+      zu (4,0);
+  double gamma = 0.1;
+  double mu = 0;
+  REQUIRE(hipo::isWellCentered(mu, gamma, model, xl, zl, xu, zu));
 }
