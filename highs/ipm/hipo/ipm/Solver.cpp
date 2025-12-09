@@ -183,24 +183,16 @@ void Solver::recentring() {
   }
 }
 
-bool Solver::isWellCentered() {
-  std::vector<double>& xl = it_->xl;
-  std::vector<double>& xu = it_->xu;
-  std::vector<double>& zl = it_->zl;
-  std::vector<double>& zu = it_->zu;
-  double mu = it_->mu;
+inline bool is_between(double num, double lb, double ub) { return lb <= num && num <= ub; }
 
+bool Solver::isWellCentered() {
+  double xz_lb = sigma_ * it_->mu * kGammaCorrector;
+  double xz_ub = sigma_ * it_->mu / kGammaCorrector;
   for (Int i = 0; i < n_; ++i) {
-    if (model_.hasLb(i)) {
-      double prod = xl[i] * zl[i];
-      if (prod < sigma_ * mu * kGammaCorrector || prod > sigma_ * mu / kGammaCorrector) 
-        return false;
-    }
-    if (model_.hasUb(i)) {
-      double prod = xu[i] * zu[i];
-      if (prod < sigma_ * mu * kGammaCorrector || prod > sigma_ * mu / kGammaCorrector) 
-        return false;
-    }
+    if (model_.hasLb(i) && !is_between(it_->xl[i] * it_->zl[i], xz_lb, xz_ub))
+      return false;
+    if (model_.hasUb(i) && !is_between(it_->xu[i] * it_->zu[i], xz_lb, xz_ub))
+      return false;
   }
   return true;
 }
