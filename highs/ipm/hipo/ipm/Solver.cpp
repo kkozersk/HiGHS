@@ -1618,6 +1618,8 @@ bool Solver::failed() const { return statusIsFailed(); }
 bool isWellCentered(double mu, double gamma, Model const & model, VecRef xl, VecRef zl, VecRef xu, VecRef zu) {
   double xz_lb = mu * gamma, xz_ub = mu / gamma;
   for (Int i = 0; i < model.n(); ++i) {
+    if(model.hasLb(i) && model.lb(i) == model.ub(i))
+      continue;
     if (model.hasLb(i) && !is_between(xl[i] * zl[i], xz_lb, xz_ub))
       return false;
     if (model.hasUb(i) && !is_between(xu[i] * zu[i], xz_lb, xz_ub))
