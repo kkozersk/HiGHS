@@ -436,6 +436,8 @@ struct HighsOptionsStruct {
   bool run_centring;
   HighsInt max_centring_steps;
   double centring_ratio_tolerance;
+  double fixed_mu;
+  double centring_gamma;
 
   // Options for iCrash
   bool icrash;
@@ -597,6 +599,8 @@ struct HighsOptionsStruct {
         run_centring(false),
         max_centring_steps(0),
         centring_ratio_tolerance(0.0),
+        fixed_mu(0.0),
+        centring_gamma(0.1),
         icrash(false),
         icrash_dualize(false),
         icrash_strategy(""),
@@ -1609,6 +1613,18 @@ class HighsOptions : public HighsOptionsStruct {
         "Centring stops when the ratio max(x_j*s_j) / min(x_j*s_j) is below "
         "this tolerance (default = 100)",
         advanced, &centring_ratio_tolerance, 0, 100, kHighsInf);
+    records.push_back(record_double);
+
+    record_double = new OptionRecordDouble(
+        "fixed_mu",
+        "recenter to this fixed mu. If 0 (default), recentring is done to the mu obtained in the last iteration",
+        advanced, &fixed_mu, 0, 0, kHighsInf);
+    records.push_back(record_double);
+
+    record_double = new OptionRecordDouble(
+        "centring_gamma",
+        "accuracy of recentring procedure: forall i gamma * mu <= x_i * s_i <= gamma^-1 * mu",
+        advanced, &centring_gamma, 0, 0.1, kHighsInf);
     records.push_back(record_double);
 
     // Set up the log_options aliases

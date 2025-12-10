@@ -49,6 +49,9 @@ struct Options {
   bool refine_with_ipx = true;
   double time_limit = -1.0;
   Int block_size = 0;
+  double frozen_mu = 0.5;
+  Int max_recentring_iter = 100;
+  double centring_gamma = 0.1;
 
   // Logging
   bool display = true;

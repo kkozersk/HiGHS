@@ -65,6 +65,8 @@ class Solver {
 
   double start_time_;
 
+  double gamma_corrector_ = kGammaCorrector;
+
  public:
   // ===================================================================================
   // Load an LP:
@@ -120,6 +122,7 @@ class Solver {
   bool solved() const;
   bool stopped() const;
   bool failed() const;
+  bool isWellCentered() const;
 
  private:
   // Functions to run the various stages of the ipm
@@ -127,10 +130,9 @@ class Solver {
   bool initialise();
   void terminate();
   bool prepareIter();
-  bool predictor();
-  bool correctors(bool correct_sigma=true);
+  bool predictor(bool use_specialized_sigma=true);
+  bool correctors();
   void recentring();
-  bool isWellCentered();
 
   // ===================================================================================
   // Load model and parameters into ipx and set the last iterate as starting
@@ -261,7 +263,7 @@ class Solver {
   //  0.0   |--------|------------|
   //
   // ===================================================================================
-  void sigmaAffine();
+  void sigmaAffine(bool use_specialized_sigma);
   void sigmaCorrectors();
 
   // ===================================================================================

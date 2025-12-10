@@ -153,3 +153,86 @@ TEST_CASE("test-no-bound-centring", "[highs_hipo]") {
   double mu = 0;
   REQUIRE(hipo::isWellCentered(mu, gamma, model, xl, zl, xu, zu));
 }
+
+bool inexact_vector_comparison(std::vector<double> const & a, std::vector<double> const & b, double eps=1e-3) {
+  if (a.size() != b.size())
+    return false;
+  for (int i = 0; i < a.size(); ++i)
+    if (abs(a[i] - b[i]) > eps)
+      return false;
+  return true;
+}
+
+TEST_CASE("test-centring-procedure", "[highs_hipo]") {
+  std::vector<HighsInt> csr_index {0, 0};
+  std::vector<double> csr_values {1, 1};
+  std::vector<HighsInt> csr_starts {0, 1, 2};
+  HighsLp lp;
+  lp.offset_ = 0;
+  lp.num_col_ = 2;
+  lp.num_row_ = 1;
+  lp.col_lower_ = {0, 0};
+  lp.col_upper_ = {INFINITY, INFINITY};
+  lp.col_cost_ = {1, 1};
+  lp.row_lower_ = {-INFINITY};
+  lp.row_upper_ = {1};
+  lp.a_matrix_.format_ = MatrixFormat::kColwise;
+  lp.a_matrix_.start_ = csr_starts;
+  lp.a_matrix_.index_ = csr_index;
+  lp.a_matrix_.value_ = csr_values;
+  lp.a_matrix_.num_row_ = 1;
+  lp.a_matrix_.num_col_ = 2;
+  
+  Highs highs;
+  highs.passModel(lp);
+  highs.setOptionValue("output_flag", dev_run);
+  highs.setOptionValue("solver", kHipoString);
+  highs.setOptionValue("timeless_log", kHighsOnString);
+  highs.setOptionValue("ipm_iteration_limit", 0);
+  highs.setOptionValue("presolve", kHighsOffString);
+  highs.setOptionValue("fixed_mu", 0.5);
+  highs.setOptionValue("centring_gamma", 1);
+  highs.run();
+  // REQUIRE( == HighsStatus::kOk);
+  auto solution = highs.getSolution();
+  REQUIRE(inexact_vector_comparison(solution.col_value, {0.25, 0.25}));
+  REQUIRE(inexact_vector_comparison(solution.col_dual, {2, 2}));
+  REQUIRE(inexact_vector_comparison(solution.row_dual, {-1}));
+}
+
+TEST_CASE("test-centring-procedure-with-slack", "[highs_hipo]") {
+  std::vector<HighsInt> csr_index {0, 0, 0};
+  std::vector<double> csr_values {1, 1, 1};
+  std::vector<HighsInt> csr_starts {0, 1, 2, 3};
+  HighsLp lp;
+  lp.offset_ = 0;
+  lp.num_col_ = 3;
+  lp.num_row_ = 1;
+  lp.col_lower_ = {0, 0, 0};
+  lp.col_upper_ = {INFINITY, INFINITY, INFINITY};
+  lp.col_cost_ = {1, 1, 0};
+  lp.row_lower_ = {1};
+  lp.row_upper_ = {1};
+  lp.a_matrix_.format_ = MatrixFormat::kColwise;
+  lp.a_matrix_.start_ = csr_starts;
+  lp.a_matrix_.index_ = csr_index;
+  lp.a_matrix_.value_ = csr_values;
+  lp.a_matrix_.num_row_ = 1;
+  lp.a_matrix_.num_col_ = 3;
+  
+  Highs highs;
+  highs.passModel(lp);
+  highs.setOptionValue("output_flag", dev_run);
+  highs.setOptionValue("solver", kHipoString);
+  highs.setOptionValue("timeless_log", kHighsOnString);
+  highs.setOptionValue("ipm_iteration_limit", 0);
+  highs.setOptionValue("presolve", kHighsOffString);
+  highs.setOptionValue("fixed_mu", 0.5);
+  highs.setOptionValue("centring_gamma", 1);
+  highs.run();
+  // REQUIRE( == HighsStatus::kOk);
+  auto solution = highs.getSolution();
+  REQUIRE(inexact_vector_comparison(solution.col_value, {0.25, 0.25, 0.5}));
+  REQUIRE(inexact_vector_comparison(solution.col_dual, {2, 2, 1}));
+  REQUIRE(inexact_vector_comparison(solution.row_dual, {-1}));
+}

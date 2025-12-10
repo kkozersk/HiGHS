@@ -142,14 +142,14 @@ bool Solver::prepareIter() {
   return false;
 }
 
-bool Solver::predictor() {
+bool Solver::predictor(bool use_specialized_sigma) {
   // Compute affine scaling direction.
   // Return true if an error occurred.
 
   if (checkInterrupt()) return true;
 
   // compute sigma and residuals for affine scaling direction
-  sigmaAffine();
+  sigmaAffine(use_specialized_sigma);
   it_->residual56(sigma_);
 
   if (solveNewtonSystem(it_->delta)) return true;
@@ -158,35 +158,32 @@ bool Solver::predictor() {
   return false;
 }
 
-bool Solver::correctors(bool correct_sigma) {
+bool Solver::correctors() {
   // Compute multiple centrality correctors.
   // Return true if an error occurred.
 
   if (checkInterrupt()) return true;
 
-  if (correct_sigma) sigmaCorrectors();
+  sigmaCorrectors();
   if (centralityCorrectors()) return true;
 
   return false;
 }
 
 void Solver::recentring() {
-  it_->data.back().sigma = sigma_ = 1;
-  it_->computeMu();
-  double frozen_mu = it_->mu;
-  int iter = 0;
-  while (!isWellCentered() && iter++ < 100) {
-    if (prepareIter()) break;
-    if (correctors(false)) break;
-    makeStep();
+  sigma_ = 1;
+  double frozen_mu = options_.frozen_mu > 0 ? options_.frozen_mu : it_->computeMu();
+  for (Int i = 0; i < options_.max_recentring_iter; ++i) {
     it_->mu = frozen_mu;
+    if (isWellCentered() || prepareIter() || predictor(false)) break;
+    makeStep();
   }
 }
 
 inline bool is_between(double num, double lb, double ub) { return lb <= num && num <= ub; }
 
-bool Solver::isWellCentered() {
-  return hipo::isWellCentered(sigma_ * it_-> mu, kGammaCorrector, model_, it_->xl, it_->zl, it_->xu, it_->zu);
+bool Solver::isWellCentered() const {
+  return hipo::isWellCentered(sigma_ * it_-> mu, options_.centring_gamma, model_, it_->xl, it_->zl, it_->xu, it_->zu);
 }
 
 bool Solver::prepareIpx() {
@@ -781,8 +778,8 @@ bool Solver::startingPoint() {
   return false;
 }
 
-void Solver::sigmaAffine() {
-  sigma_ = kSigmaAffine;
+void Solver::sigmaAffine(bool use_specialized_sigma) {
+  if (use_specialized_sigma) sigma_ = kSigmaAffine;
 
   it_->data.back().sigma_aff = sigma_;
 }

@@ -52,7 +52,7 @@ bool Iterate::isDirInf() const {
   return false;
 }
 
-void Iterate::computeMu() {
+double Iterate::computeMu() {
   mu = 0.0;
   Int number_finite_bounds{};
   for (Int i = 0; i < model->n(); ++i) {
@@ -71,6 +71,7 @@ void Iterate::computeMu() {
     best_mu = std::min(best_mu, mu);
   else
     best_mu = mu;
+  return mu;
 }
 void Iterate::computeScaling() {
   scaling.assign(model->n(), 0.0);

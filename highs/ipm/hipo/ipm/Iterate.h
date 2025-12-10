@@ -74,7 +74,7 @@ struct Iterate {
   // for variables: i with a finite lower bound
   //                j with a finite upper bound
   // ===================================================================================
-  void computeMu();
+  double computeMu();
 
   // ===================================================================================
   // Compute diagonal scaling Theta^{-1}
