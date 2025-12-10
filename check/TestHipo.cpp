@@ -7,6 +7,7 @@
 #include "ipm/hipo/ipm/Status.h"
 #include "lp_data/HighsCallback.h"
 #include "parallel/HighsParallel.h"
+#include "simplex/SimplexConst.h"
 
 // Example for using HiPO from its C++ interface. The program solves the Netlib
 // problem afiro.
@@ -15,6 +16,7 @@
 
 #include <cmath>
 #include <iostream>
+#include <numeric>
 #include <vector>
 
 const bool dev_run = false;
@@ -301,3 +303,32 @@ TEST_CASE("test-centring-procedure-fixed-var", "[highs_hipo]") {
   REQUIRE(inexact_vector_comparison(solution.row_dual, {-1}));
 }
 
+TEST_CASE("test-recentring-afiro", "[highs_hipo]") {
+  std::string model = "afiro.mps";
+  const double expected_obj = -464.753;
+
+  Highs highs;
+  highs.setOptionValue("output_flag", dev_run);
+  highs.setOptionValue("solver", kHipoString);
+  highs.setOptionValue("timeless_log", kHighsOnString);
+  highs.setOptionValue("ipm_iteration_limit", 5);
+  highs.setOptionValue("presolve", kHighsOffString);
+  double gamma = 0.5;
+  highs.setOptionValue("centring_gamma", gamma);
+
+  std::string filename = std::string(HIGHS_DIR) + "/check/instances/" + model;
+  highs.readModel(filename);
+
+  highs.run();
+
+  highs.resetGlobalScheduler(true);
+  auto solution = highs.getSolution();
+  auto x = solution.col_value;
+  auto s = solution.col_dual;
+  double mu = std::inner_product(x.begin(), x.end(), s.begin(), 0.) / x.size();
+  for(int i = 0; i < x.size(); ++i) {
+    REQUIRE(gamma * mu <= x[i] * s[i]);
+    REQUIRE(x[i] * s[i] <= mu / gamma);
+  }
+  
+}
