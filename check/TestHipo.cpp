@@ -1,3 +1,5 @@
+#ifdef HIPO
+
 #include "HCheckConfig.h"
 #include "Highs.h"
 #include "catch.hpp"
@@ -332,3 +334,5 @@ TEST_CASE("test-recentring-afiro", "[highs_hipo]") {
   }
   
 }
+
+#endif
