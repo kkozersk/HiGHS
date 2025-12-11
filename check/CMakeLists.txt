@@ -31,7 +31,7 @@ if ((NOT FAST_BUILD OR ALL_TESTS) AND NOT (BUILD_EXTRA_UNIT_ONLY))
       TestAlienBasis.cpp
       TestBasis.cpp
       TestBasisSolves.cpp
-      # TestBenders.cpp
+      TestBenders.cpp
       TestCallbacks.cpp
       TestCheckSolution.cpp
       TestCrossover.cpp
