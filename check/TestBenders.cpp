@@ -1,11 +1,7 @@
-#include "Benders.h"
+#include "benders/Benders.h"
 #include "HCheckConfig.h"
-#include "FilereaderLp.h"
-#include "HConst.h"
+#include "io/FilereaderLp.h"
 #include "Highs.h"
-#include "HighsInt.h"
-#include "HighsSolution.h"
-#include "HighsStatus.h"
 #include "catch.hpp"
 #include <cmath>
 #include <set>

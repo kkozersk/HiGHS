@@ -1,11 +1,10 @@
 #pragma once
 #include <set>
 #include <regex>
-#include "HConst.h"
-#include "HighsInt.h"
+#include "util/HighsInt.h"
 #include "Highs.h"
-#include "HighsLp.h"
-#include "HighsSparseMatrix.h"
+#include "lp_data/HighsLp.h"
+#include "util/HighsSparseMatrix.h"
 
 //TODO: REMOVE
 // const double mu_lb = -1e4;
@@ -86,3 +85,9 @@ double benders(HighsLp & base_problem, std::string const & master_name_pattern, 
 double multi_benders(HighsLp & base_problem, std::set<HighsInt> const & master_variables, std::vector<std::set<HighsInt>> const & subproblem_variables, std::vector<double> const & starting_point, double eps=1e-3);  
 double benders2(HighsLp & base_problem, std::set<HighsInt> const & master_variables, std::vector<double> const & starting_point, double eps=1e-3);
 double benders2(HighsLp & base_problem, std::string const & master_name_pattern, std::vector<double> const & starting_point, double eps=1e-3);
+std::vector<double> get_dual_costs(HighsLp const & lp);
+std::vector<double> calculate_negated_reduced_costs(HighsSparseMatrix const & A, std::vector<double> const & dual);
+CutData solve_feasibility_subproblem(Highs & subproblem, std::set<HighsInt> const & master_variables);
+std::set<HighsInt> index_set_union(std::set<HighsInt> const & a, std::set<HighsInt> const & b);
+void decompose_problem(MultiBendersProblems & problems, HighsLp & base_problem, std::set<HighsInt> const & master_variables, std::vector<std::set<HighsInt>> const & subproblems_variables);
+void create_subproblem(Highs & subproblem, HighsLp const & base_problem, std::set<HighsInt> const & master_variables, std::set<HighsInt> const & other_rows, std::set<HighsInt> const & subproblem_variables); 

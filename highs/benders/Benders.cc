@@ -1,17 +1,12 @@
 #include "Benders.h"
-#include "HConst.h"
-#include "Highs.h"
 #include <algorithm>
 #include <cassert>
-#include <functional>
 #include <iterator>
 #include <numeric>
 #include <vector>
 #include <regex>
-#include "HighsInt.h"
-#include "HighsSparseMatrix.h"
-#include "HighsStatus.h"
-#include "HighsLpUtils.h"
+#include "lp_data/HighsStatus.h"
+#include "lp_data/HighsLpUtils.h"
 
 
 HighsInt find_row_index(std::vector<HighsInt> const & csr_starts, HighsInt index) {
@@ -22,7 +17,7 @@ HighsInt find_row_index(std::vector<HighsInt> const & csr_starts, HighsInt index
 RowDivision divide_rows(std::vector<HighsInt> const & csr_index, std::vector<HighsInt> const & csr_starts, std::set<HighsInt> const & master_variables) {
   auto is_master = [&master_variables](HighsInt index){ return master_variables.count(index) > 0; };
   std::set<HighsInt> master_rows, subproblem_rows, mixed_rows;
-  for (int i = 0; i < csr_index.size(); ++i)
+  for (std::vector<HighsInt>::size_type i = 0; i < csr_index.size(); ++i)
     (is_master(csr_index[i]) ? master_rows : subproblem_rows).insert(find_row_index(csr_starts, i));
   std::set_intersection(master_rows.begin(), master_rows.end(), subproblem_rows.begin(), subproblem_rows.end(),
                          std::inserter(mixed_rows, mixed_rows.begin()));
@@ -51,7 +46,7 @@ bool fix_master_variables(Highs & subproblem, std::set<HighsInt> const & master_
 
 std::set<HighsInt> sequence_complement(std::set<HighsInt> const & set, HighsInt max_number) {
   std::set<HighsInt> complement;
-  for (int i = 0; i < max_number; i++)
+  for (HighsInt i = 0; i < max_number; i++)
     if (set.count(i) == 0)
       complement.insert(i);
   return complement;
@@ -129,7 +124,7 @@ void decompose_problem(MultiBendersProblems & problems, HighsLp & base_problem, 
   auto row_division = divide_rows(base_problem.a_matrix_, master_variables);
   create_master_problem(problems.master, base_problem, master_variables, row_division.other_rows, subproblems_variables.size());
   problems.subproblems = std::vector<Highs> (subproblems_variables.size());
-  for (int i = 0; i < subproblems_variables.size(); ++i) {
+  for (std::vector<HighsInt>::size_type i = 0; i < subproblems_variables.size(); ++i) {
     std::set<HighsInt> const & subproblem_variables = subproblems_variables.at(i);
     auto master_and_subproblem_vars = index_set_union(subproblem_variables, master_variables);
     row_division = divide_rows(base_problem.a_matrix_, master_and_subproblem_vars);
@@ -149,7 +144,7 @@ NonZeroVector create_nonzero_vector(std::vector<double> const & base_vector) {
   std::vector<HighsInt> nonzero_indices;
   std::vector<double> nonzero_values;
   double vector_entry;
-  for (int i = 0; i < base_vector.size(); ++i)
+  for (std::vector<double>::size_type i = 0; i < base_vector.size(); ++i)
     if ((vector_entry = base_vector.at(i)) != 0) {
       nonzero_indices.push_back(i);
       nonzero_values.push_back(vector_entry);
@@ -197,7 +192,7 @@ void add_cut(Highs & master, Highs const & subproblem, std::set<HighsInt> const 
 
 std::set<HighsInt> discover_master_variables(std::vector<std::string> const & variable_names, std::regex const & master_name_pattern) {
   std::set<HighsInt> master_variables;
-  for (int i = 0; i < variable_names.size(); ++i)
+  for (std::vector<std::string>::size_type i = 0; i < variable_names.size(); ++i)
     if (std::regex_search(variable_names.at(i), master_name_pattern))
       master_variables.insert(i);
   return master_variables;
