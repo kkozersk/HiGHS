@@ -76,12 +76,14 @@ if ((NOT FAST_BUILD OR ALL_TESTS) AND NOT (BUILD_EXTRA_UNIT_ONLY))
       TestRays.cpp
       TestSemiVariables.cpp
       TestSetup.cpp
+      TestSMPS.cpp
       TestSort.cpp
       TestSpecialLps.cpp
       TestThrow.cpp
       TestTspSolver.cpp
       TestUserScale.cpp
-      Avgas.cpp)
+      Avgas.cpp
+  )
 
   set(OPT_LEVEL_CHANGED OFF)
 

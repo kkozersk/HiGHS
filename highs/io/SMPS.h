@@ -1,0 +1,164 @@
+#pragma once
+#include <fstream>
+#include <istream>
+#include <memory>
+#include <string>
+#include <unordered_map>
+#include <vector>
+#include "lp_data/HighsLp.h"
+
+struct TimeStage {
+  std::string starting_column;
+  std::string starting_row;
+  std::string stage_name;
+};
+
+
+struct IndexStage {
+  std::string starting_idx_name;
+  std::string stage_name;
+  bool operator==(IndexStage const & other) const { return other.starting_idx_name == starting_idx_name && other.stage_name == stage_name; }
+};
+
+class SmpsTimeStructure {
+  public:
+    SmpsTimeStructure(std::string const & filepath) {std::ifstream input(filepath.c_str()); read_file(input);};
+    SmpsTimeStructure(std::istream & input_stream) { read_file(input_stream); };
+    bool is_valid() const { return is_valid_; }
+    std::string get_problem_name() const { return problem_name; }
+    std::vector<std::string> get_stage_names() const { return stage_names; }
+    std::vector<IndexStage> const & get_row_stages() const { return row_stages; }
+    std::vector<IndexStage> const & get_col_stages() const { return col_stages; }
+    int get_stage_index(std::string const & stage) const;
+  private:
+    void read_file(std::istream & input);
+
+    std::vector<IndexStage> row_stages, col_stages;
+    std::vector<std::string> stage_names;
+    bool is_valid_ = false;
+    std::string problem_name;
+
+    bool process_header(std::string const & line);
+    bool process_period_header(std::string const & line);
+    bool process_period(std::string const & line);
+    bool is_ending(std::string const & line) const;
+    bool process_ending(std::string const & line);
+};
+
+class SmpsCoreStructure : public HighsLp {
+  public:
+    SmpsCoreStructure(HighsOptions const & options, std::string const & filepath);
+    bool is_valid() const { return is_valid_; }
+    bool load_time_stages(SmpsTimeStructure const & time_stage_data);
+
+    std::vector<std::string> row_time_stage;
+    std::vector<std::string> col_time_stage;
+    
+  private:
+    bool is_valid_ = false;
+    bool verify_time_stages(SmpsTimeStructure const & time_stage_data) const;
+    bool verify_stages(std::vector<IndexStage> const & idx_time_stages, HighsNameHash const & name_hash) const;
+    std::vector<string> load_stages(std::vector<IndexStage> const & stage_idx_data, HighsNameHash const & name_hash, int num_entries);
+};
+
+struct LpEntry {
+  std::string row;
+  std::string col; // can be RHS
+  double value;
+
+  bool operator==(LpEntry const & other) const { return row == other.row && col == other.col && value == other.value; }
+};
+
+using BlockEntry = std::vector<LpEntry>;
+
+class Node {
+  std::vector<std::unique_ptr<Node>> children;
+  Node * parent = nullptr;
+  std::vector<LpEntry> modifications;
+  double node_probability; // TODO 0 <= p <= 1
+  std::string timestage;
+  public:
+    Node(std::string timestage, double node_probability = 1., std::vector<LpEntry> const & modifications={}):
+        modifications(modifications), node_probability(node_probability), timestage(timestage) {}
+    void add_child(std::unique_ptr<Node> && child);
+    bool verify_children_probabilities() const;
+    std::vector<std::unique_ptr<Node>> const & get_children() { return children; }
+    Node const * get_parent() const { return parent; };
+  // TimeStage timestage;
+  // double get_in_tree_probability() const;
+};
+
+struct StochasticTree {
+  std::unique_ptr<Node> root;
+  StochasticTree(std::unique_ptr<Node> && root) : root(std::move(root)) {}
+};
+
+class SmpsStochasticStructure {
+  std::string problem_name;
+
+  protected:
+    bool is_ending(std::string const & line) const { return line == "ENDATA" || line.empty(); };
+    bool process_ending(std::string const & line) const { return line == "ENDATA"; };
+    bool is_valid_ = false;
+  public:
+    virtual StochasticTree constructTree(SmpsTimeStructure const &) const = 0;
+    SmpsStochasticStructure(std::string problem_name) : problem_name(problem_name) {}
+    std::string get_problem_name() const { return problem_name; }
+    bool is_valid() const { return is_valid_; }
+};
+
+struct RandomVariable {
+  struct RandomValue { double probability, value; };
+  std::string col, row;
+  std::vector<RandomValue> values;
+};
+
+struct RandomVectorValue { double probability; BlockEntry modifications; };
+using RandomVector = std::vector<RandomVectorValue>;
+
+struct TimestageRandomVariables {
+  std::vector<RandomVariable> rvs;
+  std::string timestage;
+  RandomVector generate_vector() const;
+};
+
+class IndepStructure : public SmpsStochasticStructure {
+  std::vector<TimestageRandomVariables> modifications;
+
+  bool process_data(std::istream & input);
+  bool read_from_file(std::istream & input);
+  public:
+    IndepStructure(std::string const & problem_name, std::istream & input);
+    IndepStructure(std::string const & problem_name, std::string const & filename);
+    virtual StochasticTree constructTree(SmpsTimeStructure const &) const;
+    std::vector<TimestageRandomVariables> const & get_modifications() { return modifications; };
+};
+
+// class BlockStructure : public SmpsStochasticStructure {
+//   struct BlockModifications {
+//     std::vector<LpEntry> modifications;
+//     double probability;
+//     std::string period;
+//     std::string block_name;
+//   };
+//   std::vector<BlockModifications> modifications;
+//   public:
+//     BlockStructure(std::string const & problem_name, std::string const & filename);
+//     virtual StochasticTree constructTree(SmpsTimeStructure const &) const;
+// };
+
+// class ScenarioStructure : public SmpsStochasticStructure {
+//   struct ScenarioModifications {
+//     std::vector<LpEntry> modifications;
+//     double probability;
+//     std::string period;
+//     std::string scenario_name;
+//     std::string parent_scenario;
+//   };
+//   std::vector<ScenarioModifications> modifications;
+//   public:
+//     ScenarioStructure(std::string const & problem_name, std::string const & filename);
+//     virtual StochasticTree constructTree(SmpsTimeStructure const &) const;
+// };
+
+std::unique_ptr<SmpsStochasticStructure> read_stochastic_file(std::string const & filepath);

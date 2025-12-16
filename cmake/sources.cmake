@@ -278,6 +278,7 @@ set(highs_sources
     io/HMpsFF.cpp
     io/HMPSIO.cpp
     io/LoadOptions.cpp
+    io/SMPS.cpp
     ipm/IpxWrapper.cpp
     lp_data/Highs.cpp
     lp_data/HighsCallback.cpp
@@ -396,6 +397,7 @@ set(highs_headers
     io/HMpsFF.h
     io/HMPSIO.h
     io/LoadOptions.h
+    io/SMPS.h
     ipm/IpxSolution.h
     ipm/IpxWrapper.h
     lp_data/HConst.h
