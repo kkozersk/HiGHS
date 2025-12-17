@@ -154,14 +154,13 @@ TEST_CASE("test-create-dummy-stochastic-tree", "[highs_smps]") {
   REQUIRE(!root->verify_children_probabilities());
   root->add_child(std::unique_ptr<Node>(new Node("TIME2", 0.2)));
   REQUIRE(root->verify_children_probabilities());
-  auto & children = root->get_children();
-  children.at(0)->add_child(std::unique_ptr<Node>(new Node("TIME3", 0.7)));
+  root->get_child(0)->add_child(std::unique_ptr<Node>(new Node("TIME3", 0.7)));
   REQUIRE(root->verify_children_probabilities());
 
-  REQUIRE(children.at(0)->get_parent() == root);
-  REQUIRE(children.at(1)->get_parent() == root);
-  REQUIRE(children.at(2)->get_parent() == root);
-  REQUIRE(children.at(0)->get_children().at(0)->get_parent() == children.at(0).get());
+  REQUIRE(root->get_child(0)->get_parent() == root);
+  REQUIRE(root->get_child(1)->get_parent() == root);
+  REQUIRE(root->get_child(2)->get_parent() == root);
+  REQUIRE(root->get_child(0)->get_child(0)->get_parent() == root->get_child(0).get());
 
   StochasticTree tree {std::unique_ptr<Node>(root)};
   REQUIRE(tree.root.get() == root);

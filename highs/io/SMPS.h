@@ -82,7 +82,8 @@ class Node {
         modifications(modifications), node_probability(node_probability), timestage(timestage) {}
     void add_child(std::unique_ptr<Node> && child);
     bool verify_children_probabilities() const;
-    std::vector<std::unique_ptr<Node>> const & get_children() { return children; }
+    std::unique_ptr<Node> & get_child(int index) { return children.at(index); }
+    // std::vector<std::unique_ptr<Node>> const & get_children() { return children; }
     Node const * get_parent() const { return parent; };
   // TimeStage timestage;
   // double get_in_tree_probability() const;
