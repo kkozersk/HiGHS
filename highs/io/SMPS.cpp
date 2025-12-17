@@ -265,7 +265,7 @@ bool BlockStructure::read_from_file(std::istream & input) {
       std::string header, problem_name, structure_type, distribution, line;
     if (!process_header(read_tokens(input), header, problem_name) || !process_structure(read_tokens(input), structure_type, distribution))
       return false;
-    return header == "STOCH" && structure_type == "BLOCK" && distribution == "DISCRETE"
+    return header == "STOCH" && structure_type == "BLOCKS" && distribution == "DISCRETE"
             && process_data(input) && !timestage_random_vectors.empty();
 }
 

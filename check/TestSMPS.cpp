@@ -457,4 +457,56 @@ TEST_CASE("test-create-malformed-indep-structure", "[highs_smps]") {
   REQUIRE(!smps.is_valid());
 }
 
+TEST_CASE("test-create-simple-block-structure", "[highs_smps]") {
+  std::istringstream data("STOCH NAME\n"
+                          "BLOCKS DISCRETE\n"
+                          "BL BLOCK01 TIME2 1.0\n"
+                          "RHS R1 50\n"
+                          "RHS R2 40\n"
+                          "ENDATA");
+  BlockStructure smps(data);
+  REQUIRE(smps.is_valid());
+  REQUIRE(smps.get_no_timestage_random_vectors() == 1);
+  auto rvt = smps.get_timestage_random_vector(0);
+  TimestageRandomVector rvt1 {
+    {
+      {1.0, {{"R1","RHS",50}, {"R2", "RHS", 40}}}
+    },"TIME2"};
+  REQUIRE(rvt == rvt1);
+
+}
+
+TEST_CASE("test-create-complex-block-structure", "[highs_smps]") {
+  std::istringstream data("STOCH NAME\n"
+                          "BLOCKS DISCRETE\n"
+                          "BL BLOCK01 TIME2 0.3\n"
+                          "RHS R1 50\n"
+                          "RHS R2 40\n"
+                          "BL BLOCK01 TIME2 0.7\n"
+                          "RHS R1 40\n"
+                          "RHS R2 50\n"
+                          "BL BLOCK02 TIME3 0.5\n"
+                          "RHS R3 50\n"
+                          "RHS R4 40\n"
+                          "BL BLOCK02 TIME3 0.5\n"
+                          "RHS R3 40\n"
+                          "RHS R4 50\n"
+                          "ENDATA");
+  BlockStructure smps(data);
+  REQUIRE(smps.is_valid());
+  REQUIRE(smps.get_no_timestage_random_vectors() == 2);
+  auto rvt = smps.get_timestage_random_vector(0);
+  TimestageRandomVector rvt1 {
+    {
+      {0.3, {{"R1","RHS",50}, {"R2", "RHS", 40}}},
+      {0.7, {{"R1","RHS",40}, {"R2", "RHS", 50}}}
+  },"TIME2"};
+  REQUIRE(smps.get_timestage_random_vector(0) == rvt1);
+  TimestageRandomVector rvt2 {
+    {
+      {0.5, {{"R3","RHS",50}, {"R4", "RHS", 40}}},
+      {0.5, {{"R3","RHS",40}, {"R4", "RHS", 50}}}
+  },"TIME3"};
+  REQUIRE(smps.get_timestage_random_vector(1) == rvt2);
+}
 
