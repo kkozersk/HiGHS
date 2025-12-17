@@ -132,7 +132,9 @@ class IndepStructure : public SmpsStochasticStructure {
     IndepStructure(std::string const & problem_name, std::istream & input);
     IndepStructure(std::string const & problem_name, std::string const & filename);
     virtual StochasticTree constructTree(SmpsTimeStructure const &) const;
-    std::vector<TimestageRandomVariables> const & get_modifications() { return modifications; };
+    int get_no_modifications() const { return modifications.size(); }
+    TimestageRandomVariables const & get_modification(int index) { return modifications.at(index); }
+    // std::vector<TimestageRandomVariables> const & get_modifications() { return modifications; };
 };
 
 // class BlockStructure : public SmpsStochasticStructure {

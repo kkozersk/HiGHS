@@ -176,9 +176,8 @@ TEST_CASE("test-create-simple-indep-structure", "[highs_smps]") {
                           "ENDATA");
   IndepStructure smps("NAME", data);
   REQUIRE(smps.is_valid());
-  auto mods = smps.get_modifications();
-  REQUIRE(mods.size() == 1);
-  auto rvt = mods.back();
+  REQUIRE(smps.get_no_modifications() == 1);
+  auto rvt = smps.get_modification(0);
   REQUIRE(rvt.timestage == "TIME2");
   REQUIRE(rvt.rvs.size() == 1);
   auto rv = rvt.rvs.back();
@@ -203,4 +202,19 @@ TEST_CASE("test-create-simple-indep-structure", "[highs_smps]") {
   REQUIRE(vec.at(0).modifications == BlockEntry{{"R1", "RHS", 50}});
   REQUIRE(vec.at(1).modifications == BlockEntry{{"R1", "RHS", 40}});
   REQUIRE(vec.at(2).modifications == BlockEntry{{"R1", "RHS", 60}});
+}
+
+TEST_CASE("test-create-complex-indep-structure", "[highs_smps]") {
+  std::istringstream data("STOCH NAME\n"
+                          "INDEP DISCRETE\n"
+                          "RHS R1 50 TIME2 0.5\n"
+                          "RHS R1 40 TIME2 0.3\n"
+                          "RHS R1 60 TIME2 0.2\n"
+                          "C1 R1 50 TIME2 0.7\n"
+                          "C1 R1 30 TIME2 0.3\n"
+                          "C1 R1 50 TIME3 0.5\n"
+                          "C1 R1 30 TIME3 0.5\n"
+                          "ENDATA");
+  IndepStructure smps("NAME", data);
+  REQUIRE(smps.is_valid());
 }
