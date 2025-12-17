@@ -7,6 +7,8 @@
 #include <vector>
 #include "lp_data/HighsLp.h"
 
+using Tokens = std::vector<std::string>;
+
 struct TimeStage {
   std::string starting_column;
   std::string starting_row;
@@ -68,6 +70,7 @@ struct LpEntry {
   double value;
 
   bool operator==(LpEntry const & other) const { return row == other.row && col == other.col && value == other.value; }
+  LpEntry(std::string const & row, std::string const & col, double value) : row(row), col(col), value(value) {}
 };
 
 using BlockLpEntry = std::vector<LpEntry>;
@@ -96,10 +99,15 @@ struct StochasticTree {
 };
 
 class SmpsStochasticStructure {
+  private:
+    virtual bool process_data(std::istream & input) = 0;
+    virtual bool read_from_file(std::istream & input) = 0;
   protected:
+    bool process_header(Tokens const & tokens, std::string & header, std::string & problem_name) const;
+    bool process_structure(Tokens const & tokens, std::string & structure_type, std::string & distribution) const; 
     std::string problem_name = "";
-    bool is_ending(std::vector<std::string> const & tokens) const;
-    bool is_proper_ending(std::vector<std::string> const & tokens) const;
+    bool is_ending(Tokens const & tokens) const;
+    bool is_proper_ending(Tokens const & tokens) const;
     bool is_valid_ = false;
   public:
     SmpsStochasticStructure() = default;
@@ -138,13 +146,19 @@ struct TimestageRandomVariables {
   TimestageRandomVariables(std::vector<RandomVariable> const & rvs, std::string const & timestage) : rvs(rvs), timestage(timestage) {}
 };
 
+struct TimestageRandomVector {
+  RandomVector rvs;
+  std::string timestage;
+  bool operator==(TimestageRandomVector const & other) const { return rvs == other.rvs && timestage == other.timestage; }
+  TimestageRandomVector(RandomVector const & rvs, std::string const & timestage) : rvs(rvs), timestage(timestage) {}
+};
+
+
 class IndepStructure : public SmpsStochasticStructure {
   std::vector<TimestageRandomVariables> timestage_random_entries;
 
-  bool process_tokens(std::vector<std::string> const & tokens, std::string & column, std::string & row, double & value, std::string & timeperiod, double & probability) const;
+  bool process_tokens(Tokens const & tokens, std::string & column, std::string & row, double & value, std::string & timeperiod, double & probability) const;
   bool process_data(std::istream & input);
-  bool process_header(std::vector<std::string> const & tokens, std::string & header, std::string & problem_name) const;
-  bool process_structure(std::vector<std::string> const & tokens, std::string & structure_type, std::string & distribution) const; 
   bool read_from_file(std::istream & input);
   public:
     IndepStructure(std::istream & input);
@@ -155,18 +169,25 @@ class IndepStructure : public SmpsStochasticStructure {
     // std::vector<TimestageRandomVariables> const & get_modifications() { return modifications; };
 };
 
-// class BlockStructure : public SmpsStochasticStructure {
-//   struct BlockModifications {
-//     std::vector<LpEntry> modifications;
-//     double probability;
-//     std::string period;
-//     std::string block_name;
-//   };
-//   std::vector<BlockModifications> modifications;
-//   public:
-//     BlockStructure(std::string const & problem_name, std::string const & filename);
-//     virtual StochasticTree constructTree(SmpsTimeStructure const &) const;
-// };
+class BlockStructure : public SmpsStochasticStructure {
+  std::vector<TimestageRandomVector> timestage_random_vectors;
+  bool process_data(std::istream & input);
+  bool read_from_file(std::istream & input);
+  bool is_new_block(Tokens const & tokens) const;
+  bool process_new_block(Tokens const & tokens, std::string & block_name, std::string & timeperiod, double & probability) const;
+  bool process_block_entry(Tokens const & tokens, std::string & column, std::string & row, double & value) const;
+  bool has_timestage_changed(Tokens const & tokens, std::string const & timestage) const;
+  public:
+    BlockStructure(std::string const & problem_name) {
+      std::ifstream input(problem_name);
+      is_valid_ = read_from_file(input);
+      input.close();
+    }
+    BlockStructure(std::istream & input) { is_valid_ = read_from_file(input); };
+    virtual StochasticTree constructTree(SmpsTimeStructure const &) const;
+    int get_no_timestage_random_vectors() const { return timestage_random_vectors.size(); }
+    TimestageRandomVector const & get_timestage_random_vector(int index) { return timestage_random_vectors.at(index); }
+};
 
 // class ScenarioStructure : public SmpsStochasticStructure {
 //   struct ScenarioModifications {
@@ -183,5 +204,6 @@ class IndepStructure : public SmpsStochasticStructure {
 // };
 
 std::unique_ptr<SmpsStochasticStructure> read_stochastic_file(std::string const & filepath);
-std::vector<std::string> read_tokens(std::istream & input);
+Tokens read_tokens(std::istream & input);
 RandomVector append_to_random_vector(RandomVariable const & rv, RandomVector const & rvec);
+bool str_to_dbl(std::string const & str, double & val);

@@ -1,5 +1,6 @@
 #include "SMPS.h"
 #include <algorithm>
+#include <cstdio>
 #include <fstream>
 #include <iterator>
 #include <memory>
@@ -127,8 +128,8 @@ std::unique_ptr<SmpsStochasticStructure> read_stochastic_file(std::string const 
   if (distribution != "DISCRETE") return nullptr;
   if (structure_type == "INDEP")
     return std::unique_ptr<SmpsStochasticStructure>(new IndepStructure(filepath));
-  // if (structure_type == "BLOCK")
-  //   return std::unique_ptr<SmpsStochasticStructure>(new BlockStructure(problem_name, filepath));
+  if (structure_type == "BLOCK")
+    return std::unique_ptr<SmpsStochasticStructure>(new BlockStructure(filepath));
   // if (structure_type == "SCENARIO")
   //   return std::unique_ptr<SmpsStochasticStructure>(new ScenarioStructure(problem_name, filepath));
   return nullptr;
@@ -144,14 +145,14 @@ IndepStructure::IndepStructure(std::string const & filepath) {
   input.close();
 }
 
-bool IndepStructure::process_header(std::vector<std::string> const & tokens, std::string & header, std::string & problem_name) const {
+bool SmpsStochasticStructure::process_header(Tokens const & tokens, std::string & header, std::string & problem_name) const {
   if (tokens.size() != 2) return false;
   header = tokens[0];
   problem_name = tokens[1];
   return true;
 }
 
-bool IndepStructure::process_structure(std::vector<std::string> const & tokens, std::string & structure_type, std::string & distribution) const {
+bool SmpsStochasticStructure::process_structure(Tokens const & tokens, std::string & structure_type, std::string & distribution) const {
   if (tokens.size() != 2) return false;
   structure_type = tokens[0];
   distribution = tokens[1];
@@ -166,22 +167,20 @@ bool IndepStructure::read_from_file(std::istream & input) {
             && process_data(input) && !timestage_random_entries.empty();
 }
 
-bool IndepStructure::process_tokens(std::vector<std::string> const & tokens, std::string & column, std::string & row, double & value, std::string & timeperiod, double & probability) const {
+bool IndepStructure::process_tokens(Tokens const & tokens, std::string & column, std::string & row, double & value, std::string & timeperiod, double & probability) const {
   if (tokens.size() != 5) return false;
   column = tokens[0];
   row = tokens[1];
-  int pos;
-  if (sscanf(tokens[2].c_str(), "%lf%n", &value, &pos) != 1 || pos != tokens[2].length()) return false;
+  if (!str_to_dbl(tokens[2], value)) return false;
   timeperiod = tokens[3];
-  if (sscanf(tokens[4].c_str(), "%lf%n", &probability, &pos) != 1 || pos != tokens[4].length() || probability < 0 || probability > 1) return false;
-  return true;
+  return str_to_dbl(tokens[4], probability) && probability >= 0 && probability <= 1;
 }
 
-bool SmpsStochasticStructure::is_ending(std::vector<std::string> const & tokens) const {
+bool SmpsStochasticStructure::is_ending(Tokens const & tokens) const {
   return tokens.size() == 0 || tokens[0] == "ENDATA";
 }
 
-bool SmpsStochasticStructure::is_proper_ending(std::vector<std::string> const & tokens) const {
+bool SmpsStochasticStructure::is_proper_ending(Tokens const & tokens) const {
     return tokens.size() == 1 && tokens[0] == "ENDATA";
 }
 
@@ -255,9 +254,91 @@ RandomVector TimestageRandomVariables::generate_vector() const {
 }
 
 //TODO: other class could also use that
-std::vector<std::string> read_tokens(std::istream & input) {
+Tokens read_tokens(std::istream & input) {
   std::string line;
   if (!getline(input, line)) return {};
   std::istringstream buffer(line);
   return {std::istream_iterator<std::string>(buffer), std::istream_iterator<std::string>()};
+}
+
+bool BlockStructure::read_from_file(std::istream & input) {
+      std::string header, problem_name, structure_type, distribution, line;
+    if (!process_header(read_tokens(input), header, problem_name) || !process_structure(read_tokens(input), structure_type, distribution))
+      return false;
+    return header == "STOCH" && structure_type == "BLOCK" && distribution == "DISCRETE"
+            && process_data(input) && !timestage_random_vectors.empty();
+}
+
+bool BlockStructure::is_new_block(Tokens const & tokens) const {
+  return tokens.size() == 4 && tokens[0] == "BL";
+}
+
+bool BlockStructure::process_new_block(Tokens const & tokens, std::string & block_name, std::string & timeperiod, double & probability) const {
+  if (tokens.size() != 4 || tokens[0] != "BL") return false;
+  block_name = tokens[1];
+  timeperiod = tokens[2];
+  return str_to_dbl(tokens[3], probability) && probability >= 0 && probability <= 1;
+}
+
+bool BlockStructure::process_block_entry(Tokens const & tokens, std::string & column, std::string & row, double & value) const {
+  if (tokens.size() != 3) return false;
+  column = tokens[0];
+  row = tokens[1];
+  return str_to_dbl(tokens[2], value);
+}
+
+bool BlockStructure::has_timestage_changed(Tokens const & tokens, std::string const & timestage) const {
+  return tokens[2] != timestage;
+}
+
+bool BlockStructure::process_data(std::istream & input) {
+  std::string block_name, timeperiod, temp_timeperiod, column, row, line;
+  double value, probability;
+  BlockLpEntry in_block_entries;
+  RandomVector rv;
+  
+  auto tokens = read_tokens(input);
+  if (!is_new_block(tokens) || !process_new_block(tokens, block_name, timeperiod, probability))
+    return false;
+  tokens = read_tokens(input);
+  while (!is_ending(tokens)) {
+    if (is_new_block(tokens)) {
+      rv.emplace_back(probability, in_block_entries);
+      in_block_entries.clear();
+      if (has_timestage_changed(tokens, timeperiod)) {
+        timestage_random_vectors.emplace_back(rv, timeperiod);
+        rv.clear();
+      }
+      if (!process_new_block(tokens, block_name, timeperiod, probability)) return false;
+    }
+    else {
+      if (!process_block_entry(tokens, column, row, value)) return false;
+      in_block_entries.emplace_back(row, column, value);
+    }
+    tokens = read_tokens(input);
+  }
+  rv.emplace_back(probability, in_block_entries);
+  timestage_random_vectors.emplace_back(rv, timeperiod);
+  return is_proper_ending(tokens);
+}
+
+StochasticTree BlockStructure::constructTree(SmpsTimeStructure const & timestructure) const {
+  auto root = std::unique_ptr<Node>(new Node("root"));
+  std::vector<Node*> current_level = {root.get()}, next_level;
+  for (auto const & timestage_rvs : timestage_random_vectors) {
+    for (auto const & random_vec_value : timestage_rvs.rvs)
+      for (auto node : current_level) {
+        auto child = new Node(timestage_rvs.timestage, random_vec_value.probability, random_vec_value.lp_modifications);
+        node->add_child(std::unique_ptr<Node>(child));
+        next_level.push_back(child);
+      }
+    current_level = next_level;
+    next_level.clear();
+  }
+  return StochasticTree(std::move(root));
+}
+
+bool str_to_dbl(std::string const & str, double & val) {
+  int pos;
+  return sscanf(str.c_str(), "%lf%n", &val, &pos) == 1 && pos == str.length();
 }
