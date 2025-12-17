@@ -167,7 +167,6 @@ TEST_CASE("test-create-dummy-stochastic-tree", "[highs_smps]") {
 }
 
 TEST_CASE("test-create-simple-indep-structure", "[highs_smps]") {
-  //TODO missing periods
   std::istringstream data("STOCH NAME\n"
                           "INDEP DISCRETE\n"
                           "RHS R1 50 TIME2 0.5\n"
@@ -191,6 +190,30 @@ TEST_CASE("test-create-simple-indep-structure", "[highs_smps]") {
     {0.5, {{"R1", "RHS", 50}}},
     {0.3, {{"R1", "RHS", 40}}},
     {0.2, {{"R1", "RHS", 60}}},
+   };
+  REQUIRE(vec == expected);
+}
+
+TEST_CASE("test-create-single-val-indep-structure", "[highs_smps]") {
+  std::istringstream data("STOCH NAME\n"
+                          "INDEP DISCRETE\n"
+                          "RHS R1 50 TIME2 1\n"
+                          "ENDATA");
+  IndepStructure smps(data);
+  REQUIRE(smps.is_valid());
+  REQUIRE(smps.get_no_timestage_random_entries() == 1);
+  auto rvt = smps.get_timestage_random_entry(0);
+  REQUIRE(rvt.timestage == "TIME2");
+  REQUIRE(rvt.rvs.size() == 1);
+  TimestageRandomVariables rvt1 {
+    {
+      {"RHS", "R1", {{1., 50}}},
+    },"TIME2"};
+  REQUIRE(rvt == rvt1);
+
+  auto vec = rvt.generate_vector();
+  RandomVector expected {
+    {1., {{"R1", "RHS", 50}}},
    };
   REQUIRE(vec == expected);
 }

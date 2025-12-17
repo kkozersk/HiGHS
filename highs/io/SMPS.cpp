@@ -177,11 +177,11 @@ bool IndepStructure::process_tokens(std::vector<std::string> const & tokens, std
   return true;
 }
 
-bool IndepStructure::is_ending(std::vector<std::string> const & tokens) const {
+bool SmpsStochasticStructure::is_ending(std::vector<std::string> const & tokens) const {
   return tokens.size() == 0 || tokens[0] == "ENDATA";
 }
 
-bool IndepStructure::is_proper_ending(std::vector<std::string> const & tokens) const {
+bool SmpsStochasticStructure::is_proper_ending(std::vector<std::string> const & tokens) const {
     return tokens.size() == 1 && tokens[0] == "ENDATA";
 }
 
@@ -196,21 +196,21 @@ bool IndepStructure::process_data(std::istream & input) {
   while (!is_ending(tokens)) {
     if (!process_tokens(tokens, temp_column, temp_row, value, temp_timeperiod, probability)) return false;
     if (temp_column != column || temp_row != row || temp_timeperiod != timeperiod) {
-      if (!values.empty()) rvs.emplace_back(column, row, values);
+      rvs.emplace_back(column, row, values);
       values.clear();
-      column = temp_column;
-      row = temp_row;
     }
     if (temp_timeperiod != timeperiod) {
-      if (!rvs.empty()) timestage_random_entries.emplace_back(rvs, timeperiod);
+      timestage_random_entries.emplace_back(rvs, timeperiod);
       rvs.clear();
-      timeperiod = temp_timeperiod;
     }
+    column = temp_column;
+    row = temp_row;
+    timeperiod = temp_timeperiod;
     values.emplace_back(probability, value);
     tokens = read_tokens(input);
   }
-  if (!values.empty()) rvs.emplace_back(column, row, values);
-  if (!rvs.empty()) timestage_random_entries.emplace_back(rvs, timeperiod);
+  rvs.emplace_back(column, row, values);
+  timestage_random_entries.emplace_back(rvs, timeperiod);
   return is_proper_ending(tokens);
 };
 
@@ -254,6 +254,7 @@ RandomVector TimestageRandomVariables::generate_vector() const {
   return result;
 }
 
+//TODO: other class could also use that
 std::vector<std::string> read_tokens(std::istream & input) {
   std::string line;
   if (!getline(input, line)) return {};

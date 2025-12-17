@@ -98,8 +98,8 @@ struct StochasticTree {
 class SmpsStochasticStructure {
   protected:
     std::string problem_name = "";
-    bool is_ending(std::string const & line) const { return line == "ENDATA" || line.empty(); };
-    bool process_ending(std::string const & line) const { return line == "ENDATA"; };
+    bool is_ending(std::vector<std::string> const & tokens) const;
+    bool is_proper_ending(std::vector<std::string> const & tokens) const;
     bool is_valid_ = false;
   public:
     SmpsStochasticStructure() = default;
@@ -142,8 +142,6 @@ class IndepStructure : public SmpsStochasticStructure {
   std::vector<TimestageRandomVariables> timestage_random_entries;
 
   bool process_tokens(std::vector<std::string> const & tokens, std::string & column, std::string & row, double & value, std::string & timeperiod, double & probability) const;
-  bool is_ending(std::vector<std::string> const & tokens) const;
-  bool is_proper_ending(std::vector<std::string> const & tokens) const;
   bool process_data(std::istream & input);
   bool process_header(std::vector<std::string> const & tokens, std::string & header, std::string & problem_name) const;
   bool process_structure(std::vector<std::string> const & tokens, std::string & structure_type, std::string & distribution) const; 
