@@ -18,6 +18,7 @@ struct IndexStage {
   std::string starting_idx_name;
   std::string stage_name;
   bool operator==(IndexStage const & other) const { return other.starting_idx_name == starting_idx_name && other.stage_name == stage_name; }
+  IndexStage(std::string const & starting_idx_name, std::string const & stage_name) : starting_idx_name(starting_idx_name), stage_name(stage_name) {}
 };
 
 class SmpsTimeStructure {
@@ -69,17 +70,17 @@ struct LpEntry {
   bool operator==(LpEntry const & other) const { return row == other.row && col == other.col && value == other.value; }
 };
 
-using BlockEntry = std::vector<LpEntry>;
+using BlockLpEntry = std::vector<LpEntry>;
 
 class Node {
   std::vector<std::unique_ptr<Node>> children;
   Node * parent = nullptr;
-  std::vector<LpEntry> modifications;
+  std::vector<LpEntry> lp_modifications;
   double node_probability; // TODO 0 <= p <= 1
   std::string timestage;
   public:
-    Node(std::string timestage, double node_probability = 1., std::vector<LpEntry> const & modifications={}):
-        modifications(modifications), node_probability(node_probability), timestage(timestage) {}
+    Node(std::string timestage, double node_probability = 1., std::vector<LpEntry> const & lp_modifications={}):
+        lp_modifications(lp_modifications), node_probability(node_probability), timestage(timestage) {}
     void add_child(std::unique_ptr<Node> && child);
     bool verify_children_probabilities() const;
     std::unique_ptr<Node> & get_child(int index) { return children.at(index); }
@@ -109,22 +110,35 @@ class SmpsStochasticStructure {
 };
 
 struct RandomVariable {
-  struct RandomValue { double probability, value; };
+  struct RandomValue {
+    double probability, value;
+    bool operator==(RandomValue const & other) const { return probability == other.probability && value == other.value; }
+    RandomValue(double probability, double value) : probability(probability), value(value) {}
+  };
   std::string col, row;
   std::vector<RandomValue> values;
+  bool operator==(RandomVariable const & other) const { return col == other.col && row == other.row && values == other.values; }
+  RandomVariable(std::string const & col, std::string const & row, std::vector<RandomValue> const & values) : col(col), row(row), values(values) {}
 };
 
-struct RandomVectorValue { double probability; BlockEntry modifications; };
+struct RandomVectorValue {
+  double probability;
+  BlockLpEntry lp_modifications;
+  bool operator==(RandomVectorValue const & other) const { return probability == other.probability && lp_modifications == other.lp_modifications; }
+  RandomVectorValue(double probability, BlockLpEntry const & lp_modifications) : probability(probability), lp_modifications(lp_modifications) {}
+ };
 using RandomVector = std::vector<RandomVectorValue>;
 
 struct TimestageRandomVariables {
   std::vector<RandomVariable> rvs;
   std::string timestage;
   RandomVector generate_vector() const;
+  bool operator==(TimestageRandomVariables const & other) const { return rvs == other.rvs && timestage == other.timestage; }
+  TimestageRandomVariables(std::vector<RandomVariable> const & rvs, std::string const & timestage) : rvs(rvs), timestage(timestage) {}
 };
 
 class IndepStructure : public SmpsStochasticStructure {
-  std::vector<TimestageRandomVariables> modifications;
+  std::vector<TimestageRandomVariables> timestage_random_entries;
 
   bool process_data(std::istream & input);
   bool read_from_file(std::istream & input);
@@ -132,8 +146,8 @@ class IndepStructure : public SmpsStochasticStructure {
     IndepStructure(std::string const & problem_name, std::istream & input);
     IndepStructure(std::string const & problem_name, std::string const & filename);
     virtual StochasticTree constructTree(SmpsTimeStructure const &) const;
-    int get_no_modifications() const { return modifications.size(); }
-    TimestageRandomVariables const & get_modification(int index) { return modifications.at(index); }
+    int get_no_timestage_random_entries() const { return timestage_random_entries.size(); }
+    TimestageRandomVariables const & get_timestage_random_entry(int index) { return timestage_random_entries.at(index); }
     // std::vector<TimestageRandomVariables> const & get_modifications() { return modifications; };
 };
 

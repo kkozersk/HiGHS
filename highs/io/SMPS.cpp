@@ -46,8 +46,8 @@ bool SmpsTimeStructure::process_period(std::string const & line) {
   std::stringstream ss(line);
   ss >> starting_column >> starting_row >> stage_name;
   if (starting_column.empty() || starting_row.empty() || stage_name.empty()) return false;
-  col_stages.push_back({starting_column, stage_name});
-  row_stages.push_back({starting_row, stage_name});
+  col_stages.emplace_back(starting_column, stage_name);
+  row_stages.emplace_back(starting_row, stage_name);
   return true;
 }
 
@@ -149,43 +149,44 @@ bool IndepStructure::read_from_file(std::istream & input) {
     std::string header, problem_name, structure_type, distribution;
     input >> header >> problem_name >> structure_type >> distribution;
     return header == "STOCH" && problem_name == get_problem_name() && structure_type == "INDEP" && distribution == "DISCRETE"
-            && process_data(input) && !modifications.empty();
+            && process_data(input) && !timestage_random_entries.empty();
 }
 
 bool IndepStructure::process_data(std::istream & input) {
-  std::string temp_column, temp_row, temp_timeperiod, column, row, timeperiod;
+  std::string temp_column = "start", temp_row, temp_timeperiod, column, row, timeperiod;
   double value, probability;
   std::vector<RandomVariable::RandomValue> values;
   std::vector<RandomVariable> rvs;
   std::vector<TimestageRandomVariables> timestage_rvs;
   input >> column >> row >> value >> timeperiod >> probability;
   if (column == "" || row == "" || timeperiod == "" || probability < 0 || probability > 1) return false;
-  values.push_back({probability, value});
-  while (temp_column != "ENDATA") {
+  values.emplace_back(probability, value);
+  while (temp_column != "ENDATA" && temp_column != "") {
     input >> temp_column >> temp_row >> value >> temp_timeperiod >> probability;
+    if (temp_column == "" || temp_row == "" || temp_timeperiod == "" || probability < 0 || probability > 1) return false;
     if (temp_column == "ENDATA" || temp_column != column || temp_row != row || temp_timeperiod != timeperiod) {
-      if (!values.empty()) rvs.push_back({column, row, values});
+      if (!values.empty()) rvs.emplace_back(column, row, values);
       values.clear();
       column = temp_column;
       row = temp_row;
     }
-    values.push_back({probability, value});
+    values.emplace_back(probability, value);
     if (temp_column == "ENDATA" || temp_timeperiod != timeperiod) {
-      modifications.push_back({rvs, temp_timeperiod});
+      timestage_random_entries.emplace_back(rvs, timeperiod);
       rvs.clear();
       timeperiod = temp_timeperiod;
     }
   }
-  return true;
+  return temp_column == "ENDATA";
 };
 
 StochasticTree IndepStructure::constructTree(SmpsTimeStructure const & timestructure) const {
   auto root = std::unique_ptr<Node>(new Node("root"));
   std::vector<Node*> current_level = {root.get()}, next_level;
-  for (auto const & timestage_rvs : modifications) {
+  for (auto const & timestage_rvs : timestage_random_entries) {
     for (auto const & random_vec_value : timestage_rvs.generate_vector())
       for (auto node : current_level) {
-        auto child = new Node(timestage_rvs.timestage, random_vec_value.probability, random_vec_value.modifications);
+        auto child = new Node(timestage_rvs.timestage, random_vec_value.probability, random_vec_value.lp_modifications);
         node->add_child(std::unique_ptr<Node>(child));
         next_level.push_back(child);
       }
@@ -199,15 +200,15 @@ RandomVector append_to_random_vector(RandomVariable const & rv, RandomVector con
   RandomVector result;
   if (rvec.size() == 0) {
     for (auto random_value : rv.values)
-      result.push_back({random_value.probability, {{rv.row, rv.col, random_value.value}}});
+      result.emplace_back(random_value.probability, BlockLpEntry{{rv.row, rv.col, random_value.value}});
     return result;
   }
   for (auto random_value : rv.values)   
     for (auto const & vector_value : rvec) {
       double probability = random_value.probability * vector_value.probability;
-      result.push_back({probability, vector_value.modifications});
+      result.emplace_back(probability, vector_value.lp_modifications);
       LpEntry new_entry {rv.row, rv.col, random_value.value};
-      result.back().modifications.push_back(new_entry);
+      result.back().lp_modifications.push_back(new_entry);
     }
   return result;
 }

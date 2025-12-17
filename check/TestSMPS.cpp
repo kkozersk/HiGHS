@@ -176,32 +176,23 @@ TEST_CASE("test-create-simple-indep-structure", "[highs_smps]") {
                           "ENDATA");
   IndepStructure smps("NAME", data);
   REQUIRE(smps.is_valid());
-  REQUIRE(smps.get_no_modifications() == 1);
-  auto rvt = smps.get_modification(0);
+  REQUIRE(smps.get_no_timestage_random_entries() == 1);
+  auto rvt = smps.get_timestage_random_entry(0);
   REQUIRE(rvt.timestage == "TIME2");
   REQUIRE(rvt.rvs.size() == 1);
-  auto rv = rvt.rvs.back();
-  REQUIRE(rv.col == "RHS");
-  REQUIRE(rv.row == "R1");
-  REQUIRE(rv.values.size() == 3);
-
-  REQUIRE(rv.values.at(0).probability == 0.5);
-  REQUIRE(rv.values.at(1).probability == 0.3);
-  REQUIRE(rv.values.at(2).probability == 0.2);
-
-  REQUIRE(rv.values.at(0).value == 50);
-  REQUIRE(rv.values.at(1).value == 40);
-  REQUIRE(rv.values.at(2).value == 60);
+  TimestageRandomVariables rvt1 {
+    {
+      {"RHS", "R1", {{0.5, 50}, {0.3, 40}, {0.2, 60}}},
+    },"TIME2"};
+  REQUIRE(rvt == rvt1);
 
   auto vec = rvt.generate_vector();
-  REQUIRE(vec.size() == 3);
-  REQUIRE(vec.at(0).probability == 0.5);
-  REQUIRE(vec.at(1).probability == 0.3);
-  REQUIRE(vec.at(2).probability == 0.2);
-
-  REQUIRE(vec.at(0).modifications == BlockEntry{{"R1", "RHS", 50}});
-  REQUIRE(vec.at(1).modifications == BlockEntry{{"R1", "RHS", 40}});
-  REQUIRE(vec.at(2).modifications == BlockEntry{{"R1", "RHS", 60}});
+  RandomVector expected {
+    {0.5, {{"R1", "RHS", 50}}},
+    {0.3, {{"R1", "RHS", 40}}},
+    {0.2, {{"R1", "RHS", 60}}},
+   };
+  REQUIRE(vec == expected);
 }
 
 TEST_CASE("test-create-complex-indep-structure", "[highs_smps]") {
@@ -217,4 +208,30 @@ TEST_CASE("test-create-complex-indep-structure", "[highs_smps]") {
                           "ENDATA");
   IndepStructure smps("NAME", data);
   REQUIRE(smps.is_valid());
+  REQUIRE(smps.get_no_timestage_random_entries() == 2);
+  TimestageRandomVariables rvt1 {
+    {
+      {"RHS", "R1", {{0.5, 50}, {0.3, 40}, {0.2, 60}}},
+      {"C1", "R1", {{0.7, 50}, {0.3, 30}}},
+    },"TIME2"};
+  REQUIRE(smps.get_timestage_random_entry(0) == rvt1);
+  TimestageRandomVariables rvt2 {
+    {
+      {"C1", "R1", {{0.5, 50}, {0.5, 30}}},
+    },"TIME3"};
+  REQUIRE(smps.get_timestage_random_entry(1) == rvt2);
+  RandomVector expected {
+    {0.5 * 0.7, {{"R1", "RHS", 50}, {"R1", "C1", 50}}},
+    {0.3 * 0.7, {{"R1", "RHS", 40}, {"R1", "C1", 50}}},
+    {0.2 * 0.7, {{"R1", "RHS", 60}, {"R1", "C1", 50}}},
+    {0.5 * 0.3, {{"R1", "RHS", 50}, {"R1", "C1", 30}}},
+    {0.3 * 0.3, {{"R1", "RHS", 40}, {"R1", "C1", 30}}},
+    {0.2 * 0.3, {{"R1", "RHS", 60}, {"R1", "C1", 30}}},
+   };
+  REQUIRE(rvt1.generate_vector() == expected);
+  RandomVector expected2 {
+    {0.5, {{"R1", "C1", 50}}},
+    {0.5, {{"R1", "C1", 30}}},
+   };
+  REQUIRE(rvt2.generate_vector() == expected2);
 }
