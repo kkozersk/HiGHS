@@ -174,7 +174,7 @@ TEST_CASE("test-create-simple-indep-structure", "[highs_smps]") {
                           "RHS R1 40 TIME2 0.3\n"
                           "RHS R1 60 TIME2 0.2\n"
                           "ENDATA");
-  IndepStructure smps("NAME", data);
+  IndepStructure smps(data);
   REQUIRE(smps.is_valid());
   REQUIRE(smps.get_no_timestage_random_entries() == 1);
   auto rvt = smps.get_timestage_random_entry(0);
@@ -206,7 +206,7 @@ TEST_CASE("test-create-complex-indep-structure", "[highs_smps]") {
                           "C1 R1 50 TIME3 0.5\n"
                           "C1 R1 30 TIME3 0.5\n"
                           "ENDATA");
-  IndepStructure smps("NAME", data);
+  IndepStructure smps(data);
   REQUIRE(smps.is_valid());
   REQUIRE(smps.get_no_timestage_random_entries() == 2);
   TimestageRandomVariables rvt1 {
@@ -235,3 +235,203 @@ TEST_CASE("test-create-complex-indep-structure", "[highs_smps]") {
    };
   REQUIRE(rvt2.generate_vector() == expected2);
 }
+
+TEST_CASE("test-create-malformed-indep-structure", "[highs_smps]") {
+  std::istringstream missing_timeperiods("STOCH NAME\n"
+                          "INDEP DISCRETE\n"
+                          "RHS R1 50 0.5\n"
+                          "RHS R1 40 0.3\n"
+                          "RHS R1 60 0.2\n"
+                          "C1 R1 50 0.7\n"
+                          "C1 R1 30 0.3\n"
+                          "C1 R1 50 0.5\n"
+                          "C1 R1 30 0.5\n"
+                          "ENDATA");
+  IndepStructure smps(missing_timeperiods);
+  REQUIRE(!smps.is_valid());
+
+  std::istringstream single_missing_timeperiod("STOCH NAME\n"
+                          "INDEP DISCRETE\n"
+                          "RHS R1 50 TIME2 0.5\n"
+                          "RHS R1 40 TIME2 0.3\n"
+                          "RHS R1 60 TIME2 0.2\n"
+                          "C1 R1 50 TIME2 0.7\n"
+                          "C1 R1 30 TIME2 0.3\n"
+                          "C1 R1 50 TIME3 0.5\n"
+                          "C1 R1 30  0.5\n"
+                          "ENDATA");
+  smps = IndepStructure(single_missing_timeperiod);
+  REQUIRE(!smps.is_valid());
+
+  std::istringstream missing_cols("STOCH NAME\n"
+                          "INDEP DISCRETE\n"
+                          "R1 50 0.5\n"
+                          "R1 40 0.3\n"
+                          "R1 60 0.2\n"
+                          "R1 50 0.7\n"
+                          "R1 30 0.3\n"
+                          "R1 50 0.5\n"
+                          "R1 30 0.5\n"
+                          "ENDATA");
+  smps = IndepStructure(missing_cols);
+  REQUIRE(!smps.is_valid());
+
+  std::istringstream single_missing_col("STOCH NAME\n"
+                          "INDEP DISCRETE\n"
+                          "RHS R1 50 TIME2 0.5\n"
+                          "RHS R1 40 TIME2 0.3\n"
+                          "R1 60 TIME2 0.2\n"
+                          "C1 R1 50 TIME2 0.7\n"
+                          "C1 R1 30 TIME2 0.3\n"
+                          "C1 R1 50 TIME3 0.5\n"
+                          "C1 R1 30 TIME3 0.5\n"
+                          "ENDATA");
+  smps = IndepStructure(single_missing_col);
+  REQUIRE(!smps.is_valid());
+
+
+  std::istringstream too_much_data("STOCH NAME\n"
+                          "INDEP DISCRETE\n"
+                          "RHS R1 50 TIME2 0.5\n"
+                          "RHS R1 40 TIME2 0.3 67\n"
+                          "RHS R1 60 TIME2 0.2\n"
+                          "C1 R1 50 TIME2 0.7\n"
+                          "C1 R1 30 TIME2 0.3\n"
+                          "C1 R1 50 TIME3 0.5\n"
+                          "C1 R1 30 TIME3 0.5\n"
+                          "ENDATA");
+  smps = IndepStructure(too_much_data);
+  REQUIRE(!smps.is_valid());
+  
+  std::istringstream missing_end("STOCH NAME\n"
+                          "INDEP DISCRETE\n"
+                          "RHS R1 50 TIME2 0.5\n"
+                          "RHS R1 40 TIME2 0.3\n"
+                          "RHS R1 60 TIME2 0.2\n"
+                          "C1 R1 50 TIME2 0.7\n"
+                          "C1 R1 30 TIME2 0.3\n"
+                          "C1 R1 50 TIME3 0.5\n"
+                          "C1 R1 30 TIME3 0.5\n"
+                          );
+  smps = IndepStructure(missing_end);
+  REQUIRE(!smps.is_valid());
+  
+  std::istringstream malformed_end("STOCH NAME\n"
+                          "INDEP DISCRETE\n"
+                          "RHS R1 50 TIME2 0.5\n"
+                          "RHS R1 40 TIME2 0.3\n"
+                          "RHS R1 60 TIME2 0.2\n"
+                          "C1 R1 50 TIME2 0.7\n"
+                          "C1 R1 30 TIME2 0.3\n"
+                          "C1 R1 50 TIME3 0.5\n"
+                          "C1 R1 30 TIME3 0.5\n"
+                          "ENDATA END VAL");
+  smps = IndepStructure(malformed_end);
+  REQUIRE(!smps.is_valid());
+
+  std::istringstream nonnumeric_data("STOCH NAME\n"
+                          "INDEP DISCRETE\n"
+                          "RHS R1 50ALPHA TIME2 0.5\n"
+                          "RHS R1 40 TIME2 0.3\n"
+                          "RHS R1 60 TIME2 0.2\n"
+                          "C1 R1 50 TIME2 0.7\n"
+                          "C1 R1 30 TIME2 0.3\n"
+                          "C1 R1 50 TIME3 0.5\n"
+                          "C1 R1 30 TIME3 0.5\n"
+                          "ENDATA");
+  smps = IndepStructure(nonnumeric_data);
+  REQUIRE(!smps.is_valid());
+
+  std::istringstream nonnumeric_data2("STOCH NAME\n"
+                          "INDEP DISCRETE\n"
+                          "RHS R1 ALPHA TIME2 BAU\n"
+                          "RHS R1 40 TIME2 0.3\n"
+                          "RHS R1 60 TIME2 0.2\n"
+                          "C1 R1 50 TIME2 0.7\n"
+                          "C1 R1 30 TIME2 0.3\n"
+                          "C1 R1 50 TIME3 0.5\n"
+                          "C1 R1 30 TIME3 0.5\n"
+                          "ENDATA");
+  smps = IndepStructure(nonnumeric_data2);
+  REQUIRE(!smps.is_valid());
+
+
+  std::istringstream invalid_probability("STOCH NAME\n"
+                          "INDEP DISCRETE\n"
+                          "RHS R1 50 TIME2 -0.3\n"
+                          "RHS R1 40 TIME2 0.3\n"
+                          "RHS R1 60 TIME2 0.2\n"
+                          "C1 R1 50 TIME2 0.7\n"
+                          "C1 R1 30 TIME2 0.3\n"
+                          "C1 R1 50 TIME3 0.5\n"
+                          "C1 R1 30 TIME3 0.5\n"
+                          "ENDATA");
+  smps = IndepStructure(invalid_probability);
+  REQUIRE(!smps.is_valid());
+
+  std::istringstream invalid_probability2("STOCH NAME\n"
+                          "INDEP DISCRETE\n"
+                          "RHS R1 50 TIME2 0.5\n"
+                          "RHS R1 40 TIME2 0.3\n"
+                          "RHS R1 60 TIME2 0.2\n"
+                          "C1 R1 50 TIME2 1.7\n"
+                          "C1 R1 30 TIME2 0.3\n"
+                          "C1 R1 50 TIME3 0.5\n"
+                          "C1 R1 30 TIME3 0.5\n"
+                          "ENDATA");
+  smps = IndepStructure(invalid_probability2);
+  REQUIRE(!smps.is_valid());
+
+  std::istringstream malformed_header("STOCH NAME 3\n"
+                          "INDEP DISCRETE\n"
+                          "RHS R1 50 TIME2 0.5\n"
+                          "RHS R1 40 TIME2 0.3\n"
+                          "RHS R1 60 TIME2 0.2\n"
+                          "C1 R1 50 TIME2 0.7\n"
+                          "C1 R1 30 TIME2 0.3\n"
+                          "C1 R1 50 TIME3 0.5\n"
+                          "C1 R1 30 TIME3 0.5\n"
+                          "ENDATA");
+  smps = IndepStructure(malformed_header);
+  REQUIRE(!smps.is_valid());
+
+  std::istringstream malformed_header2("NAME NAME2\n"
+                          "INDEP DISCRETE\n"
+                          "RHS R1 50 TIME2 0.5\n"
+                          "RHS R1 40 TIME2 0.3\n"
+                          "RHS R1 60 TIME2 0.2\n"
+                          "C1 R1 50 TIME2 0.7\n"
+                          "C1 R1 30 TIME2 0.3\n"
+                          "C1 R1 50 TIME3 0.5\n"
+                          "C1 R1 30 TIME3 0.5\n"
+                          "ENDATA");
+  smps = IndepStructure(malformed_header2);
+  REQUIRE(!smps.is_valid());
+
+  std::istringstream malformed_header3("NAME NAME2\n"
+                          "INDEP\n"
+                          "RHS R1 50 TIME2 0.5\n"
+                          "RHS R1 40 TIME2 0.3\n"
+                          "RHS R1 60 TIME2 0.2\n"
+                          "C1 R1 50 TIME2 0.7\n"
+                          "C1 R1 30 TIME2 0.3\n"
+                          "C1 R1 50 TIME3 0.5\n"
+                          "C1 R1 30 TIME3 0.5\n"
+                          "ENDATA");
+  smps = IndepStructure(malformed_header3);
+  REQUIRE(!smps.is_valid());
+
+  std::istringstream malformed_header4("NAME NAME2\n"
+                          "RHS R1 50 TIME2 0.5\n"
+                          "RHS R1 40 TIME2 0.3\n"
+                          "RHS R1 60 TIME2 0.2\n"
+                          "C1 R1 50 TIME2 0.7\n"
+                          "C1 R1 30 TIME2 0.3\n"
+                          "C1 R1 50 TIME3 0.5\n"
+                          "C1 R1 30 TIME3 0.5\n"
+                          "ENDATA");
+  smps = IndepStructure(malformed_header4);
+  REQUIRE(!smps.is_valid());
+}
+
+

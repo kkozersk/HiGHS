@@ -126,7 +126,7 @@ std::unique_ptr<SmpsStochasticStructure> read_stochastic_file(std::string const 
   std::ifstream(filepath) >> header >> problem_name >> structure_type >> distribution;
   if (distribution != "DISCRETE") return nullptr;
   if (structure_type == "INDEP")
-    return std::unique_ptr<SmpsStochasticStructure>(new IndepStructure(problem_name, filepath));
+    return std::unique_ptr<SmpsStochasticStructure>(new IndepStructure(filepath));
   // if (structure_type == "BLOCK")
   //   return std::unique_ptr<SmpsStochasticStructure>(new BlockStructure(problem_name, filepath));
   // if (structure_type == "SCENARIO")
@@ -134,50 +134,84 @@ std::unique_ptr<SmpsStochasticStructure> read_stochastic_file(std::string const 
   return nullptr;
 }
 
-void read_from_file(std::istream & input);
-IndepStructure::IndepStructure(std::string const & problem_name, std::istream & input) : SmpsStochasticStructure(problem_name) {
+IndepStructure::IndepStructure(std::istream & input)  {
   is_valid_ = read_from_file(input);
 }
 
-IndepStructure::IndepStructure(std::string const & problem_name, std::string const & filepath) : SmpsStochasticStructure(problem_name) {
+IndepStructure::IndepStructure(std::string const & filepath) {
   std::ifstream input(filepath);
   is_valid_ = read_from_file(input);
   input.close();
 }
 
+bool IndepStructure::process_header(std::vector<std::string> const & tokens, std::string & header, std::string & problem_name) const {
+  if (tokens.size() != 2) return false;
+  header = tokens[0];
+  problem_name = tokens[1];
+  return true;
+}
+
+bool IndepStructure::process_structure(std::vector<std::string> const & tokens, std::string & structure_type, std::string & distribution) const {
+  if (tokens.size() != 2) return false;
+  structure_type = tokens[0];
+  distribution = tokens[1];
+  return true;
+}
+
 bool IndepStructure::read_from_file(std::istream & input) {
-    std::string header, problem_name, structure_type, distribution;
-    input >> header >> problem_name >> structure_type >> distribution;
-    return header == "STOCH" && problem_name == get_problem_name() && structure_type == "INDEP" && distribution == "DISCRETE"
+    std::string header, problem_name, structure_type, distribution, line;
+    if (!process_header(read_tokens(input), header, problem_name) || !process_structure(read_tokens(input), structure_type, distribution))
+      return false;
+    return header == "STOCH" && structure_type == "INDEP" && distribution == "DISCRETE"
             && process_data(input) && !timestage_random_entries.empty();
 }
 
+bool IndepStructure::process_tokens(std::vector<std::string> const & tokens, std::string & column, std::string & row, double & value, std::string & timeperiod, double & probability) const {
+  if (tokens.size() != 5) return false;
+  column = tokens[0];
+  row = tokens[1];
+  int pos;
+  if (sscanf(tokens[2].c_str(), "%lf%n", &value, &pos) != 1 || pos != tokens[2].length()) return false;
+  timeperiod = tokens[3];
+  if (sscanf(tokens[4].c_str(), "%lf%n", &probability, &pos) != 1 || pos != tokens[4].length() || probability < 0 || probability > 1) return false;
+  return true;
+}
+
+bool IndepStructure::is_ending(std::vector<std::string> const & tokens) const {
+  return tokens.size() == 0 || tokens[0] == "ENDATA";
+}
+
+bool IndepStructure::is_proper_ending(std::vector<std::string> const & tokens) const {
+    return tokens.size() == 1 && tokens[0] == "ENDATA";
+}
+
 bool IndepStructure::process_data(std::istream & input) {
-  std::string temp_column = "start", temp_row, temp_timeperiod, column, row, timeperiod;
+  std::string temp_column, temp_row, temp_timeperiod, column, row, timeperiod, line;
   double value, probability;
   std::vector<RandomVariable::RandomValue> values;
   std::vector<RandomVariable> rvs;
-  std::vector<TimestageRandomVariables> timestage_rvs;
-  input >> column >> row >> value >> timeperiod >> probability;
-  if (column == "" || row == "" || timeperiod == "" || probability < 0 || probability > 1) return false;
+  if (!process_tokens(read_tokens(input), column, row, value, timeperiod, probability)) return false;
   values.emplace_back(probability, value);
-  while (temp_column != "ENDATA" && temp_column != "") {
-    input >> temp_column >> temp_row >> value >> temp_timeperiod >> probability;
-    if (temp_column == "" || temp_row == "" || temp_timeperiod == "" || probability < 0 || probability > 1) return false;
-    if (temp_column == "ENDATA" || temp_column != column || temp_row != row || temp_timeperiod != timeperiod) {
+  auto tokens = read_tokens(input);
+  while (!is_ending(tokens)) {
+    if (!process_tokens(tokens, temp_column, temp_row, value, temp_timeperiod, probability)) return false;
+    if (temp_column != column || temp_row != row || temp_timeperiod != timeperiod) {
       if (!values.empty()) rvs.emplace_back(column, row, values);
       values.clear();
       column = temp_column;
       row = temp_row;
     }
-    values.emplace_back(probability, value);
-    if (temp_column == "ENDATA" || temp_timeperiod != timeperiod) {
-      timestage_random_entries.emplace_back(rvs, timeperiod);
+    if (temp_timeperiod != timeperiod) {
+      if (!rvs.empty()) timestage_random_entries.emplace_back(rvs, timeperiod);
       rvs.clear();
       timeperiod = temp_timeperiod;
     }
+    values.emplace_back(probability, value);
+    tokens = read_tokens(input);
   }
-  return temp_column == "ENDATA";
+  if (!values.empty()) rvs.emplace_back(column, row, values);
+  if (!rvs.empty()) timestage_random_entries.emplace_back(rvs, timeperiod);
+  return is_proper_ending(tokens);
 };
 
 StochasticTree IndepStructure::constructTree(SmpsTimeStructure const & timestructure) const {
@@ -218,4 +252,11 @@ RandomVector TimestageRandomVariables::generate_vector() const {
   for (auto const & rv: rvs) 
     result = append_to_random_vector(rv, result);
   return result;
+}
+
+std::vector<std::string> read_tokens(std::istream & input) {
+  std::string line;
+  if (!getline(input, line)) return {};
+  std::istringstream buffer(line);
+  return {std::istream_iterator<std::string>(buffer), std::istream_iterator<std::string>()};
 }

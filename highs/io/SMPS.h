@@ -96,13 +96,14 @@ struct StochasticTree {
 };
 
 class SmpsStochasticStructure {
-  std::string problem_name;
-
   protected:
+    std::string problem_name = "";
     bool is_ending(std::string const & line) const { return line == "ENDATA" || line.empty(); };
     bool process_ending(std::string const & line) const { return line == "ENDATA"; };
     bool is_valid_ = false;
   public:
+    SmpsStochasticStructure() = default;
+    virtual ~SmpsStochasticStructure() = default;
     virtual StochasticTree constructTree(SmpsTimeStructure const &) const = 0;
     SmpsStochasticStructure(std::string problem_name) : problem_name(problem_name) {}
     std::string get_problem_name() const { return problem_name; }
@@ -140,11 +141,16 @@ struct TimestageRandomVariables {
 class IndepStructure : public SmpsStochasticStructure {
   std::vector<TimestageRandomVariables> timestage_random_entries;
 
+  bool process_tokens(std::vector<std::string> const & tokens, std::string & column, std::string & row, double & value, std::string & timeperiod, double & probability) const;
+  bool is_ending(std::vector<std::string> const & tokens) const;
+  bool is_proper_ending(std::vector<std::string> const & tokens) const;
   bool process_data(std::istream & input);
+  bool process_header(std::vector<std::string> const & tokens, std::string & header, std::string & problem_name) const;
+  bool process_structure(std::vector<std::string> const & tokens, std::string & structure_type, std::string & distribution) const; 
   bool read_from_file(std::istream & input);
   public:
-    IndepStructure(std::string const & problem_name, std::istream & input);
-    IndepStructure(std::string const & problem_name, std::string const & filename);
+    IndepStructure(std::istream & input);
+    IndepStructure(std::string const & filename);
     virtual StochasticTree constructTree(SmpsTimeStructure const &) const;
     int get_no_timestage_random_entries() const { return timestage_random_entries.size(); }
     TimestageRandomVariables const & get_timestage_random_entry(int index) { return timestage_random_entries.at(index); }
@@ -179,3 +185,5 @@ class IndepStructure : public SmpsStochasticStructure {
 // };
 
 std::unique_ptr<SmpsStochasticStructure> read_stochastic_file(std::string const & filepath);
+std::vector<std::string> read_tokens(std::istream & input);
+RandomVector append_to_random_vector(RandomVariable const & rv, RandomVector const & rvec);
