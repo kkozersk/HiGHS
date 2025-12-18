@@ -799,3 +799,215 @@ TEST_CASE("test-create-complex-scenario-structure", "[highs_smps]") {
       0.3, "PERIOD4", "S04", "S03" };
   REQUIRE(smps.get_scenario(3) == scen4);
 }
+
+TEST_CASE("test-create-malformed-stochastic-structure", "[highs_smps]") {
+  std::istringstream malformed_scenario_header("SCENARIOS DISCRETE\n"
+                          "SC S01 ROOT 0.5 PERIOD2\n"
+                          "RHS R1 50\n"
+                          "RHS R2 40\n"
+                          "SC S02 ROOT 0.3 PERIOD2\n"
+                          "RHS R1 40\n"
+                          "RHS R2 50\n"
+                          "SC 0.6 PERIOD3\n"
+                          "RHS R3 30\n"
+                          "SC S04 S03 0.3 PERIOD4\n"
+                          "RHS R4 25\n"
+                          "ENDATA");
+  ScenarioStructure smps(malformed_scenario_header);
+  REQUIRE(!smps.is_valid());
+
+  std::istringstream malformed_scenario_header2("SCENARIOS DISCRETE\n"
+                          "SC S01 ROOT 0.5 PERIOD2\n"
+                          "RHS R1 50\n"
+                          "RHS R2 40\n"
+                          "SC S02 ROOT 0.3 PERIOD2 R2\n"
+                          "RHS R1 40\n"
+                          "RHS R2 50\n"
+                          "SC S03 S02 0.6 PERIOD3\n"
+                          "RHS R3 30\n"
+                          "SC S04 S03 0.3 PERIOD4\n"
+                          "RHS R4 25\n"
+                          "ENDATA");
+  smps = ScenarioStructure(malformed_scenario_header2);
+  REQUIRE(!smps.is_valid());
+
+  std::istringstream malformed_scenario_entry("SCENARIOS DISCRETE\n"
+                          "SC S01 ROOT 0.5 PERIOD2\n"
+                          "RHS R1 50\n"
+                          "RHS R2 40\n"
+                          "SC S02 ROOT 0.3 PERIOD2\n"
+                          "RHS R1 40\n"
+                          "R2 50\n"
+                          "SC S03 S02 0.6 PERIOD3\n"
+                          "RHS R3 30\n"
+                          "SC S04 S03 0.3 PERIOD4\n"
+                          "RHS R4 25\n"
+                          "ENDATA");
+  smps = ScenarioStructure(malformed_scenario_entry);
+  REQUIRE(!smps.is_valid());
+
+  std::istringstream malformed_scenario_entry2("SCENARIOS DISCRETE\n"
+                          "SC S01 ROOT 0.5 PERIOD2\n"
+                          "RHS R1 50\n"
+                          "RHS R2 40\n"
+                          "SC S02 ROOT 0.3 PERIOD2\n"
+                          "RHS R1 40 PERIOD2\n"
+                          "RHS R2 50\n"
+                          "SC S03 S02 0.6 PERIOD3\n"
+                          "RHS R3 30\n"
+                          "SC S04 S03 0.3 PERIOD4\n"
+                          "RHS R4 25\n"
+                          "ENDATA");
+  smps = ScenarioStructure(malformed_scenario_entry2);
+  REQUIRE(!smps.is_valid());
+
+  std::istringstream empty_scenario("SCENARIOS DISCRETE\n"
+                          "SC S01 ROOT 0.5 PERIOD2\n"
+                          "RHS R1 50\n"
+                          "RHS R2 40\n"
+                          "SC S02 ROOT 0.3 PERIOD2\n"
+                          "SC S03 S02 0.6 PERIOD3\n"
+                          "RHS R3 30\n"
+                          "SC S04 S03 0.3 PERIOD4\n"
+                          "RHS R4 25\n"
+                          "ENDATA");
+  smps = ScenarioStructure(empty_scenario);
+  REQUIRE(!smps.is_valid());
+
+  std::istringstream missing_end("SCENARIOS DISCRETE\n"
+                          "SC S01 ROOT 0.5 PERIOD2\n"
+                          "RHS R1 50\n"
+                          "RHS R2 40\n"
+                          "SC S02 ROOT 0.3 PERIOD2\n"
+                          "RHS R1 40\n"
+                          "RHS R2 50\n"
+                          "SC S03 S02 0.6 PERIOD3\n"
+                          "RHS R3 30\n"
+                          "SC S04 S03 0.3 PERIOD4\n"
+                          "RHS R4 25"
+                          );
+  smps = ScenarioStructure(missing_end);
+  REQUIRE(!smps.is_valid());
+
+  std::istringstream malformed_end("SCENARIOS DISCRETE\n"
+                          "SC S01 ROOT 0.5 PERIOD2\n"
+                          "RHS R1 50\n"
+                          "RHS R2 40\n"
+                          "SC S02 ROOT 0.3 PERIOD2\n"
+                          "RHS R1 40\n"
+                          "RHS R2 50\n"
+                          "SC S03 S02 0.6 PERIOD3\n"
+                          "RHS R3 30\n"
+                          "SC S04 S03 0.3 PERIOD4\n"
+                          "RHS R4 25\n"
+                          "ENDDATA");
+  smps = ScenarioStructure(malformed_end);
+  REQUIRE(!smps.is_valid());
+
+  std::istringstream nonnumeric("SCENARIOS DISCRETE\n"
+                          "SC S01 ROOT 0.5 PERIOD2\n"
+                          "RHS R1 50\n"
+                          "RHS R2 40\n"
+                          "SC S02 ROOT 0.3A PERIOD2\n"
+                          "RHS R1 40\n"
+                          "RHS R2 50\n"
+                          "SC S03 S02 0.6 PERIOD3\n"
+                          "RHS R3 30\n"
+                          "SC S04 S03 0.3 PERIOD4\n"
+                          "RHS R4 25\n"
+                          "ENDATA");
+  smps = ScenarioStructure(nonnumeric);
+  REQUIRE(!smps.is_valid());
+
+  std::istringstream nonumeric2("SCENARIOS DISCRETE\n"
+                          "SC S01 ROOT 0.5 PERIOD2\n"
+                          "RHS R1 50\n"
+                          "RHS R2 RHS\n"
+                          "SC S02 ROOT 0.3 PERIOD2\n"
+                          "RHS R1 40\n"
+                          "RHS R2 50\n"
+                          "SC S03 S02 0.6 PERIOD3\n"
+                          "RHS R3 30\n"
+                          "SC S04 S03 0.3 PERIOD4\n"
+                          "RHS R4 25\n"
+                          "ENDATA");
+  smps = ScenarioStructure(nonumeric2);
+  REQUIRE(!smps.is_valid());
+
+  std::istringstream invalid_probability("SCENARIOS DISCRETE\n"
+                          "SC S01 ROOT -0.5 PERIOD2\n"
+                          "RHS R1 50\n"
+                          "RHS R2 40\n"
+                          "SC S02 ROOT 0.3 PERIOD2\n"
+                          "RHS R1 40\n"
+                          "RHS R2 50\n"
+                          "SC S03 S02 0.6 PERIOD3\n"
+                          "RHS R3 30\n"
+                          "SC S04 S03 0.3 PERIOD4\n"
+                          "RHS R4 25\n"
+                          "ENDATA");
+  smps = ScenarioStructure(invalid_probability);
+  REQUIRE(!smps.is_valid());
+
+  std::istringstream invalid_probability2("SCENARIOS DISCRETE\n"
+                          "SC S01 ROOT 0.5 PERIOD2\n"
+                          "RHS R1 50\n"
+                          "RHS R2 40\n"
+                          "SC S02 ROOT 0.3 PERIOD2\n"
+                          "RHS R1 40\n"
+                          "RHS R2 50\n"
+                          "SC S03 S02 2.6 PERIOD3\n"
+                          "RHS R3 30\n"
+                          "SC S04 S03 0.3 PERIOD4\n"
+                          "RHS R4 25\n"
+                          "ENDATA");
+  smps = ScenarioStructure(invalid_probability2);
+  REQUIRE(!smps.is_valid());
+
+  std::istringstream malformed_header("STOCH NAME\n"
+                                      "SCENARIOS DISCRETE\n"
+                          "SC S01 ROOT 0.5 PERIOD2\n"
+                          "RHS R1 50\n"
+                          "RHS R2 40\n"
+                          "SC S02 ROOT 0.3 PERIOD2\n"
+                          "RHS R1 40\n"
+                          "RHS R2 50\n"
+                          "SC S03 S02 0.6 PERIOD3\n"
+                          "RHS R3 30\n"
+                          "SC S04 S03 0.3 PERIOD4\n"
+                          "RHS R4 25\n"
+                          "ENDATA");
+  smps = ScenarioStructure(malformed_header);
+  REQUIRE(!smps.is_valid());
+
+  std::istringstream malformed_header2(
+                                      "SCENARIO DISCRETE\n"
+                          "SC S01 ROOT 0.5 PERIOD2\n"
+                          "RHS R1 50\n"
+                          "RHS R2 40\n"
+                          "SC S02 ROOT 0.3 PERIOD2\n"
+                          "RHS R1 40\n"
+                          "RHS R2 50\n"
+                          "SC S03 S02 0.6 PERIOD3\n"
+                          "RHS R3 30\n"
+                          "SC S04 S03 0.3 PERIOD4\n"
+                          "RHS R4 25\n"
+                          "ENDATA");
+  smps = ScenarioStructure(malformed_header2);
+  REQUIRE(!smps.is_valid());
+
+  std::istringstream malformed_header3(
+                          "SC S01 ROOT 0.5 PERIOD2\n"
+                          "RHS R1 50\n"
+                          "RHS R2 40\n"
+                          "SC S02 ROOT 0.3 PERIOD2\n"
+                          "RHS R1 40\n"
+                          "RHS R2 50\n"
+                          "SC S03 S02 0.6 PERIOD3\n"
+                          "RHS R3 30\n"
+                          "SC S04 S03 0.3 PERIOD4\n"
+                          "RHS R4 25\n"
+                          "ENDATA");
+  smps = ScenarioStructure(malformed_header3);
+  REQUIRE(!smps.is_valid());
+}

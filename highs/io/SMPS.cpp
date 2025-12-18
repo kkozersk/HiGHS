@@ -371,6 +371,7 @@ bool ScenarioStructure::process_data(std::istream & input) {
     return false;
   while (!(tokens = read_tokens(input)).empty() && !is_ending(tokens)) {
     if (is_new_scenario(tokens)) {
+        if (in_scenario_entries.empty()) return false;
         scenarios.emplace_back(in_scenario_entries, probability, timeperiod, scenario_name, parent_scenario);
         in_scenario_entries.clear();
         if (!process_new_scenario(tokens, scenario_name, parent_scenario, timeperiod, probability))  return false;
@@ -379,6 +380,7 @@ bool ScenarioStructure::process_data(std::istream & input) {
       in_scenario_entries.emplace_back(row, column, value);    
     }
   }
+  if (in_scenario_entries.empty()) return false;
   scenarios.emplace_back(in_scenario_entries, probability, timeperiod, scenario_name, parent_scenario);
   return is_proper_ending(tokens);
 }
