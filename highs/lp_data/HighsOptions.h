@@ -1617,14 +1617,16 @@ class HighsOptions : public HighsOptionsStruct {
 
     record_double = new OptionRecordDouble(
         "fixed_mu",
-        "recenter to this fixed mu. If 0 (default), recentring is done to the mu obtained in the last iteration",
+        "recenter to this fixed mu. If 0 (default), recentring is done to the "
+        "mu obtained in the last iteration",
         advanced, &fixed_mu, 0, 0, kHighsInf);
     records.push_back(record_double);
 
-    record_double = new OptionRecordDouble(
-        "centring_gamma",
-        "accuracy of recentring procedure: forall i gamma * mu <= x_i * s_i <= gamma^-1 * mu",
-        advanced, &centring_gamma, 0, 0.1, kHighsInf);
+    record_double =
+        new OptionRecordDouble("centring_gamma",
+                               "accuracy of recentring procedure: forall i "
+                               "gamma * mu <= x_i * s_i <= gamma^-1 * mu",
+                               advanced, &centring_gamma, 0, 0.1, kHighsInf);
     records.push_back(record_double);
 
     // Set up the log_options aliases
