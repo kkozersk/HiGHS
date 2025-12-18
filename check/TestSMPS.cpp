@@ -726,6 +726,22 @@ TEST_CASE("test-malformed-block-structure", "[highs_smps]") {
                           "ENDATA");
   smps = BlockStructure(malformed_header2);
   REQUIRE(!smps.is_valid());
+
+  std::istringstream empty_block("STOCH NAME\n"
+                          "BLOCKS DISCRETE\n"
+                          "BL BLOCK01 TIME2 0.3\n"
+                          "RHS R1 50\n"
+                          "RHS R2 40\n"
+                          "BL BLOCK01 TIME2 0.7\n"
+                          "RHS R1 40\n"
+                          "RHS R2 50\n"
+                          "BL BLOCK02 TIME3 0.5\n"
+                          "RHS R3 50\n"
+                          "RHS R4 40\n"
+                          "BL BLOCK02 TIME3 0.5\n"
+                          "ENDATA");
+  smps = BlockStructure(empty_block);
+  REQUIRE(!smps.is_valid());
 }
 
 TEST_CASE("test-create-simple-scenario-structure", "[highs_smps]") {

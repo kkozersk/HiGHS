@@ -301,6 +301,7 @@ bool BlockStructure::process_data(std::istream & input) {
     return false;
   while (!(tokens = read_tokens(input)).empty() && !is_ending(tokens)) {
     if (is_new_block(tokens)) {
+      if(in_block_entries.empty()) return false;
       rv.emplace_back(probability, in_block_entries);
       in_block_entries.clear();
       if (has_timestage_changed(tokens, timeperiod)) {
@@ -314,6 +315,7 @@ bool BlockStructure::process_data(std::istream & input) {
       in_block_entries.emplace_back(row, column, value);
     }
   }
+  if(in_block_entries.empty()) return false;
   rv.emplace_back(probability, in_block_entries);
   timestage_random_vectors.emplace_back(rv, timeperiod);
   return is_proper_ending(tokens);
