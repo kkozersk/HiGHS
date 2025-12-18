@@ -198,6 +198,10 @@ struct ScenarioModifications {
   ScenarioModifications(BlockLpEntry const & lp_modifications, double probability, std::string const & period,
       std::string const & scenario_name, std::string const & parent_scenario) : lp_modifications(lp_modifications), probability(probability),
       period(period), scenario_name(scenario_name), parent_scenario(parent_scenario) {}
+  bool operator==(ScenarioModifications const & other) const {
+    return lp_modifications == other.lp_modifications && probability == other.probability && period == other.period &&
+    scenario_name == other.scenario_name && parent_scenario == other.parent_scenario;
+  }
 };
 
 class ScenarioStructure : public SmpsStochasticStructure {
@@ -216,6 +220,8 @@ class ScenarioStructure : public SmpsStochasticStructure {
     }
     ScenarioStructure(std::istream & input) { is_valid_ = read_from_file(input); };
     virtual StochasticTree constructTree(SmpsTimeStructure const &) const;
+    int get_no_scenarios() const { return scenarios.size(); }
+    ScenarioModifications const & get_scenario(int index) { return scenarios.at(index); }
 };
 
 std::unique_ptr<SmpsStochasticStructure> read_stochastic_file(std::string const & filepath);

@@ -727,3 +727,59 @@ TEST_CASE("test-malformed-block-structure", "[highs_smps]") {
   smps = BlockStructure(malformed_header2);
   REQUIRE(!smps.is_valid());
 }
+
+TEST_CASE("test-create-simple-scenario-structure", "[highs_smps]") {
+  std::istringstream data("SCENARIOS DISCRETE\n"
+                          "SC S01 ROOT 0.5 PERIOD2\n"
+                          "RHS R1 50\n"
+                          "RHS R2 40\n"
+                          "SC S02 ROOT 0.3 PERIOD2\n"
+                          "RHS R1 40\n"
+                          "RHS R2 50\n"
+                          "ENDATA");
+  ScenarioStructure smps(data);
+  REQUIRE(smps.is_valid());
+  REQUIRE(smps.get_no_scenarios() == 2);
+  ScenarioModifications scen1 {
+      {{"R1","RHS",50}, {"R2", "RHS", 40}},
+      0.5, "PERIOD2", "S01", "ROOT" };
+  REQUIRE(smps.get_scenario(0) == scen1);
+  ScenarioModifications scen2 {
+      {{"R1","RHS",40}, {"R2", "RHS", 50}},
+      0.3, "PERIOD2", "S02", "ROOT" };
+  REQUIRE(smps.get_scenario(1) == scen2);
+}
+
+TEST_CASE("test-create-complex-scenario-structure", "[highs_smps]") {
+  std::istringstream data("SCENARIOS DISCRETE\n"
+                          "SC S01 ROOT 0.5 PERIOD2\n"
+                          "RHS R1 50\n"
+                          "RHS R2 40\n"
+                          "SC S02 ROOT 0.3 PERIOD2\n"
+                          "RHS R1 40\n"
+                          "RHS R2 50\n"
+                          "SC S03 S02 0.6 PERIOD3\n"
+                          "RHS R3 30\n"
+                          "SC S04 S03 0.3 PERIOD4\n"
+                          "RHS R4 25\n"
+                          "ENDATA");
+  ScenarioStructure smps(data);
+  REQUIRE(smps.is_valid());
+  REQUIRE(smps.get_no_scenarios() == 4);
+  ScenarioModifications scen1 {
+      {{"R1","RHS",50}, {"R2", "RHS", 40}},
+      0.5, "PERIOD2", "S01", "ROOT" };
+  REQUIRE(smps.get_scenario(0) == scen1);
+  ScenarioModifications scen2 {
+      {{"R1","RHS",40}, {"R2", "RHS", 50}},
+      0.3, "PERIOD2", "S02", "ROOT" };
+  REQUIRE(smps.get_scenario(1) == scen2);
+  ScenarioModifications scen3 {
+      {{"R3","RHS",30}},
+      0.6, "PERIOD3", "S03", "S02" };
+  REQUIRE(smps.get_scenario(2) == scen3);
+  ScenarioModifications scen4 {
+      {{"R4","RHS",25}},
+      0.3, "PERIOD4", "S04", "S03" };
+  REQUIRE(smps.get_scenario(3) == scen4);
+}
