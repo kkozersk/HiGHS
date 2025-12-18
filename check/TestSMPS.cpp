@@ -510,3 +510,220 @@ TEST_CASE("test-create-complex-block-structure", "[highs_smps]") {
   REQUIRE(smps.get_timestage_random_vector(1) == rvt2);
 }
 
+TEST_CASE("test-malformed-block-structure", "[highs_smps]") {
+  std::istringstream missing_block_data("STOCH NAME\n"
+                          "BLOCKS DISCRETE\n"
+                          "BL BLOCK01 TIME2 0.3\n"
+                          "RHS R1 50\n"
+                          "RHS R2 40\n"
+                          "BL BLOCK01 \n"
+                          "RHS R1 40\n"
+                          "RHS R2 50\n"
+                          "BL BLOCK02 TIME3 0.5\n"
+                          "RHS R3 50\n"
+                          "RHS R4 40\n"
+                          "BL BLOCK02 TIME3 0.5\n"
+                          "RHS R3 40\n"
+                          "RHS R4 50\n"
+                          "ENDATA");
+  BlockStructure smps(missing_block_data);
+  REQUIRE(!smps.is_valid());
+
+  std::istringstream too_much_block_data("STOCH NAME\n"
+                          "BLOCKS DISCRETE\n"
+                          "BL BLOCK01 TIME2 0.3\n"
+                          "RHS R1 50\n"
+                          "RHS R2 40\n"
+                          "BL BLOCK01 TIME2 0.7\n"
+                          "RHS R1 40\n"
+                          "RHS R2 50\n"
+                          "BL BLOCK02 TIME3 0.5 RHS R3\n"
+                          "RHS R3 50\n"
+                          "RHS R4 40\n"
+                          "BL BLOCK02 TIME3 0.5\n"
+                          "RHS R3 40\n"
+                          "RHS R4 50\n"
+                          "ENDATA");
+  smps = BlockStructure(too_much_block_data);
+  REQUIRE(!smps.is_valid());
+
+  std::istringstream missing_entry_data("STOCH NAME\n"
+                          "BLOCKS DISCRETE\n"
+                          "BL BLOCK01 TIME2 0.3\n"
+                          "R1 50\n"
+                          "RHS R2 40\n"
+                          "BL BLOCK01 TIME2 0.7\n"
+                          "RHS R1 40\n"
+                          "RHS R2 50\n"
+                          "BL BLOCK02 TIME3 0.5\n"
+                          "RHS R3 50\n"
+                          "RHS R4 40\n"
+                          "BL BLOCK02 TIME3 0.5\n"
+                          "RHS R3 40\n"
+                          "RHS R4 50\n"
+                          "ENDATA");
+  smps = BlockStructure(missing_entry_data);
+  REQUIRE(!smps.is_valid());
+
+  std::istringstream too_much_entry_data("STOCH NAME\n"
+                          "BLOCKS DISCRETE\n"
+                          "BL BLOCK01 TIME2 0.3\n"
+                          "RHS R1 50\n"
+                          "RHS R2 40\n"
+                          "BL BLOCK01 TIME2 0.7\n"
+                          "RHS R1 40 BLOCK01\n"
+                          "RHS R2 50\n"
+                          "BL BLOCK02 TIME3 0.5\n"
+                          "RHS R3 50\n"
+                          "RHS R4 40\n"
+                          "BL BLOCK02 TIME3 0.5\n"
+                          "RHS R3 40\n"
+                          "RHS R4 50\n"
+                          "ENDATA");
+  smps = BlockStructure(too_much_entry_data);
+  REQUIRE(!smps.is_valid());
+
+  std::istringstream missing_end("STOCH NAME\n"
+                          "BLOCKS DISCRETE\n"
+                          "BL BLOCK01 TIME2 0.3\n"
+                          "RHS R1 50\n"
+                          "RHS R2 40\n"
+                          "BL BLOCK01 TIME2 0.7\n"
+                          "RHS R1 40\n"
+                          "RHS R2 50\n"
+                          "BL BLOCK02 TIME3 0.5\n"
+                          "RHS R3 50\n"
+                          "RHS R4 40\n"
+                          "BL BLOCK02 TIME3 0.5\n"
+                          "RHS R3 40\n"
+                          "RHS R4 50\n"
+                          );
+  smps = BlockStructure(missing_end);
+  REQUIRE(!smps.is_valid());
+
+  std::istringstream malformed_end("STOCH NAME\n"
+                          "BLOCKS DISCRETE\n"
+                          "BL BLOCK01 TIME2 0.3\n"
+                          "RHS R1 50\n"
+                          "RHS R2 40\n"
+                          "BL BLOCK01 TIME2 0.7\n"
+                          "RHS R1 40\n"
+                          "RHS R2 50\n"
+                          "BL BLOCK02 TIME3 0.5\n"
+                          "RHS R3 50\n"
+                          "RHS R4 40\n"
+                          "BL BLOCK02 TIME3 0.5\n"
+                          "RHS R3 40\n"
+                          "RHS R4 50\n"
+                          "ENDDATA");
+  smps = BlockStructure(malformed_end);
+  REQUIRE(!smps.is_valid());
+
+  std::istringstream nonnumeric_data("STOCH NAME\n"
+                          "BLOCKS DISCRETE\n"
+                          "BL BLOCK01 TIME2 0.3+0.2\n"
+                          "RHS R1 50\n"
+                          "RHS R2 40\n"
+                          "BL BLOCK01 TIME2 0.7\n"
+                          "RHS R1 40\n"
+                          "RHS R2 50\n"
+                          "BL BLOCK02 TIME3 0.5\n"
+                          "RHS R3 50\n"
+                          "RHS R4 40\n"
+                          "BL BLOCK02 TIME3 0.5\n"
+                          "RHS R3 40\n"
+                          "RHS R4 50\n"
+                          "ENDATA");
+  smps = BlockStructure(nonnumeric_data);
+  REQUIRE(!smps.is_valid());
+
+  std::istringstream nonnumeric_data2("STOCH NAME\n"
+                          "BLOCKS DISCRETE\n"
+                          "BL BLOCK01 TIME2 0.3\n"
+                          "RHS R1 ABC\n"
+                          "RHS R2 40\n"
+                          "BL BLOCK01 TIME2 0.7\n"
+                          "RHS R1 40\n"
+                          "RHS R2 50\n"
+                          "BL BLOCK02 TIME3 0.5\n"
+                          "RHS R3 50\n"
+                          "RHS R4 40\n"
+                          "BL BLOCK02 TIME3 0.5\n"
+                          "RHS R3 40\n"
+                          "RHS R4 50\n"
+                          "ENDATA");
+  smps = BlockStructure(nonnumeric_data2);
+  REQUIRE(!smps.is_valid());
+
+  std::istringstream invalid_prob("STOCH NAME\n"
+                          "BLOCKS DISCRETE\n"
+                          "BL BLOCK01 TIME2 -4\n"
+                          "RHS R1 50\n"
+                          "RHS R2 40\n"
+                          "BL BLOCK01 TIME2 0.7\n"
+                          "RHS R1 40\n"
+                          "RHS R2 50\n"
+                          "BL BLOCK02 TIME3 0.5\n"
+                          "RHS R3 50\n"
+                          "RHS R4 40\n"
+                          "BL BLOCK02 TIME3 0.5\n"
+                          "RHS R3 40\n"
+                          "RHS R4 50\n"
+                          "ENDATA");
+  smps = BlockStructure(invalid_prob);
+  REQUIRE(!smps.is_valid());
+
+  std::istringstream invalid_prob2("STOCH NAME\n"
+                          "BLOCKS DISCRETE\n"
+                          "BL BLOCK01 TIME2 0.3\n"
+                          "RHS R1 50\n"
+                          "RHS R2 40\n"
+                          "BL BLOCK01 TIME2 1.1\n"
+                          "RHS R1 40\n"
+                          "RHS R2 50\n"
+                          "BL BLOCK02 TIME3 0.5\n"
+                          "RHS R3 50\n"
+                          "RHS R4 40\n"
+                          "BL BLOCK02 TIME3 0.5\n"
+                          "RHS R3 40\n"
+                          "RHS R4 50\n"
+                          "ENDATA");
+  smps = BlockStructure(invalid_prob2);
+  REQUIRE(!smps.is_valid());
+
+  std::istringstream malformed_header("STOCH NAME\n"
+                          "INDEP DISCRETE\n"
+                          "BL BLOCK01 TIME2 0.3\n"
+                          "RHS R1 50\n"
+                          "RHS R2 40\n"
+                          "BL BLOCK01 TIME2 0.7\n"
+                          "RHS R1 40\n"
+                          "RHS R2 50\n"
+                          "BL BLOCK02 TIME3 0.5\n"
+                          "RHS R3 50\n"
+                          "RHS R4 40\n"
+                          "BL BLOCK02 TIME3 0.5\n"
+                          "RHS R3 40\n"
+                          "RHS R4 50\n"
+                          "ENDATA");
+  smps = BlockStructure(malformed_header);
+  REQUIRE(!smps.is_valid());
+
+  std::istringstream malformed_header2("STOCHASTIC NAME\n"
+                          "BLOCKS DISCRETE\n"
+                          "BL BLOCK01 TIME2 0.3\n"
+                          "RHS R1 50\n"
+                          "RHS R2 40\n"
+                          "BL BLOCK01 TIME2 0.7\n"
+                          "RHS R1 40\n"
+                          "RHS R2 50\n"
+                          "BL BLOCK02 TIME3 0.5\n"
+                          "RHS R3 50\n"
+                          "RHS R4 40\n"
+                          "BL BLOCK02 TIME3 0.5\n"
+                          "RHS R3 40\n"
+                          "RHS R4 50\n"
+                          "ENDATA");
+  smps = BlockStructure(malformed_header2);
+  REQUIRE(!smps.is_valid());
+}
