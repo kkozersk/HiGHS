@@ -189,19 +189,34 @@ class BlockStructure : public SmpsStochasticStructure {
     TimestageRandomVector const & get_timestage_random_vector(int index) { return timestage_random_vectors.at(index); }
 };
 
-// class ScenarioStructure : public SmpsStochasticStructure {
-//   struct ScenarioModifications {
-//     std::vector<LpEntry> modifications;
-//     double probability;
-//     std::string period;
-//     std::string scenario_name;
-//     std::string parent_scenario;
-//   };
-//   std::vector<ScenarioModifications> modifications;
-//   public:
-//     ScenarioStructure(std::string const & problem_name, std::string const & filename);
-//     virtual StochasticTree constructTree(SmpsTimeStructure const &) const;
-// };
+struct ScenarioModifications {
+  BlockLpEntry lp_modifications;
+  double probability;
+  std::string period;
+  std::string scenario_name;
+  std::string parent_scenario;
+  ScenarioModifications(BlockLpEntry const & lp_modifications, double probability, std::string const & period,
+      std::string const & scenario_name, std::string const & parent_scenario) : lp_modifications(lp_modifications), probability(probability),
+      period(period), scenario_name(scenario_name), parent_scenario(parent_scenario) {}
+};
+
+class ScenarioStructure : public SmpsStochasticStructure {
+  std::vector<ScenarioModifications> scenarios;
+  bool process_data(std::istream & input);
+  bool read_from_file(std::istream & input);
+  bool is_new_scenario(Tokens const & tokens) const;
+  bool process_new_scenario(Tokens const & tokens, std::string & scenario_name, std::string & parent_scenario,
+                           std::string & timeperiod, double & probability) const;
+  bool process_scenario_entry(Tokens const & tokens, std::string & column, std::string & row, double & value) const;
+  public:
+    ScenarioStructure(std::string const & problem_name) {
+      std::ifstream input(problem_name);
+      is_valid_ = read_from_file(input);
+      input.close();
+    }
+    ScenarioStructure(std::istream & input) { is_valid_ = read_from_file(input); };
+    virtual StochasticTree constructTree(SmpsTimeStructure const &) const;
+};
 
 std::unique_ptr<SmpsStochasticStructure> read_stochastic_file(std::string const & filepath);
 Tokens read_tokens(std::istream & input);

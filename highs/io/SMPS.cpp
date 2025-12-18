@@ -130,8 +130,8 @@ std::unique_ptr<SmpsStochasticStructure> read_stochastic_file(std::string const 
     return std::unique_ptr<SmpsStochasticStructure>(new IndepStructure(filepath));
   if (structure_type == "BLOCK")
     return std::unique_ptr<SmpsStochasticStructure>(new BlockStructure(filepath));
-  // if (structure_type == "SCENARIO")
-  //   return std::unique_ptr<SmpsStochasticStructure>(new ScenarioStructure(problem_name, filepath));
+  if (structure_type == "SCENARIO")
+    return std::unique_ptr<SmpsStochasticStructure>(new ScenarioStructure(filepath));
   return nullptr;
 }
 
@@ -161,9 +161,9 @@ bool SmpsStochasticStructure::process_structure(Tokens const & tokens, std::stri
 
 bool IndepStructure::read_from_file(std::istream & input) {
     std::string header, problem_name, structure_type, distribution, line;
-    if (!process_header(read_tokens(input), header, problem_name) || !process_structure(read_tokens(input), structure_type, distribution))
-      return false;
-    return header == "STOCH" && structure_type == "INDEP" && distribution == "DISCRETE"
+    return process_header(read_tokens(input), header, problem_name) &&
+           process_structure(read_tokens(input), structure_type, distribution) &&    
+            header == "STOCH" && structure_type == "INDEP" && distribution == "DISCRETE"
             && process_data(input) && !timestage_random_entries.empty();
 }
 
@@ -189,10 +189,10 @@ bool IndepStructure::process_data(std::istream & input) {
   double value, probability;
   std::vector<RandomVariable::RandomValue> values;
   std::vector<RandomVariable> rvs;
-  if (!process_tokens(read_tokens(input), column, row, value, timeperiod, probability)) return false;
-  values.emplace_back(probability, value);
   auto tokens = read_tokens(input);
-  while (!is_ending(tokens)) {
+  if (!process_tokens(tokens, column, row, value, timeperiod, probability)) return false;
+  values.emplace_back(probability, value);
+  while (!(tokens = read_tokens(input)).empty() && !is_ending(tokens)) {
     if (!process_tokens(tokens, temp_column, temp_row, value, temp_timeperiod, probability)) return false;
     if (temp_column != column || temp_row != row || temp_timeperiod != timeperiod) {
       rvs.emplace_back(column, row, values);
@@ -206,7 +206,6 @@ bool IndepStructure::process_data(std::istream & input) {
     row = temp_row;
     timeperiod = temp_timeperiod;
     values.emplace_back(probability, value);
-    tokens = read_tokens(input);
   }
   rvs.emplace_back(column, row, values);
   timestage_random_entries.emplace_back(rvs, timeperiod);
@@ -262,11 +261,11 @@ Tokens read_tokens(std::istream & input) {
 }
 
 bool BlockStructure::read_from_file(std::istream & input) {
-      std::string header, problem_name, structure_type, distribution, line;
-    if (!process_header(read_tokens(input), header, problem_name) || !process_structure(read_tokens(input), structure_type, distribution))
-      return false;
-    return header == "STOCH" && structure_type == "BLOCKS" && distribution == "DISCRETE"
-            && process_data(input) && !timestage_random_vectors.empty();
+    std::string header, problem_name, structure_type, distribution, line;
+    return process_header(read_tokens(input), header, problem_name) &&
+           process_structure(read_tokens(input), structure_type, distribution) &&
+           header == "STOCH" && structure_type == "BLOCKS" && distribution == "DISCRETE"
+           && process_data(input) && !timestage_random_vectors.empty();
 }
 
 bool BlockStructure::is_new_block(Tokens const & tokens) const {
@@ -300,8 +299,7 @@ bool BlockStructure::process_data(std::istream & input) {
   auto tokens = read_tokens(input);
   if (!is_new_block(tokens) || !process_new_block(tokens, block_name, timeperiod, probability))
     return false;
-  tokens = read_tokens(input);
-  while (!is_ending(tokens)) {
+  while (!(tokens = read_tokens(input)).empty() && !is_ending(tokens)) {
     if (is_new_block(tokens)) {
       rv.emplace_back(probability, in_block_entries);
       in_block_entries.clear();
@@ -315,7 +313,6 @@ bool BlockStructure::process_data(std::istream & input) {
       if (!process_block_entry(tokens, column, row, value)) return false;
       in_block_entries.emplace_back(row, column, value);
     }
-    tokens = read_tokens(input);
   }
   rv.emplace_back(probability, in_block_entries);
   timestage_random_vectors.emplace_back(rv, timeperiod);
@@ -341,4 +338,56 @@ StochasticTree BlockStructure::constructTree(SmpsTimeStructure const & timestruc
 bool str_to_dbl(std::string const & str, double & val) {
   int pos;
   return sscanf(str.c_str(), "%lf%n", &val, &pos) == 1 && pos == str.length();
+}
+
+bool ScenarioStructure::is_new_scenario(Tokens const & tokens) const {
+  return tokens.size() == 5 && tokens[0] == "SC";
+}
+
+bool ScenarioStructure::process_new_scenario(Tokens const & tokens, std::string & scenario_name, std::string & parent_scenario,
+                           std::string & timeperiod, double & probability) const {
+  if (tokens.size() != 5 || tokens[0] != "SC") return false;
+  scenario_name = tokens[1];
+  parent_scenario = tokens[2];
+  timeperiod = tokens[4];
+  return str_to_dbl(tokens[3], probability) && probability >= 0 && probability <= 1;
+}
+
+bool ScenarioStructure::process_scenario_entry(Tokens const & tokens, std::string & column, std::string & row, double & value) const {
+  if (tokens.size() != 3) return false;
+  column = tokens[0];
+  row = tokens[1];
+  return str_to_dbl(tokens[2], value);
+}
+
+bool ScenarioStructure::process_data(std::istream & input) {
+  std::string scenario_name, parent_scenario, timeperiod, temp_timeperiod, column, row, line;
+  double value, probability;
+  BlockLpEntry in_scenario_entries;  
+  auto tokens = read_tokens(input);
+  if (!is_new_scenario(tokens) || !process_new_scenario(tokens, scenario_name, parent_scenario, timeperiod, probability))
+    return false;
+  while (!(tokens = read_tokens(input)).empty() && !is_ending(tokens)) {
+    if (is_new_scenario(tokens)) {
+        scenarios.emplace_back(in_scenario_entries, probability, timeperiod, scenario_name, parent_scenario);
+        in_scenario_entries.clear();
+        if (!process_new_scenario(tokens, scenario_name, parent_scenario, timeperiod, probability))  return false;
+    } else {
+      if (!process_scenario_entry(tokens, column, row, value)) return false;
+      in_scenario_entries.emplace_back(row, column, value);    
+    }
+  }
+  scenarios.emplace_back(in_scenario_entries, probability, timeperiod, scenario_name, parent_scenario);
+  return is_proper_ending(tokens);
+}
+
+bool ScenarioStructure::read_from_file(std::istream & input) {
+    std::string structure_type, distribution, line;
+    return  process_structure(read_tokens(input), structure_type, distribution) &&
+            structure_type == "SCENARIOS" && distribution == "DISCRETE"
+            && process_data(input) && !scenarios.empty();
+}
+
+StochasticTree ScenarioStructure::constructTree(SmpsTimeStructure const &) const {
+  return {nullptr};
 }
