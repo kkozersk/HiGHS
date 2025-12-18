@@ -10,9 +10,9 @@
 #include <vector>
 #include "Filereader.h"
 #include "FilereaderMps.h"
-#include "HStruct.h"
-#include "HighsModel.h"
-#include "HighsOptions.h"
+#include "lp_data/HStruct.h"
+#include "model/HighsModel.h"
+#include "lp_data/HighsOptions.h"
 
 void SmpsTimeStructure::read_file(std::istream & input) {
   std::string line;
