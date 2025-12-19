@@ -448,8 +448,8 @@ RandomVector TimestageRandomVectors::combine_vectors() const {
 RandomVector append_to_random_vector(RandomVector const & to_append, RandomVector const & rvec) {
   if (rvec.size() == 0) return to_append;
   RandomVector result;
-  for (auto const & random_value : to_append)
-      for (auto const & vector_value : rvec) {
+  for (auto const & vector_value : rvec) 
+    for (auto const & random_value : to_append) {
         auto entries = vector_value.lp_modifications;
         entries.insert(entries.end(), random_value.lp_modifications.begin(), random_value.lp_modifications.end());
         double probability = random_value.probability * vector_value.probability;

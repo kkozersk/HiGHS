@@ -716,6 +716,15 @@ TEST_CASE("test-create-block-with-multiple-blocks-per-timestage", "[highs_smps]"
       }
   },"TIME2"};
   REQUIRE(smps.get_timestage_random_vector(0) == rvt1);
+  RandomVector combined {
+    { 0.3 * 0.5, { {"R1","RHS",50}, {"R2", "RHS", 40}, {"R3","RHS",50}, {"R4", "RHS", 40}, {"R5","RHS",50} }, },    
+    { 0.3 * 0.5, { {"R1","RHS",50}, {"R2", "RHS", 40}, {"R3","RHS",50}, {"R4", "RHS", 50}, {"R5","RHS",50} }, },    
+    { 0.2 * 0.5, { {"R1","RHS",50}, {"R2", "RHS", 50}, {"R3","RHS",50}, {"R4", "RHS", 40}, {"R5","RHS",50} }, },    
+    { 0.2 * 0.5, { {"R1","RHS",50}, {"R2", "RHS", 50}, {"R3","RHS",50}, {"R4", "RHS", 50}, {"R5","RHS",50} }, },    
+    { 0.5 * 0.5, { {"R1","RHS",40}, {"R2", "RHS", 40}, {"R3","RHS",50}, {"R4", "RHS", 40}, {"R5","RHS",50} }, },    
+    { 0.5 * 0.5, { {"R1","RHS",40}, {"R2", "RHS", 40}, {"R3","RHS",50}, {"R4", "RHS", 50}, {"R5","RHS",50} }, },    
+  };
+  REQUIRE(rvt1.combine_vectors() == combined);
   TimestageRandomVectors rvt2 {
     {
       {
@@ -724,6 +733,7 @@ TEST_CASE("test-create-block-with-multiple-blocks-per-timestage", "[highs_smps]"
       },
   },"TIME3"};
   REQUIRE(smps.get_timestage_random_vector(1) == rvt2);
+  REQUIRE(rvt2.combine_vectors() == rvt2.rvs.at(0));
 }
 
 TEST_CASE("test-malformed-block-structure", "[highs_smps]") {
