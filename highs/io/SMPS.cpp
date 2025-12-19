@@ -189,9 +189,7 @@ bool IndepStructure::process_data(std::istream & input) {
   double value, probability;
   std::vector<RandomVariable::RandomValue> values;
   std::vector<RandomVariable> rvs;
-  Tokens tokens;
-  while (!(tokens = read_tokens(input)).empty() && !is_ending(tokens) && is_comment(tokens))
-    continue;
+  auto tokens = skip_initial_comments(input);
   if (!process_tokens(tokens, column, row, value, timeperiod, probability)) return false;
   values.emplace_back(probability, value);
   while (!(tokens = read_tokens(input)).empty() && !is_ending(tokens)) {
@@ -299,9 +297,7 @@ bool BlockStructure::process_data(std::istream & input) {
   BlockLpEntry in_block_entries;
   RandomVector rv;
   
-  Tokens tokens;
-  while (!(tokens = read_tokens(input)).empty() && !is_ending(tokens) && is_comment(tokens))
-    continue;
+  auto tokens = skip_initial_comments(input);
   if (!is_new_block(tokens) || !process_new_block(tokens, block_name, timeperiod, probability))
     return false;
   while (!(tokens = read_tokens(input)).empty() && !is_ending(tokens)) {
@@ -374,9 +370,7 @@ bool ScenarioStructure::process_data(std::istream & input) {
   std::string scenario_name, parent_scenario, timeperiod, temp_timeperiod, column, row, line;
   double value, probability;
   BlockLpEntry in_scenario_entries;  
-  Tokens tokens;
-  while (!(tokens = read_tokens(input)).empty() && !is_ending(tokens) && is_comment(tokens))
-    continue;
+  auto tokens = skip_initial_comments(input);
   if (!is_new_scenario(tokens) || !process_new_scenario(tokens, scenario_name, parent_scenario, timeperiod, probability))
     return false;
   while (!(tokens = read_tokens(input)).empty() && !is_ending(tokens)) {
@@ -422,4 +416,12 @@ void RandomVectorValue::operator+=(RandomVectorValue const & basis) {
 
 bool SmpsStochasticStructure::is_comment(Tokens const & tokens) const {
   return tokens.size() > 0 && tokens.front().at(0) == '*';
+}
+
+Tokens SmpsStochasticStructure::skip_initial_comments(std::istream & input) const {
+  Tokens tokens;
+  while (!(tokens = read_tokens(input)).empty() && !is_ending(tokens) && is_comment(tokens))
+    continue;
+  return tokens;
+ 
 }

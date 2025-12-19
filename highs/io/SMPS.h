@@ -110,6 +110,7 @@ class SmpsStochasticStructure {
     bool is_proper_ending(Tokens const & tokens) const;
     bool is_comment(Tokens const & tokens) const;
     bool is_valid_ = false;
+    Tokens skip_initial_comments(std::istream & input) const;
   public:
     SmpsStochasticStructure() = default;
     virtual ~SmpsStochasticStructure() = default;
