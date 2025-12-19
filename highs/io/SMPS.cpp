@@ -189,10 +189,13 @@ bool IndepStructure::process_data(std::istream & input) {
   double value, probability;
   std::vector<RandomVariable::RandomValue> values;
   std::vector<RandomVariable> rvs;
-  auto tokens = read_tokens(input);
+  Tokens tokens;
+  while (!(tokens = read_tokens(input)).empty() && !is_ending(tokens) && is_comment(tokens))
+    continue;
   if (!process_tokens(tokens, column, row, value, timeperiod, probability)) return false;
   values.emplace_back(probability, value);
   while (!(tokens = read_tokens(input)).empty() && !is_ending(tokens)) {
+    if (is_comment(tokens)) continue;
     if (!process_tokens(tokens, temp_column, temp_row, value, temp_timeperiod, probability)) return false;
     if (temp_column != column || temp_row != row || temp_timeperiod != timeperiod) {
       rvs.emplace_back(column, row, values);
@@ -300,6 +303,7 @@ bool BlockStructure::process_data(std::istream & input) {
   if (!is_new_block(tokens) || !process_new_block(tokens, block_name, timeperiod, probability))
     return false;
   while (!(tokens = read_tokens(input)).empty() && !is_ending(tokens)) {
+    if (is_comment(tokens)) continue;
     if (is_new_block(tokens)) {
       if(in_block_entries.empty()) return false;
       rv.emplace_back(probability, in_block_entries);
@@ -372,6 +376,7 @@ bool ScenarioStructure::process_data(std::istream & input) {
   if (!is_new_scenario(tokens) || !process_new_scenario(tokens, scenario_name, parent_scenario, timeperiod, probability))
     return false;
   while (!(tokens = read_tokens(input)).empty() && !is_ending(tokens)) {
+    if (is_comment(tokens)) continue;
     if (is_new_scenario(tokens)) {
         if (in_scenario_entries.empty()) return false;
         scenarios.emplace_back(in_scenario_entries, probability, timeperiod, scenario_name, parent_scenario);
@@ -409,4 +414,8 @@ void RandomVectorValue::operator+=(RandomVectorValue const & basis) {
   for (BlockLpEntry::size_type i = 0; i < basis.lp_modifications.size(); ++i) 
     if (i >= lp_modifications.size() || at(i).row != basis.at(i).row || at(i).col != basis.at(i).col)
       lp_modifications.insert(lp_modifications.begin() + i, basis.at(i));
+}
+
+bool SmpsStochasticStructure::is_comment(Tokens const & tokens) const {
+  return tokens.size() > 0 && tokens.front().at(0) == '*';
 }

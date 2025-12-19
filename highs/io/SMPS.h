@@ -108,6 +108,7 @@ class SmpsStochasticStructure {
     std::string problem_name = "";
     bool is_ending(Tokens const & tokens) const;
     bool is_proper_ending(Tokens const & tokens) const;
+    bool is_comment(Tokens const & tokens) const;
     bool is_valid_ = false;
   public:
     SmpsStochasticStructure() = default;
