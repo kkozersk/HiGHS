@@ -501,6 +501,21 @@ TEST_CASE("test-create-malformed-indep-structure", "[highs_smps]") {
                           "ENDATA");
   smps = IndepStructure(malformed_header4);
   REQUIRE(!smps.is_valid());
+
+  std::istringstream end_comments("STOCH NAME\n"
+                          "INDEP DISCRETE\n"
+                          "RHS R1 50 TIME2 0.5\n"
+                          "RHS R1 40 TIME2 0.3\n"
+                          "RHS R1 60 TIME2 0.2\n"
+                          "C1 R1 50 TIME2 0.7\n"
+                          "C1 R1 30 TIME2 0.3\n"
+                          "C1 R1 50 TIME3 0.5\n"
+                          "C1 R1 30 TIME3 0.5\n"
+                          "*\n"
+                          "*"
+                          );
+  smps = IndepStructure(end_comments);
+  REQUIRE(!smps.is_valid());
 }
 
 TEST_CASE("test-create-simple-block-structure", "[highs_smps]") {
@@ -903,6 +918,26 @@ TEST_CASE("test-malformed-block-structure", "[highs_smps]") {
                           "ENDATA");
   smps = BlockStructure(incorrect_entry_ordering);
   REQUIRE(!smps.is_valid());
+
+  std::istringstream end_comments("STOCH NAME\n"
+                          "BLOCKS DISCRETE\n"
+                          "BL BLOCK01 TIME2 0.3\n"
+                          "RHS R1 50\n"
+                          "RHS R2 40\n"
+                          "BL BLOCK01 TIME2 0.7\n"
+                          "RHS R1 40\n"
+                          "RHS R2 50\n"
+                          "BL BLOCK02 TIME3 0.5\n"
+                          "RHS R3 50\n"
+                          "RHS R4 40\n"
+                          "BL BLOCK02 TIME3 0.5\n"
+                          "RHS R3 40\n"
+                          "RHS R4 50\n"
+                          "*\n"
+                          "*"
+                          );
+  smps = BlockStructure(end_comments);
+  REQUIRE(!smps.is_valid());
 }
 
 TEST_CASE("test-create-simple-scenario-structure", "[highs_smps]") {
@@ -1211,5 +1246,22 @@ TEST_CASE("test-create-malformed-stochastic-structure", "[highs_smps]") {
                           "RHS R4 25\n"
                           "ENDATA");
   smps = ScenarioStructure(malformed_header3);
+  REQUIRE(!smps.is_valid());
+
+  std::istringstream end_comments(
+                          "SCENARIOS DISCRETE\n"
+                          "SC S01 ROOT 0.5 PERIOD2\n"
+                          "RHS R1 50\n"
+                          "RHS R2 40\n"
+                          "SC S02 ROOT 0.3 PERIOD2\n"
+                          "RHS R1 40\n"
+                          "RHS R2 50\n"
+                          "SC S03 S02 0.6 PERIOD3\n"
+                          "RHS R3 30\n"
+                          "SC S04 S03 0.3 PERIOD4\n"
+                          "RHS R4 25\n"
+                          "*\n"
+                          "*");
+  smps = ScenarioStructure(end_comments);
   REQUIRE(!smps.is_valid());
 }
