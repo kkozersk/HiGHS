@@ -160,7 +160,7 @@ bool SmpsStochasticStructure::process_structure(Tokens const & tokens, std::stri
 }
 
 bool IndepStructure::read_from_file(std::istream & input) {
-    std::string header, problem_name, structure_type, distribution, line;
+    std::string header, problem_name, structure_type, distribution;
     return process_header(read_tokens(input), header, problem_name) &&
            process_structure(read_tokens(input), structure_type, distribution) &&    
             header == "STOCH" && structure_type == "INDEP" && distribution == "DISCRETE"
@@ -261,7 +261,7 @@ Tokens read_tokens(std::istream & input) {
 }
 
 bool BlockStructure::read_from_file(std::istream & input) {
-    std::string header, problem_name, structure_type, distribution, line;
+    std::string header, problem_name, structure_type, distribution;
     return process_header(read_tokens(input), header, problem_name) &&
            process_structure(read_tokens(input), structure_type, distribution) &&
            header == "STOCH" && structure_type == "BLOCKS" && distribution == "DISCRETE"
@@ -387,7 +387,7 @@ bool ScenarioStructure::process_data(std::istream & input) {
 }
 
 bool ScenarioStructure::read_from_file(std::istream & input) {
-    std::string structure_type, distribution, line;
+    std::string structure_type, distribution;
     return  process_structure(read_tokens(input), structure_type, distribution) &&
             structure_type == "SCENARIOS" && distribution == "DISCRETE"
             && process_data(input) && !scenarios.empty();
@@ -400,16 +400,12 @@ StochasticTree ScenarioStructure::constructTree(SmpsTimeStructure const &) const
 bool TimestageRandomVector::fill_missing_entries() {
   RandomVectorValue const & block_basis = rvs.at(0);
   std::for_each(rvs.begin() + 1, rvs.end(), [&block_basis](RandomVectorValue & entry) { entry += block_basis;});
-  int basis_mods = rvs.at(0).lp_modifications.size();
-  return std::all_of(rvs.cbegin() + 1, rvs.cend(),
-              [basis_mods](RandomVectorValue const & entry) { return entry.lp_modifications.size() == basis_mods; });
+  return std::all_of(rvs.cbegin() + 1, rvs.cend(), [&block_basis](RandomVectorValue const & entry) {
+                     return entry.lp_modifications.size() == block_basis.lp_modifications.size(); });
 }
 
 void RandomVectorValue::operator+=(RandomVectorValue const & basis) {
-  for (int i = 0; i < basis.lp_modifications.size(); ++i) {
-    auto const & entry = basis.lp_modifications.at(i);
-    auto const & basis_entry = lp_modifications.at(i);
-    if (entry.row != basis_entry.row || entry.col != basis_entry.col)
-      lp_modifications.insert(lp_modifications.begin() + i, basis_entry);
-  }
+  for (BlockLpEntry::size_type i = 0; i < basis.lp_modifications.size(); ++i) 
+    if (i >= lp_modifications.size() || at(i).row != basis.at(i).row || at(i).col != basis.at(i).col)
+      lp_modifications.insert(lp_modifications.begin() + i, basis.at(i));
 }

@@ -510,6 +510,47 @@ TEST_CASE("test-create-complex-block-structure", "[highs_smps]") {
   REQUIRE(smps.get_timestage_random_vector(1) == rvt2);
 }
 
+TEST_CASE("test-create-block-structure-with-missing-entries", "[highs_smps]") {
+  std::istringstream data("STOCH NAME\n"
+                          "BLOCKS DISCRETE\n"
+                          "BL BLOCK01 TIME2 0.3\n"
+                          "RHS R1 50\n"
+                          "RHS R2 40\n"
+                          "BL BLOCK01 TIME2 0.2\n"
+                          "RHS R2 50\n"
+                          "BL BLOCK01 TIME2 0.5\n"
+                          "RHS R1 40\n"
+                          "BL BLOCK02 TIME3 0.5\n"
+                          "RHS R3 50\n"
+                          "RHS R4 40\n"
+                          "BL BLOCK02 TIME3 0.5\n"
+                          "RHS R4 50\n"
+                          "BL BLOCK03 TIME4 1\n"
+                          "RHS R5 50\n"
+                          "ENDATA");
+  BlockStructure smps(data);
+  REQUIRE(smps.is_valid());
+  REQUIRE(smps.get_no_timestage_random_vectors() == 3);
+  TimestageRandomVector rvt1 {
+    {
+      {0.3, {{"R1","RHS",50}, {"R2", "RHS", 40}}},
+      {0.2, {{"R1","RHS",50}, {"R2", "RHS", 50}}},
+      {0.5, {{"R1","RHS",40}, {"R2", "RHS", 40}}},
+  },"TIME2"};
+  REQUIRE(smps.get_timestage_random_vector(0) == rvt1);
+  TimestageRandomVector rvt2 {
+    {
+      {0.5, {{"R3","RHS",50}, {"R4", "RHS", 40}}},
+      {0.5, {{"R3","RHS",50}, {"R4", "RHS", 50}}}
+  },"TIME3"};
+  REQUIRE(smps.get_timestage_random_vector(1) == rvt2);
+  TimestageRandomVector rvt3 {
+    {
+      {1., {{"R5","RHS",50}}},
+  },"TIME4"};
+  REQUIRE(smps.get_timestage_random_vector(2) == rvt3);
+}
+
 TEST_CASE("test-malformed-block-structure", "[highs_smps]") {
   std::istringstream missing_block_data("STOCH NAME\n"
                           "BLOCKS DISCRETE\n"
