@@ -156,12 +156,12 @@ struct TimestageRandomVariables {
   TimestageRandomVariables(std::vector<RandomVariable> const & rvs, std::string const & timestage) : rvs(rvs), timestage(timestage) {}
 };
 
-struct TimestageRandomVector {
-  RandomVector rvs;
+struct TimestageRandomVectors {
+  std::vector<RandomVector> rvs;
   std::string timestage;
-  bool operator==(TimestageRandomVector const & other) const { return rvs == other.rvs && timestage == other.timestage; }
-  TimestageRandomVector(RandomVector const & rvs, std::string const & timestage) : rvs(rvs), timestage(timestage) {}
-  bool fill_missing_entries();
+  bool operator==(TimestageRandomVectors const & other) const { return rvs == other.rvs && timestage == other.timestage; }
+  TimestageRandomVectors(std::vector<RandomVector> const & rvs, std::string const & timestage) : rvs(rvs), timestage(timestage) {}
+  // bool fill_missing_entries();
 };
 
 
@@ -181,13 +181,14 @@ class IndepStructure : public SmpsStochasticStructure {
 };
 
 class BlockStructure : public SmpsStochasticStructure {
-  std::vector<TimestageRandomVector> timestage_random_vectors;
+  std::vector<TimestageRandomVectors> timestage_random_vectors;
   bool process_data(std::istream & input);
   bool read_from_file(std::istream & input);
   bool is_new_block(Tokens const & tokens) const;
   bool process_new_block(Tokens const & tokens, std::string & block_name, std::string & timeperiod, double & probability) const;
   bool process_block_entry(Tokens const & tokens, std::string & column, std::string & row, double & value) const;
   bool has_timestage_changed(Tokens const & tokens, std::string const & timestage) const;
+  bool has_block_changed(Tokens const & tokens, std::string const & block_name) const;
   public:
     BlockStructure(std::string const & problem_name) {
       std::ifstream input(problem_name);
@@ -197,7 +198,7 @@ class BlockStructure : public SmpsStochasticStructure {
     BlockStructure(std::istream & input) { is_valid_ = read_from_file(input); };
     virtual StochasticTree constructTree(SmpsTimeStructure const &) const;
     int get_no_timestage_random_vectors() const { return timestage_random_vectors.size(); }
-    TimestageRandomVector const & get_timestage_random_vector(int index) { return timestage_random_vectors.at(index); }
+    TimestageRandomVectors const & get_timestage_random_vector(int index) { return timestage_random_vectors.at(index); }
 };
 
 struct ScenarioModifications {

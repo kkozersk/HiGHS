@@ -288,7 +288,11 @@ bool BlockStructure::process_block_entry(Tokens const & tokens, std::string & co
 }
 
 bool BlockStructure::has_timestage_changed(Tokens const & tokens, std::string const & timestage) const {
-  return tokens[2] != timestage;
+  return tokens.at(2) != timestage;
+}
+
+bool BlockStructure::has_block_changed(Tokens const & tokens, std::string const & block_name) const {
+  return tokens.at(1) != block_name;
 }
 
 bool BlockStructure::process_data(std::istream & input) {
@@ -296,6 +300,7 @@ bool BlockStructure::process_data(std::istream & input) {
   double value, probability;
   BlockLpEntry in_block_entries;
   RandomVector rv;
+  std::vector<RandomVector> rvs;
   
   auto tokens = skip_initial_comments(input);
   if (!is_new_block(tokens) || !process_new_block(tokens, block_name, timeperiod, probability))
@@ -306,9 +311,13 @@ bool BlockStructure::process_data(std::istream & input) {
       if(in_block_entries.empty()) return false;
       rv.emplace_back(probability, in_block_entries);
       in_block_entries.clear();
-      if (has_timestage_changed(tokens, timeperiod)) {
-        timestage_random_vectors.emplace_back(rv, timeperiod);
+      if (has_block_changed(tokens, block_name) || has_timestage_changed(tokens, timeperiod)) {
+        rvs.push_back(rv);
         rv.clear();
+      }
+      if (has_timestage_changed(tokens, timeperiod)) {
+        timestage_random_vectors.emplace_back(rvs, timeperiod);
+        rvs.clear();
       }
       if (!process_new_block(tokens, block_name, timeperiod, probability)) return false;
     }
@@ -319,26 +328,29 @@ bool BlockStructure::process_data(std::istream & input) {
   }
   if(in_block_entries.empty()) return false;
   rv.emplace_back(probability, in_block_entries);
-  timestage_random_vectors.emplace_back(rv, timeperiod);
-  for (auto & rv : timestage_random_vectors)
-    if (!rv.fill_missing_entries()) return false;
+  rvs.push_back(rv);
+  timestage_random_vectors.emplace_back(rvs, timeperiod);
+  for (auto & rvs : timestage_random_vectors)
+    for (auto & rv : rvs.rvs)
+      if (!rv.fill_missing_entries()) return false;
   return is_proper_ending(tokens);
 }
 
 StochasticTree BlockStructure::constructTree(SmpsTimeStructure const & timestructure) const {
-  auto root = std::unique_ptr<Node>(new Node("root"));
-  std::vector<Node*> current_level = {root.get()}, next_level;
-  for (auto const & timestage_rvs : timestage_random_vectors) {
-    for (auto const & random_vec_value : timestage_rvs.rvs)
-      for (auto node : current_level) {
-        auto child = new Node(timestage_rvs.timestage, random_vec_value.probability, random_vec_value.lp_modifications);
-        node->add_child(std::unique_ptr<Node>(child));
-        next_level.push_back(child);
-      }
-    current_level = next_level;
-    next_level.clear();
-  }
-  return StochasticTree(std::move(root));
+  return {nullptr};
+  // auto root = std::unique_ptr<Node>(new Node("root"));
+  // std::vector<Node*> current_level = {root.get()}, next_level;
+  // for (auto const & timestage_rvs : timestage_random_vectors) {
+  //   for (auto const & random_vec_value : timestage_rvs.rvs)
+  //     for (auto node : current_level) {
+  //       auto child = new Node(timestage_rvs.timestage, random_vec_value.probability, random_vec_value.lp_modifications);
+  //       node->add_child(std::unique_ptr<Node>(child));
+  //       next_level.push_back(child);
+  //     }
+  //   current_level = next_level;
+  //   next_level.clear();
+  // }
+  // return StochasticTree(std::move(root));
 }
 
 bool str_to_dbl(std::string const & str, double & val) {
@@ -401,10 +413,6 @@ StochasticTree ScenarioStructure::constructTree(SmpsTimeStructure const &) const
   return {nullptr};
 }
 
-bool TimestageRandomVector::fill_missing_entries() {
-  return rvs.fill_missing_entries();
-}
-
 bool RandomVector::fill_missing_entries() {
   if (size() == 0) return false;
   RandomVectorValue const & block_basis = at(0);
@@ -428,5 +436,4 @@ Tokens SmpsStochasticStructure::skip_initial_comments(std::istream & input) cons
   while (!(tokens = read_tokens(input)).empty() && !is_ending(tokens) && is_comment(tokens))
     continue;
   return tokens;
- 
-}
+ }
