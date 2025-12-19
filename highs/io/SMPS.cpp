@@ -306,6 +306,7 @@ bool BlockStructure::process_data(std::istream & input) {
       in_block_entries.clear();
       if (has_timestage_changed(tokens, timeperiod)) {
         timestage_random_vectors.emplace_back(rv, timeperiod);
+        if (!timestage_random_vectors.back().fill_missing_entries()) return false;
         rv.clear();
       }
       if (!process_new_block(tokens, block_name, timeperiod, probability)) return false;
@@ -394,4 +395,21 @@ bool ScenarioStructure::read_from_file(std::istream & input) {
 
 StochasticTree ScenarioStructure::constructTree(SmpsTimeStructure const &) const {
   return {nullptr};
+}
+
+bool TimestageRandomVector::fill_missing_entries() {
+  RandomVectorValue const & block_basis = rvs.at(0);
+  std::for_each(rvs.begin() + 1, rvs.end(), [&block_basis](RandomVectorValue & entry) { entry += block_basis;});
+  int basis_mods = rvs.at(0).lp_modifications.size();
+  return std::all_of(rvs.cbegin() + 1, rvs.cend(),
+              [basis_mods](RandomVectorValue const & entry) { return entry.lp_modifications.size() == basis_mods; });
+}
+
+void RandomVectorValue::operator+=(RandomVectorValue const & basis) {
+  for (int i = 0; i < basis.lp_modifications.size(); ++i) {
+    auto const & entry = basis.lp_modifications.at(i);
+    auto const & basis_entry = lp_modifications.at(i);
+    if (entry.row != basis_entry.row || entry.col != basis_entry.col)
+      lp_modifications.insert(lp_modifications.begin() + i, basis_entry);
+  }
 }
