@@ -510,6 +510,29 @@ TEST_CASE("test-create-complex-block-structure", "[highs_smps]") {
   REQUIRE(smps.get_timestage_random_vector(1) == rvt2);
 }
 
+TEST_CASE("test-create-simple-block-structure-with-missing-entries", "[highs_smps]") {
+  std::istringstream data("STOCH NAME\n"
+                          "BLOCKS DISCRETE\n"
+                          "BL BLOCK01 TIME2 0.3\n"
+                          "RHS R1 50\n"
+                          "RHS R2 40\n"
+                          "BL BLOCK01 TIME2 0.2\n"
+                          "RHS R2 50\n"
+                          "BL BLOCK01 TIME2 0.5\n"
+                          "RHS R1 40\n"
+                          "ENDATA");
+  BlockStructure smps(data);
+  REQUIRE(smps.is_valid());
+  REQUIRE(smps.get_no_timestage_random_vectors() == 1);
+  TimestageRandomVector rvt1 {
+    {
+      {0.3, {{"R1","RHS",50}, {"R2", "RHS", 40}}},
+      {0.2, {{"R1","RHS",50}, {"R2", "RHS", 50}}},
+      {0.5, {{"R1","RHS",40}, {"R2", "RHS", 40}}},
+  },"TIME2"};
+  REQUIRE(smps.get_timestage_random_vector(0) == rvt1);
+}
+
 TEST_CASE("test-create-block-structure-with-missing-entries", "[highs_smps]") {
   std::istringstream data("STOCH NAME\n"
                           "BLOCKS DISCRETE\n"
@@ -782,6 +805,18 @@ TEST_CASE("test-malformed-block-structure", "[highs_smps]") {
                           "BL BLOCK02 TIME3 0.5\n"
                           "ENDATA");
   smps = BlockStructure(empty_block);
+  REQUIRE(!smps.is_valid());
+
+  std::istringstream incorrect_entry_ordering("STOCH NAME\n"
+                          "BLOCKS DISCRETE\n"
+                          "BL BLOCK01 TIME2 0.3\n"
+                          "RHS R1 50\n"
+                          "RHS R2 40\n"
+                          "BL BLOCK01 TIME2 0.7\n"
+                          "RHS R2 50\n"
+                          "RHS R1 40\n"
+                          "ENDATA");
+  smps = BlockStructure(incorrect_entry_ordering);
   REQUIRE(!smps.is_valid());
 }
 
