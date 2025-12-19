@@ -142,16 +142,15 @@ struct RandomVectorValue {
  };
 
 class RandomVector : public std::vector<RandomVectorValue> {
-  using base = std::vector<RandomVectorValue>;
   public:
-    using base::base; 
+    using std::vector<RandomVectorValue>::vector;
     bool fill_missing_entries();
 };
 
 struct TimestageRandomVariables {
   std::vector<RandomVariable> rvs;
   std::string timestage;
-  RandomVector generate_vector() const;
+  RandomVector combine_variables() const;
   bool operator==(TimestageRandomVariables const & other) const { return rvs == other.rvs && timestage == other.timestage; }
   TimestageRandomVariables(std::vector<RandomVariable> const & rvs, std::string const & timestage) : rvs(rvs), timestage(timestage) {}
 };
@@ -159,6 +158,7 @@ struct TimestageRandomVariables {
 struct TimestageRandomVectors {
   std::vector<RandomVector> rvs;
   std::string timestage;
+  RandomVector combine_vectors() const;
   bool operator==(TimestageRandomVectors const & other) const { return rvs == other.rvs && timestage == other.timestage; }
   TimestageRandomVectors(std::vector<RandomVector> const & rvs, std::string const & timestage) : rvs(rvs), timestage(timestage) {}
   // bool fill_missing_entries();
@@ -239,4 +239,5 @@ class ScenarioStructure : public SmpsStochasticStructure {
 std::unique_ptr<SmpsStochasticStructure> read_stochastic_file(std::string const & filepath);
 Tokens read_tokens(std::istream & input);
 RandomVector append_to_random_vector(RandomVariable const & rv, RandomVector const & rvec);
+RandomVector append_to_random_vector(RandomVector const & to_append, RandomVector const & rvec);
 bool str_to_dbl(std::string const & str, double & val);

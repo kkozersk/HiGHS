@@ -217,7 +217,7 @@ StochasticTree IndepStructure::constructTree(SmpsTimeStructure const & timestruc
   auto root = std::unique_ptr<Node>(new Node("root"));
   std::vector<Node*> current_level = {root.get()}, next_level;
   for (auto const & timestage_rvs : timestage_random_entries) {
-    for (auto const & random_vec_value : timestage_rvs.generate_vector())
+    for (auto const & random_vec_value : timestage_rvs.combine_variables())
       for (auto node : current_level) {
         auto child = new Node(timestage_rvs.timestage, random_vec_value.probability, random_vec_value.lp_modifications);
         node->add_child(std::unique_ptr<Node>(child));
@@ -246,7 +246,7 @@ RandomVector append_to_random_vector(RandomVariable const & rv, RandomVector con
   return result;
 }
 
-RandomVector TimestageRandomVariables::generate_vector() const {
+RandomVector TimestageRandomVariables::combine_variables() const {
   RandomVector result;
   for (auto const & rv: rvs) 
     result = append_to_random_vector(rv, result);
@@ -437,3 +437,23 @@ Tokens SmpsStochasticStructure::skip_initial_comments(std::istream & input) cons
     continue;
   return tokens;
  }
+
+RandomVector TimestageRandomVectors::combine_vectors() const {
+  RandomVector result;
+  for (auto const & rv: rvs) 
+    result = append_to_random_vector(rv, result);
+  return result;
+}
+
+RandomVector append_to_random_vector(RandomVector const & to_append, RandomVector const & rvec) {
+  if (rvec.size() == 0) return to_append;
+  RandomVector result;
+  for (auto const & random_value : to_append)
+      for (auto const & vector_value : rvec) {
+        auto entries = vector_value.lp_modifications;
+        entries.insert(entries.end(), random_value.lp_modifications.begin(), random_value.lp_modifications.end());
+        double probability = random_value.probability * vector_value.probability;
+        result.emplace_back(probability, entries);
+      }
+  return result;
+}

@@ -185,7 +185,7 @@ TEST_CASE("test-create-simple-indep-structure", "[highs_smps]") {
     },"TIME2"};
   REQUIRE(rvt == rvt1);
 
-  auto vec = rvt.generate_vector();
+  auto vec = rvt.combine_variables();
   RandomVector expected {
     {0.5, {{"R1", "RHS", 50}}},
     {0.3, {{"R1", "RHS", 40}}},
@@ -211,7 +211,7 @@ TEST_CASE("test-create-single-val-indep-structure", "[highs_smps]") {
     },"TIME2"};
   REQUIRE(rvt == rvt1);
 
-  auto vec = rvt.generate_vector();
+  auto vec = rvt.combine_variables();
   RandomVector expected {
     {1., {{"R1", "RHS", 50}}},
    };
@@ -251,12 +251,12 @@ TEST_CASE("test-create-complex-indep-structure", "[highs_smps]") {
     {0.3 * 0.3, {{"R1", "RHS", 40}, {"R1", "C1", 30}}},
     {0.2 * 0.3, {{"R1", "RHS", 60}, {"R1", "C1", 30}}},
    };
-  REQUIRE(rvt1.generate_vector() == expected);
+  REQUIRE(rvt1.combine_variables() == expected);
   RandomVector expected2 {
     {0.5, {{"R1", "C1", 50}}},
     {0.5, {{"R1", "C1", 30}}},
    };
-  REQUIRE(rvt2.generate_vector() == expected2);
+  REQUIRE(rvt2.combine_variables() == expected2);
 }
 
 TEST_CASE("test-create-indep-structure-with-comments", "[highs_smps]") {
@@ -297,12 +297,12 @@ TEST_CASE("test-create-indep-structure-with-comments", "[highs_smps]") {
     {0.3 * 0.3, {{"R1", "RHS", 40}, {"R1", "C1", 30}}},
     {0.2 * 0.3, {{"R1", "RHS", 60}, {"R1", "C1", 30}}},
    };
-  REQUIRE(rvt1.generate_vector() == expected);
+  REQUIRE(rvt1.combine_variables() == expected);
   RandomVector expected2 {
     {0.5, {{"R1", "C1", 50}}},
     {0.5, {{"R1", "C1", 30}}},
    };
-  REQUIRE(rvt2.generate_vector() == expected2);
+  REQUIRE(rvt2.combine_variables() == expected2);
 }
 
 TEST_CASE("test-create-malformed-indep-structure", "[highs_smps]") {
