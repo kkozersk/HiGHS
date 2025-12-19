@@ -140,7 +140,13 @@ struct RandomVectorValue {
   void operator+=(RandomVectorValue const & basis);
   LpEntry const & at(int index) const { return lp_modifications.at(index); }
  };
-using RandomVector = std::vector<RandomVectorValue>;
+
+class RandomVector : public std::vector<RandomVectorValue> {
+  using base = std::vector<RandomVectorValue>;
+  public:
+    using base::base; 
+    bool fill_missing_entries();
+};
 
 struct TimestageRandomVariables {
   std::vector<RandomVariable> rvs;

@@ -402,9 +402,14 @@ StochasticTree ScenarioStructure::constructTree(SmpsTimeStructure const &) const
 }
 
 bool TimestageRandomVector::fill_missing_entries() {
-  RandomVectorValue const & block_basis = rvs.at(0);
-  std::for_each(rvs.begin() + 1, rvs.end(), [&block_basis](RandomVectorValue & entry) { entry += block_basis;});
-  return std::all_of(rvs.cbegin() + 1, rvs.cend(), [&block_basis](RandomVectorValue const & entry) {
+  return rvs.fill_missing_entries();
+}
+
+bool RandomVector::fill_missing_entries() {
+  if (size() == 0) return false;
+  RandomVectorValue const & block_basis = at(0);
+  std::for_each(begin() + 1, end(), [&block_basis](RandomVectorValue & entry) { entry += block_basis;});
+  return std::all_of(cbegin() + 1, cend(), [&block_basis](RandomVectorValue const & entry) {
                      return entry.lp_modifications.size() == block_basis.lp_modifications.size(); });
 }
 
