@@ -259,6 +259,52 @@ TEST_CASE("test-create-complex-indep-structure", "[highs_smps]") {
   REQUIRE(rvt2.generate_vector() == expected2);
 }
 
+TEST_CASE("test-create-indep-structure-with-comments", "[highs_smps]") {
+  std::istringstream data("STOCH NAME\n"
+                          "INDEP DISCRETE\n"
+                          "*RHS R1 10 TIME2 0.5\n"
+                          "RHS R1 50 TIME2 0.5\n"
+                          "*\n"
+                          "*\n"
+                          "RHS R1 40 TIME2 0.3\n"
+                          "RHS R1 60 TIME2 0.2\n"
+                          "*\n"
+                          "C1 R1 50 TIME2 0.7\n"
+                          "C1 R1 30 TIME2 0.3\n"
+                          "C1 R1 50 TIME3 0.5\n"
+                          "C1 R1 30 TIME3 0.5\n"
+                          "*\n"
+                          "ENDATA");
+  IndepStructure smps(data);
+  REQUIRE(smps.is_valid());
+  REQUIRE(smps.get_no_timestage_random_entries() == 2);
+  TimestageRandomVariables rvt1 {
+    {
+      {"RHS", "R1", {{0.5, 50}, {0.3, 40}, {0.2, 60}}},
+      {"C1", "R1", {{0.7, 50}, {0.3, 30}}},
+    },"TIME2"};
+  REQUIRE(smps.get_timestage_random_entry(0) == rvt1);
+  TimestageRandomVariables rvt2 {
+    {
+      {"C1", "R1", {{0.5, 50}, {0.5, 30}}},
+    },"TIME3"};
+  REQUIRE(smps.get_timestage_random_entry(1) == rvt2);
+  RandomVector expected {
+    {0.5 * 0.7, {{"R1", "RHS", 50}, {"R1", "C1", 50}}},
+    {0.3 * 0.7, {{"R1", "RHS", 40}, {"R1", "C1", 50}}},
+    {0.2 * 0.7, {{"R1", "RHS", 60}, {"R1", "C1", 50}}},
+    {0.5 * 0.3, {{"R1", "RHS", 50}, {"R1", "C1", 30}}},
+    {0.3 * 0.3, {{"R1", "RHS", 40}, {"R1", "C1", 30}}},
+    {0.2 * 0.3, {{"R1", "RHS", 60}, {"R1", "C1", 30}}},
+   };
+  REQUIRE(rvt1.generate_vector() == expected);
+  RandomVector expected2 {
+    {0.5, {{"R1", "C1", 50}}},
+    {0.5, {{"R1", "C1", 30}}},
+   };
+  REQUIRE(rvt2.generate_vector() == expected2);
+}
+
 TEST_CASE("test-create-malformed-indep-structure", "[highs_smps]") {
   std::istringstream missing_timeperiods("STOCH NAME\n"
                           "INDEP DISCRETE\n"
@@ -500,6 +546,45 @@ TEST_CASE("test-create-complex-block-structure", "[highs_smps]") {
     {
       {0.3, {{"R1","RHS",50}, {"R2", "RHS", 40}}},
       {0.7, {{"R1","RHS",40}, {"R2", "RHS", 50}}}
+  },"TIME2"};
+  REQUIRE(smps.get_timestage_random_vector(0) == rvt1);
+  TimestageRandomVector rvt2 {
+    {
+      {0.5, {{"R3","RHS",50}, {"R4", "RHS", 40}}},
+      {0.5, {{"R3","RHS",40}, {"R4", "RHS", 50}}}
+  },"TIME3"};
+  REQUIRE(smps.get_timestage_random_vector(1) == rvt2);
+}
+
+TEST_CASE("test-create-block-structure-with-comments", "[highs_smps]") {
+  std::istringstream data("STOCH NAME\n"
+                          "BLOCKS DISCRETE\n"
+                          "* values\n"
+                          "**\n"
+                          "BL BLOCK01 TIME2 0.3\n"
+                          "*\n"
+                          "RHS R1 50\n"
+                          "* entry\n"
+                          "RHS R2 40\n"
+                          "BL BLOCK01 TIME2 0.7\n"
+                          "RHS R2 50\n"
+                          "* next one is assumed from the top block\n"
+                          "BL BLOCK02 TIME3 0.5\n"
+                          "RHS R3 50\n"
+                          "RHS R4 40\n"
+                          "BL BLOCK02 TIME3 0.5\n"
+                          "RHS R3 40\n"
+                          "RHS R4 50\n"
+                          "*ENDATA\n"
+                          "ENDATA");
+  BlockStructure smps(data);
+  REQUIRE(smps.is_valid());
+  REQUIRE(smps.get_no_timestage_random_vectors() == 2);
+  auto rvt = smps.get_timestage_random_vector(0);
+  TimestageRandomVector rvt1 {
+    {
+      {0.3, {{"R1","RHS",50}, {"R2", "RHS", 40}}},
+      {0.7, {{"R1","RHS",50}, {"R2", "RHS", 50}}}
   },"TIME2"};
   REQUIRE(smps.get_timestage_random_vector(0) == rvt1);
   TimestageRandomVector rvt2 {
@@ -854,6 +939,47 @@ TEST_CASE("test-create-complex-scenario-structure", "[highs_smps]") {
                           "RHS R3 30\n"
                           "SC S04 S03 0.3 PERIOD4\n"
                           "RHS R4 25\n"
+                          "ENDATA");
+  ScenarioStructure smps(data);
+  REQUIRE(smps.is_valid());
+  REQUIRE(smps.get_no_scenarios() == 4);
+  ScenarioModifications scen1 {
+      {{"R1","RHS",50}, {"R2", "RHS", 40}},
+      0.5, "PERIOD2", "S01", "ROOT" };
+  REQUIRE(smps.get_scenario(0) == scen1);
+  ScenarioModifications scen2 {
+      {{"R1","RHS",40}, {"R2", "RHS", 50}},
+      0.3, "PERIOD2", "S02", "ROOT" };
+  REQUIRE(smps.get_scenario(1) == scen2);
+  ScenarioModifications scen3 {
+      {{"R3","RHS",30}},
+      0.6, "PERIOD3", "S03", "S02" };
+  REQUIRE(smps.get_scenario(2) == scen3);
+  ScenarioModifications scen4 {
+      {{"R4","RHS",25}},
+      0.3, "PERIOD4", "S04", "S03" };
+  REQUIRE(smps.get_scenario(3) == scen4);
+}
+
+TEST_CASE("test-create-scenario-structure-with-comments", "[highs_smps]") {
+  std::istringstream data("SCENARIOS DISCRETE\n"
+                          "*\n"
+                          "*\n"
+                          "*\n"
+                          "SC S01 ROOT 0.5 PERIOD2\n"
+                          "*\n"
+                          "RHS R1 50\n"
+                          "*\n"
+                          "RHS R2 40\n"
+                          "**\n"
+                          "SC S02 ROOT 0.3 PERIOD2\n"
+                          "RHS R1 40\n"
+                          "RHS R2 50\n"
+                          "SC S03 S02 0.6 PERIOD3\n"
+                          "RHS R3 30\n"
+                          "SC S04 S03 0.3 PERIOD4\n"
+                          "RHS R4 25\n"
+                          "*\n"
                           "ENDATA");
   ScenarioStructure smps(data);
   REQUIRE(smps.is_valid());

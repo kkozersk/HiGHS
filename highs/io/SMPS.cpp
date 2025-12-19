@@ -299,7 +299,9 @@ bool BlockStructure::process_data(std::istream & input) {
   BlockLpEntry in_block_entries;
   RandomVector rv;
   
-  auto tokens = read_tokens(input);
+  Tokens tokens;
+  while (!(tokens = read_tokens(input)).empty() && !is_ending(tokens) && is_comment(tokens))
+    continue;
   if (!is_new_block(tokens) || !process_new_block(tokens, block_name, timeperiod, probability))
     return false;
   while (!(tokens = read_tokens(input)).empty() && !is_ending(tokens)) {
@@ -372,7 +374,9 @@ bool ScenarioStructure::process_data(std::istream & input) {
   std::string scenario_name, parent_scenario, timeperiod, temp_timeperiod, column, row, line;
   double value, probability;
   BlockLpEntry in_scenario_entries;  
-  auto tokens = read_tokens(input);
+  Tokens tokens;
+  while (!(tokens = read_tokens(input)).empty() && !is_ending(tokens) && is_comment(tokens))
+    continue;
   if (!is_new_scenario(tokens) || !process_new_scenario(tokens, scenario_name, parent_scenario, timeperiod, probability))
     return false;
   while (!(tokens = read_tokens(input)).empty() && !is_ending(tokens)) {
