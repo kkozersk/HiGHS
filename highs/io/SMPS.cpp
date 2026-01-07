@@ -26,7 +26,6 @@ void SmpsTimeStructure::read_file(std::istream & input) {
   std::transform(col_stages.begin(), col_stages.end(), std::back_inserter(stage_names), [](IndexStage const & val) {return val.stage_name; });
   if (!process_ending(line)) return;
   is_valid_ = true;
-  // input.close();
 }
 
 bool SmpsTimeStructure::process_header(std::string const & line) {
@@ -142,7 +141,6 @@ IndepStructure::IndepStructure(std::istream & input)  {
 IndepStructure::IndepStructure(std::string const & filepath) {
   std::ifstream input(filepath);
   is_valid_ = read_from_file(input);
-  input.close();
 }
 
 bool SmpsStochasticStructure::process_header(Tokens const & tokens, std::string & header, std::string & problem_name) const {

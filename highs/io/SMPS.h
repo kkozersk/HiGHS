@@ -190,11 +190,7 @@ class BlockStructure : public SmpsStochasticStructure {
   bool has_timestage_changed(Tokens const & tokens, std::string const & timestage) const;
   bool has_block_changed(Tokens const & tokens, std::string const & block_name) const;
   public:
-    BlockStructure(std::string const & problem_name) {
-      std::ifstream input(problem_name);
-      is_valid_ = read_from_file(input);
-      input.close();
-    }
+    BlockStructure(std::string const & filepath) { std::ifstream input(filepath); is_valid_ = read_from_file(input); }
     BlockStructure(std::istream & input) { is_valid_ = read_from_file(input); };
     virtual StochasticTree constructTree(SmpsTimeStructure const &) const;
     int get_no_timestage_random_vectors() const { return timestage_random_vectors.size(); }
@@ -225,11 +221,7 @@ class ScenarioStructure : public SmpsStochasticStructure {
                            std::string & timeperiod, double & probability) const;
   bool process_scenario_entry(Tokens const & tokens, std::string & column, std::string & row, double & value) const;
   public:
-    ScenarioStructure(std::string const & problem_name) {
-      std::ifstream input(problem_name);
-      is_valid_ = read_from_file(input);
-      input.close();
-    }
+    ScenarioStructure(std::string const & filepath) { std::ifstream input(filepath); is_valid_ = read_from_file(input); }
     ScenarioStructure(std::istream & input) { is_valid_ = read_from_file(input); };
     virtual StochasticTree constructTree(SmpsTimeStructure const &) const;
     int get_no_scenarios() const { return scenarios.size(); }
