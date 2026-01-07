@@ -1384,3 +1384,54 @@ TEST_CASE("test-indep-to-stochastic-tree", "[highs_smps]") {
     }
   }
 }
+
+TEST_CASE("test-block-to-stochastic-tree", "[highs_smps]") {
+  std::istringstream data("STOCH NAME\n"
+                          "BLOCKS DISCRETE\n"
+                          "BL BLOCK01 TIME2 0.3\n"
+                          "RHS R1 50\n"
+                          "RHS R2 40\n"
+                          "BL BLOCK01 TIME2 0.7\n"
+                          "RHS R1 40\n"
+                          "RHS R2 50\n"
+                          "BL BLOCK02 TIME3 0.5\n"
+                          "RHS R3 50\n"
+                          "RHS R4 40\n"
+                          "BL BLOCK02 TIME3 0.5\n"
+                          "RHS R3 40\n"
+                          "RHS R4 50\n"
+                          "ENDATA");
+  BlockStructure smps(data);
+  REQUIRE(smps.is_valid());
+  auto tree = smps.constructTree();
+  REQUIRE(tree.root->get_parent() == nullptr);
+  REQUIRE(tree.root->verify_children_probabilities());
+  REQUIRE(tree.root->get_no_children() == 2);
+  REQUIRE(tree.root->get_lp_modifications() == std::vector<LpEntry> {});
+  REQUIRE(tree.root->get_node_probability() == 1.);
+
+  std::vector<double> child_probabilities = { 0.3, 0.7 };
+  std::vector<std::vector<LpEntry>> child_mods {
+    {{"R1", "RHS", 50}, {"R2", "RHS", 40}},
+    {{"R1", "RHS", 40}, {"R2", "RHS", 50}},
+  };
+  std::vector<std::vector<LpEntry>> sub_mods {
+    {{"R3", "RHS", 50}, {"R4", "RHS", 40}},
+    {{"R3", "RHS", 40}, {"R4", "RHS", 50}},
+  };
+  for (int i = 0; i < 2; ++i) {
+    auto & child = tree.root->get_child(i);
+    REQUIRE(child->get_parent() == tree.root.get());
+    REQUIRE(child->verify_children_probabilities());
+    REQUIRE(child->get_no_children() == 2);
+    REQUIRE(child->get_node_probability() == child_probabilities.at(i));
+    REQUIRE(child->get_lp_modifications() == child_mods.at(i));
+    for (int j = 0; j < 2; ++j) {
+      auto & subchild = child->get_child(j);
+      REQUIRE(subchild->get_parent() == child.get());
+      REQUIRE(subchild->get_no_children() == 0);
+      REQUIRE(subchild->get_node_probability() == 0.5);
+      REQUIRE(subchild->get_lp_modifications() == sub_mods.at(j));
+    }
+  }
+}
