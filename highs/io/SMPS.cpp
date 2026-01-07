@@ -211,12 +211,12 @@ bool IndepStructure::process_data(std::istream & input) {
   return is_proper_ending(tokens);
 };
 
-StochasticTree IndepStructure::constructTree(SmpsTimeStructure const & timestructure) const {
+StochasticTree IndepStructure::constructTree() const {
   auto root = std::unique_ptr<Node>(new Node("root"));
   std::vector<Node*> current_level = {root.get()}, next_level;
   for (auto const & timestage_rvs : timestage_random_entries) {
     for (auto const & random_vec_value : timestage_rvs.combine_variables())
-      for (auto node : current_level) {
+      for (auto & node : current_level) {
         auto child = new Node(timestage_rvs.timestage, random_vec_value.probability, random_vec_value.lp_modifications);
         node->add_child(std::unique_ptr<Node>(child));
         next_level.push_back(child);
@@ -334,21 +334,20 @@ bool BlockStructure::process_data(std::istream & input) {
   return is_proper_ending(tokens);
 }
 
-StochasticTree BlockStructure::constructTree(SmpsTimeStructure const & timestructure) const {
-  return {nullptr};
-  // auto root = std::unique_ptr<Node>(new Node("root"));
-  // std::vector<Node*> current_level = {root.get()}, next_level;
-  // for (auto const & timestage_rvs : timestage_random_vectors) {
-  //   for (auto const & random_vec_value : timestage_rvs.rvs)
-  //     for (auto node : current_level) {
-  //       auto child = new Node(timestage_rvs.timestage, random_vec_value.probability, random_vec_value.lp_modifications);
-  //       node->add_child(std::unique_ptr<Node>(child));
-  //       next_level.push_back(child);
-  //     }
-  //   current_level = next_level;
-  //   next_level.clear();
-  // }
-  // return StochasticTree(std::move(root));
+StochasticTree BlockStructure::constructTree() const {
+  auto root = std::unique_ptr<Node>(new Node("root"));
+  std::vector<Node*> current_level = {root.get()}, next_level;
+  for (auto const & timestage_rvs : timestage_random_vectors) {
+    for (auto const & random_vec_value : timestage_rvs.combine_vectors())
+      for (auto node : current_level) {
+        auto child = new Node(timestage_rvs.timestage, random_vec_value.probability, random_vec_value.lp_modifications);
+        node->add_child(std::unique_ptr<Node>(child));
+        next_level.push_back(child);
+      }
+    current_level = next_level;
+    next_level.clear();
+  }
+  return StochasticTree(std::move(root));
 }
 
 bool str_to_dbl(std::string const & str, double & val) {
@@ -407,7 +406,7 @@ bool ScenarioStructure::read_from_file(std::istream & input) {
             && process_data(input) && !scenarios.empty();
 }
 
-StochasticTree ScenarioStructure::constructTree(SmpsTimeStructure const &) const {
+StochasticTree ScenarioStructure::constructTree() const {
   return {nullptr};
 }
 
