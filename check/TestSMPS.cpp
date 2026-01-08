@@ -1435,3 +1435,134 @@ TEST_CASE("test-block-to-stochastic-tree", "[highs_smps]") {
     }
   }
 }
+
+TEST_CASE("test-scenario-structure-tree-without-fill", "[highs_smps]") {
+  std::istringstream data("SCENARIOS DISCRETE\n"
+                          "SC S01 ROOT 0.5 PERIOD2\n"
+                          "RHS R1 50\n"
+                          "RHS R2 40\n"
+                          "SC S02 ROOT 0.3 PERIOD2\n"
+                          "RHS R1 40\n"
+                          "RHS R2 50\n"
+                          "SC S03 S02 0.6 PERIOD3\n"
+                          "RHS R3 30\n"
+                          "SC S04 S03 0.3 PERIOD4\n"
+                          "RHS R4 25\n"
+                          "ENDATA");
+  ScenarioStructure smps(data);
+  REQUIRE(smps.is_valid());
+  auto tree = smps.constructTree();
+
+  REQUIRE(tree.root->get_parent() == nullptr);
+  REQUIRE(!tree.root->verify_children_probabilities());
+  REQUIRE(tree.root->get_no_children() == 2);
+  REQUIRE(tree.root->get_lp_modifications() == std::vector<LpEntry> {});
+  REQUIRE(tree.root->get_node_probability() == 1.);
+
+  {
+    auto & child = tree.root->get_child(0);
+    REQUIRE(child->get_parent() == tree.root.get());
+    REQUIRE(child->get_no_children() == 0);
+    REQUIRE(child->get_node_probability() == 0.5);
+    REQUIRE(child->get_lp_modifications() == std::vector<LpEntry> {{"R1", "RHS", 50}, {"R2", "RHS", 40}});
+  }
+  {
+    auto & child = tree.root->get_child(1);
+    REQUIRE(child->get_parent() == tree.root.get());
+    REQUIRE(!child->verify_children_probabilities());
+    REQUIRE(child->get_no_children() == 1);
+    REQUIRE(child->get_node_probability() == 0.3);
+    REQUIRE(child->get_lp_modifications() == std::vector<LpEntry> {{"R1", "RHS", 40}, {"R2", "RHS", 50}});
+  }
+  {
+    auto & parent = tree.root->get_child(1);
+    auto & child = parent->get_child(0);
+    REQUIRE(child->get_parent() == parent.get());
+    REQUIRE(!child->verify_children_probabilities());
+    REQUIRE(child->get_no_children() == 1);
+    REQUIRE(child->get_node_probability() == 0.6);
+    REQUIRE(child->get_lp_modifications() == std::vector<LpEntry> {{"R3", "RHS", 30}});
+  }
+  {
+    auto & parent = tree.root->get_child(1)->get_child(0);
+    auto & child = parent->get_child(0);
+    REQUIRE(child->get_parent() == parent.get());
+    REQUIRE(!child->verify_children_probabilities());
+    REQUIRE(child->get_no_children() == 0);
+    REQUIRE(child->get_node_probability() == 0.3);
+    REQUIRE(child->get_lp_modifications() == std::vector<LpEntry> {{"R4", "RHS", 25}});
+  }
+}
+
+TEST_CASE("test-scenario-structure-tree-with-fill", "[highs_smps]") {
+  std::istringstream data("SCENARIOS DISCRETE\n"
+                          "SC S01 ROOT 0.5 PERIOD2\n"
+                          "RHS R1 50\n"
+                          "RHS R2 40\n"
+                          "SC S02 ROOT 0.3 PERIOD2\n"
+                          "RHS R1 40\n"
+                          "RHS R2 50\n"
+                          "SC S03 S02 0.6 PERIOD3\n"
+                          "RHS R3 30\n"
+                          "SC S04 S03 0.3 PERIOD4\n"
+                          "RHS R4 25\n"
+                          "ENDATA");
+  ScenarioStructure smps(data);
+  REQUIRE(smps.is_valid());
+  auto tree = smps.constructTree();
+  tree.fill_tree();
+
+  REQUIRE(tree.root->get_parent() == nullptr);
+  REQUIRE(tree.root->verify_children_probabilities());
+  REQUIRE(tree.root->get_no_children() == 3);
+  REQUIRE(tree.root->get_lp_modifications() == std::vector<LpEntry> {});
+  REQUIRE(tree.root->get_node_probability() == 1.);
+
+  {
+    auto & child = tree.root->get_child(0);
+    REQUIRE(child->get_parent() == tree.root.get());
+    REQUIRE(child->get_no_children() == 0);
+    REQUIRE(child->get_node_probability() == 0.5);
+    REQUIRE(child->get_lp_modifications() == std::vector<LpEntry> {{"R1", "RHS", 50}, {"R2", "RHS", 40}});
+  }
+  {
+    auto & child = tree.root->get_child(1);
+    REQUIRE(child->get_parent() == tree.root.get());
+    REQUIRE(child->verify_children_probabilities());
+    REQUIRE(child->get_no_children() == 2);
+    REQUIRE(child->get_node_probability() == 0.3);
+    REQUIRE(child->get_lp_modifications() == std::vector<LpEntry> {{"R1", "RHS", 40}, {"R2", "RHS", 50}});
+  }
+  {
+    auto & child = tree.root->get_child(2);
+    REQUIRE(child->get_parent() == tree.root.get());
+    REQUIRE(child->get_no_children() == 0);
+    REQUIRE(std::abs(child->get_node_probability()-0.2) < 1e-6 );
+    REQUIRE(child->get_lp_modifications() == std::vector<LpEntry> {});
+  }
+  {
+    auto & parent = tree.root->get_child(1);
+    auto & child = parent->get_child(0);
+    REQUIRE(child->get_parent() == parent.get());
+    REQUIRE(child->verify_children_probabilities());
+    REQUIRE(child->get_no_children() == 2);
+    REQUIRE(child->get_node_probability() == 0.6);
+    REQUIRE(child->get_lp_modifications() == std::vector<LpEntry> {{"R3", "RHS", 30}});
+  }
+  {
+    auto & parent = tree.root->get_child(1)->get_child(0);
+    auto & child = parent->get_child(0);
+    REQUIRE(child->get_parent() == parent.get());
+    REQUIRE(child->get_no_children() == 0);
+    REQUIRE(child->get_node_probability() == 0.3);
+    REQUIRE(child->get_lp_modifications() == std::vector<LpEntry> {{"R4", "RHS", 25}});
+  }
+  {
+    auto & parent = tree.root->get_child(1)->get_child(0);
+    auto & child = parent->get_child(1);
+    REQUIRE(child->get_parent() == parent.get());
+    REQUIRE(child->get_no_children() == 0);
+    REQUIRE(child->get_node_probability() == 0.7);
+    REQUIRE(child->get_lp_modifications() == std::vector<LpEntry> {});
+  }
+}

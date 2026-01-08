@@ -3,6 +3,7 @@
 #include <cstdio>
 #include <fstream>
 #include <iterator>
+#include <map>
 #include <memory>
 #include <numeric>
 #include <sstream>
@@ -110,10 +111,14 @@ bool SmpsCoreStructure::verify_stages(std::vector<IndexStage> const & idx_time_s
   return true;
 }
 
-bool Node::verify_children_probabilities() const {
-  double total_prob =  std::accumulate(children.begin(), children.end(), 0.,
+double Node::sum_children_prob() const {
+  return std::accumulate(children.begin(), children.end(), 0.,
                 [](double sum, std::unique_ptr<Node> const & node){return sum + node->node_probability;});
-  return std::abs(total_prob - 1.) < 1e-6;
+} 
+
+//TODO should it return true when zero children?
+bool Node::verify_children_probabilities() const {
+  return std::abs(sum_children_prob() - 1.) < 1e-6;
 }
 
 void Node::add_child(std::unique_ptr<Node> && child) {
@@ -407,7 +412,14 @@ bool ScenarioStructure::read_from_file(std::istream & input) {
 }
 
 StochasticTree ScenarioStructure::constructTree() const {
-  return {nullptr};
+  auto root = std::unique_ptr<Node>(new Node("root"));
+  std::map<std::string, Node*> scen2node {{"ROOT", root.get()}};
+  for (auto const & scen : scenarios) {
+    auto child = new Node(scen.timestage, scen.probability, scen.lp_modifications);
+    scen2node[scen.parent_scenario]->add_child(std::unique_ptr<Node>(child));
+    scen2node[scen.scenario_name] = child;
+  }
+  return StochasticTree(std::move(root));
 }
 
 bool RandomVector::fill_missing_entries() {
@@ -453,4 +465,16 @@ RandomVector append_to_random_vector(RandomVector const & to_append, RandomVecto
         result.emplace_back(probability, entries);
       }
   return result;
+}
+
+void Node::fill_missing_child() {
+  double missing_probability  = 1 - sum_children_prob();  
+  if (get_no_children() == 0 || missing_probability < 1e-6) return;
+  //TODO missing timestage
+  add_child(std::unique_ptr<Node>(new Node("", missing_probability)));
+}
+
+void Node::fill_tree() {
+  fill_missing_child();
+  for (auto & child : children)  child->fill_tree();
 }

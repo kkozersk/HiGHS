@@ -81,6 +81,8 @@ class Node {
   std::vector<LpEntry> lp_modifications;
   double node_probability; // TODO 0 <= p <= 1
   std::string timestage;
+
+  double sum_children_prob() const; 
   public:
     Node(std::string timestage, double node_probability = 1., std::vector<LpEntry> const & lp_modifications={}):
         lp_modifications(lp_modifications), node_probability(node_probability), timestage(timestage) {}
@@ -92,6 +94,9 @@ class Node {
     Node const * get_parent() const { return parent; };
     std::vector<LpEntry> get_lp_modifications() const { return lp_modifications; }
     double get_node_probability() const { return node_probability; }
+    void fill_missing_child();
+    void fill_tree();
+    bool is_leaf() const { return children.empty(); }
   // TimeStage timestage;
   // double get_in_tree_probability() const;
 };
@@ -99,6 +104,7 @@ class Node {
 struct StochasticTree {
   std::unique_ptr<Node> root;
   StochasticTree(std::unique_ptr<Node> && root) : root(std::move(root)) {}
+  void fill_tree() { root->fill_tree(); }
 };
 
 class SmpsStochasticStructure {
@@ -203,14 +209,14 @@ class BlockStructure : public SmpsStochasticStructure {
 struct ScenarioModifications {
   BlockLpEntry lp_modifications;
   double probability;
-  std::string period;
+  std::string timestage;
   std::string scenario_name;
   std::string parent_scenario;
-  ScenarioModifications(BlockLpEntry const & lp_modifications, double probability, std::string const & period,
+  ScenarioModifications(BlockLpEntry const & lp_modifications, double probability, std::string const & timestage,
       std::string const & scenario_name, std::string const & parent_scenario) : lp_modifications(lp_modifications), probability(probability),
-      period(period), scenario_name(scenario_name), parent_scenario(parent_scenario) {}
+      timestage(timestage), scenario_name(scenario_name), parent_scenario(parent_scenario) {}
   bool operator==(ScenarioModifications const & other) const {
-    return lp_modifications == other.lp_modifications && probability == other.probability && period == other.period &&
+    return lp_modifications == other.lp_modifications && probability == other.probability && timestage == other.timestage &&
     scenario_name == other.scenario_name && parent_scenario == other.parent_scenario;
   }
 };
