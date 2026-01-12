@@ -66,8 +66,8 @@ TEST_CASE("test-read-valid-time-file", "[highs_smps]") {
                             "ENDATA");
   SmpsTimeStructure smps(data);
   REQUIRE(smps.is_valid());
-  REQUIRE(smps.get_col_stages() == std::vector<IndexStage> {{"C1","T1"}, {"C1", "T2"}, {"C3", "T3"}});
-  REQUIRE(smps.get_row_stages() == std::vector<IndexStage> {{"R1","T1"}, {"R3", "T2"}, {"R4", "T3"}});
+  REQUIRE(smps.get_entries() == std::vector<TimeStageEntry>  {{"R1","C1","T1"}, {"R3","C1", "T2"}, {"R4", "C3", "T3"}});
+  // REQUIRE(smps.get_row_stages() == std::vector<IndexStage> {{"R1","T1"}, {"R3", "T2"}, {"R4", "T3"}});
   REQUIRE(smps.get_stage_names() == std::vector<std::string> {"T1", "T2", "T3"});
   REQUIRE(smps.get_problem_name() == "NAME");
   REQUIRE(smps.get_stage_index("T1") == 0);
@@ -77,8 +77,9 @@ TEST_CASE("test-read-valid-time-file", "[highs_smps]") {
   auto path = std::string(HIGHS_DIR) + "/check/instances/fxm2.tim";
   smps = SmpsTimeStructure(path);
   REQUIRE(smps.is_valid());
-  REQUIRE(smps.get_col_stages() == std::vector<IndexStage> {{"1D1IK","TIME1"}, {"SCCOL1", "TIME2"}});
-  REQUIRE(smps.get_row_stages() == std::vector<IndexStage> {{".COSTA","TIME1"}, {"1DT019", "TIME2"}});
+  REQUIRE(smps.get_entries() == std::vector<TimeStageEntry> {{".COSTA", "1D1IK","TIME1"}, {"1DT019", "SCCOL1", "TIME2"}});
+  // REQUIRE(smps.get_col_stages() == std::vector<IndexStage> {{"1D1IK","TIME1"}, {"SCCOL1", "TIME2"}});
+  // REQUIRE(smps.get_row_stages() == std::vector<IndexStage> {{".COSTA","TIME1"}, {"1DT019", "TIME2"}});
   REQUIRE(smps.get_stage_names() == std::vector<std::string> {"TIME1", "TIME2"});
   REQUIRE(smps.get_problem_name() == "SCFXM1");
   REQUIRE(smps.get_stage_index("TIME1") == 0);
@@ -116,10 +117,15 @@ TEST_CASE("test-assign-time-to-core", "[highs_smps]") {
   SmpsTimeStructure smps_time(path + "2.tim");
   REQUIRE(smps_time.is_valid());
   REQUIRE(smps_core.load_time_stages(smps_time));
-  for (int i = 0; i < smps_core.row_time_stage.size(); ++i)
-    REQUIRE(smps_core.row_time_stage.at(i) == (i < 92 ? "TIME1" : "TIME2"));
-  for (int i = 0; i < smps_core.col_time_stage.size(); ++i)
-    REQUIRE(smps_core.col_time_stage.at(i) == (i < 114 ? "TIME1" : "TIME2"));
+  auto matrix = smps_core.stage_submatrix;
+  REQUIRE(matrix == std::map<std::string, SubMatrixRange> {
+            {"TIME1", {0, 92, 0, 114}},
+            {"TIME2", {92, smps_core.num_row_, 114, smps_core.num_col_}}
+          });
+  // for (int i = 0; i < smps_core.row_time_stage.size(); ++i)
+    // REQUIRE(smps_core.row_time_stage.at(i) == (i < 92 ? "TIME1" : "TIME2"));
+  // for (int i = 0; i < smps_core.col_time_stage.size(); ++i)
+    // REQUIRE(smps_core.col_time_stage.at(i) == (i < 114 ? "TIME1" : "TIME2"));
 }
 
 TEST_CASE("test-assign-invalid-time-to-core", "[highs_smps]") {

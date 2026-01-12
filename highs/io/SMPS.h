@@ -3,8 +3,9 @@
 #include <istream>
 #include <memory>
 #include <string>
-#include <unordered_map>
+#include <map>
 #include <vector>
+#include "Highs.h"
 #include "lp_data/HighsLp.h"
 
 using Tokens = std::vector<std::string>;
@@ -16,11 +17,20 @@ struct TimeStage {
 };
 
 
-struct IndexStage {
-  std::string starting_idx_name;
+// struct IndexStage {
+//   std::string starting_idx_name;
+//   std::string stage_name;
+//   bool operator==(IndexStage const & other) const { return other.starting_idx_name == starting_idx_name && other.stage_name == stage_name; }
+//   IndexStage(std::string const & starting_idx_name, std::string const & stage_name) : starting_idx_name(starting_idx_name), stage_name(stage_name) {}
+// };
+
+struct TimeStageEntry {
+  std::string row_idx_name;
+  std::string col_idx_name;
   std::string stage_name;
-  bool operator==(IndexStage const & other) const { return other.starting_idx_name == starting_idx_name && other.stage_name == stage_name; }
-  IndexStage(std::string const & starting_idx_name, std::string const & stage_name) : starting_idx_name(starting_idx_name), stage_name(stage_name) {}
+  bool operator==(TimeStageEntry const & other) const { return other.row_idx_name == row_idx_name && other.col_idx_name == col_idx_name &&  other.stage_name == stage_name; }
+  TimeStageEntry(std::string const & row_idx_name, std::string const & col_idx_name, std::string const & stage_name) :
+     row_idx_name(row_idx_name), col_idx_name(col_idx_name), stage_name(stage_name) {}
 };
 
 class SmpsTimeStructure {
@@ -30,13 +40,16 @@ class SmpsTimeStructure {
     bool is_valid() const { return is_valid_; }
     std::string get_problem_name() const { return problem_name; }
     std::vector<std::string> get_stage_names() const { return stage_names; }
-    std::vector<IndexStage> const & get_row_stages() const { return row_stages; }
-    std::vector<IndexStage> const & get_col_stages() const { return col_stages; }
+    // std::vector<IndexStage> const & get_row_stages() const { return row_stages; }
+    // std::vector<IndexStage> const & get_col_stages() const { return col_stages; }
+    std::vector<TimeStageEntry> const & get_entries() const { return timestage_entries; }
     int get_stage_index(std::string const & stage) const;
   private:
     void read_file(std::istream & input);
 
-    std::vector<IndexStage> row_stages, col_stages;
+    //TODO: delete
+    // std::vector<IndexStage> row_stages, col_stages;
+    std::vector<TimeStageEntry> timestage_entries;
     std::vector<std::string> stage_names;
     bool is_valid_ = false;
     std::string problem_name;
@@ -48,20 +61,12 @@ class SmpsTimeStructure {
     bool process_ending(std::string const & line);
 };
 
-class SmpsCoreStructure : public HighsLp {
-  public:
-    SmpsCoreStructure(HighsOptions const & options, std::string const & filepath);
-    bool is_valid() const { return is_valid_; }
-    bool load_time_stages(SmpsTimeStructure const & time_stage_data);
-
-    std::vector<std::string> row_time_stage;
-    std::vector<std::string> col_time_stage;
-    
-  private:
-    bool is_valid_ = false;
-    bool verify_time_stages(SmpsTimeStructure const & time_stage_data) const;
-    bool verify_stages(std::vector<IndexStage> const & idx_time_stages, HighsNameHash const & name_hash) const;
-    std::vector<string> load_stages(std::vector<IndexStage> const & stage_idx_data, HighsNameHash const & name_hash, int num_entries);
+struct SubMatrixRange {
+  int row_idx_begin;
+  int row_idx_end;
+  int col_idx_begin;
+  int col_idx_end;  
+  bool operator==(SubMatrixRange const & other) const { return row_idx_begin == other.row_idx_begin && row_idx_end == other.row_idx_end && col_idx_begin == other.col_idx_begin && col_idx_end == other.col_idx_end; };
 };
 
 struct LpEntry {
@@ -74,6 +79,42 @@ struct LpEntry {
 };
 
 using BlockLpEntry = std::vector<LpEntry>;
+
+struct LpIdxEntry : public LpEntry {
+  bool is_objective;
+  bool is_rhs;
+  int row_idx;
+  int col_idx;  
+  LpIdxEntry(LpEntry const & lp, bool is_objective, bool is_rhs, int row_idx, int col_idx) :
+    LpEntry(lp), is_objective(is_objective), is_rhs(is_rhs), row_idx(row_idx), col_idx(col_idx) {}
+};
+
+// std::vector<LpIdxEntry> annotate_lp_entries(std::vector<LpEntry> const & entries, SmpsCoreStructure const & core);
+
+class SmpsCoreStructure : public HighsLp {
+  public:
+    SmpsCoreStructure(HighsOptions const & options, std::string const & filepath);
+    bool is_valid() const { return is_valid_; }
+    bool load_time_stages(SmpsTimeStructure const & time_stage_data);
+
+    // std::vector<std::string> row_time_stage; // TODO is this needed?
+    // std::vector<std::string> col_time_stage;
+    std::map<std::string, SubMatrixRange> stage_submatrix;
+    LpIdxEntry annotate_lp_entry(LpEntry const &) const;
+    std::vector<LpIdxEntry> annotate_lp_entries(std::vector<LpEntry> const & entries) const;
+    
+  private:
+    bool is_valid_ = false;
+    bool verify_stages(SmpsTimeStructure const & timestage_data, HighsNameHash const & row_hash, HighsNameHash const & col_hash) const;
+    // bool verify_time_stages(SmpsTimeStructure const & time_stage_data) const;
+    // bool verify_stages(std::vector<TimeStageEntry> const & idx_time_stages, HighsNameHash const & row_hash, HighsNameHash const & col_hash) const; 
+    // bool verify_stages(std::vector<IndexStage> const & idx_time_stages, HighsNameHash const & name_hash) const;
+    // std::vector<string> load_stages(std::vector<IndexStage> const & stage_idx_data, HighsNameHash const & name_hash, int num_entries);
+    std::map<std::string, SubMatrixRange> load_stage_submatrices(std::vector<TimeStageEntry> const & timestage_indices, HighsNameHash const & row_name_hash,
+                      HighsNameHash const & col_name_hash);
+};
+
+
 
 class Node {
   std::vector<std::unique_ptr<Node>> children;
@@ -97,6 +138,8 @@ class Node {
     void fill_missing_child();
     void fill_tree();
     bool is_leaf() const { return children.empty(); }
+    std::string get_timestage() const { return timestage; }
+
   // TimeStage timestage;
   // double get_in_tree_probability() const;
 };
@@ -242,3 +285,18 @@ Tokens read_tokens(std::istream & input);
 RandomVector append_to_random_vector(RandomVariable const & rv, RandomVector const & rvec);
 RandomVector append_to_random_vector(RandomVector const & to_append, RandomVector const & rvec);
 bool str_to_dbl(std::string const & str, double & val);
+
+
+Highs build_stochastic_model(SmpsCoreStructure const & core, SmpsTimeStructure const & time, SmpsStochasticStructure const & stoch);
+void add_node_entry(SmpsCoreStructure const & core, Node const & node, Highs & result);
+
+struct SparseVector {
+  std::vector<int> nz_indices;
+  std::vector<double> nz_values;
+
+  double & operator[](int index);
+  double operator[](int index) const;
+  void truncate(int num_nz) { nz_indices.resize(num_nz); nz_values.resize(num_nz); }
+  // void set(int index, double value);
+  // double get(int index) const;
+};
