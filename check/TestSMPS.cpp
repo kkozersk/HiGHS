@@ -1572,3 +1572,70 @@ TEST_CASE("test-scenario-structure-tree-with-fill", "[highs_smps]") {
     REQUIRE(child->get_lp_modifications() == std::vector<LpEntry> {});
   }
 }
+
+TEST_CASE("test-empty-sparse-vector", "[highs_smps]") {
+  SparseVector vec {};
+  REQUIRE(vec[0] == 0);
+  REQUIRE(vec[7] == 0);
+  vec.set(7, 3);
+  REQUIRE(vec[0] == 0);
+  REQUIRE(vec[7] == 3);
+  REQUIRE(vec.num_nz() == 1);
+}
+
+TEST_CASE("test-nonempty-sparse-vector", "[highs_smps]") {
+  SparseVector vec {{0, 2, 3}, {-2, 1.5, 4}};
+  REQUIRE(vec[0] == -2);
+  REQUIRE(vec[1] == 0);
+  REQUIRE(vec[2] == 1.5);
+  REQUIRE(vec[3] == 4);
+  REQUIRE(vec[4] == 0);
+  REQUIRE(vec.num_nz() == 3);
+
+  vec.set(0, 0);
+  vec.set(1, 3);
+  vec.set(3, 3);
+  vec.set(5, 1);
+
+  REQUIRE(vec[0] == 0);
+  REQUIRE(vec[1] == 3);
+  REQUIRE(vec[2] == 1.5);
+  REQUIRE(vec[3] == 3);
+  REQUIRE(vec[4] == 0);
+  REQUIRE(vec[5] == 1);
+  REQUIRE(vec.num_nz() == 4);
+
+  for (int i = 0; i < 6; ++i) vec.set(i, 0);
+  for (int i = 0; i < 6; ++i) REQUIRE(vec[i] == 0);
+  REQUIRE(vec.num_nz() == 0);
+}
+
+TEST_CASE("test-truncate-sparse-vector", "[highs_smps]") {
+  SparseVector vec {{0, 2, 3}, {-2, 1.5, 4}};
+  vec.truncate(2);
+  REQUIRE(vec.num_nz() == 2);
+  REQUIRE(vec[0] == -2);
+  REQUIRE(vec[1] == 0);
+  REQUIRE(vec[2] == 1.5);
+  REQUIRE(vec[3] == 0);
+
+  vec.truncate(5);
+  REQUIRE(vec.num_nz() == 2);
+
+  vec.truncate(0);
+  REQUIRE(vec.num_nz() == 0);
+}
+
+TEST_CASE("test-annotate-lp-entry", "[highs_smps]") {
+  auto path = std::string(HIGHS_DIR) + "/check/instances/simple.cor";
+  HighsOptions opt;
+  SmpsCoreStructure smps(opt, path);
+  REQUIRE(smps.is_valid());
+  std::vector<LpEntry> entries {{"R1", "C1", 5}, {"R2", "RHS", 4}, {".COST", "C2", 3}};
+  auto annotated = smps.annotate_lp_entries(entries);
+  REQUIRE(annotated == std::vector<LpIdxEntry> {
+          {entries[0], false, false, 0, 0},
+          {entries[1], false, true, 1, -1},
+          {entries[2], true, false, -1, 1},
+  });
+}

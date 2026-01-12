@@ -514,8 +514,12 @@ void add_node_entry(SmpsCoreStructure const & core, Node const & node, Highs & r
 
       double rhs = kHighsInf;
       for (auto const & mod : node_modifications) {
-        if (mod.row_idx == row)
-          (mod.is_rhs ? rhs : row_data[mod.col_idx]) = mod.value;
+        if (mod.row_idx == row) {
+          if (mod.is_rhs)
+            rhs = mod.value;
+          else
+            row_data.set(mod.col_idx, mod.value);
+        }
         if (mod.is_objective)
           /* modify */ ;
       }
@@ -538,36 +542,48 @@ std::vector<LpIdxEntry> SmpsCoreStructure::annotate_lp_entries(std::vector<LpEnt
   return result;
 }
 
-// void SparseVector::set(int index, double value) {
-//   auto idx  = std::distance(nz_indices.begin(), std::find(nz_indices.begin(), nz_indices.end(), index));
-//   if (idx < nz_indices.size())
-//     nz_values.at(idx) = value;
-//   else {
-//     auto idx = std::distance(nz_indices.begin(), std::lower_bound(nz_indices.begin(), nz_indices.end(), index));
-//     nz_indices.insert(nz_indices.begin() + idx, index);
-//     nz_values.insert(nz_values.begin() + idx, value);
-//   }
-// }
+void SparseVector::set(unsigned index, double value) {
+  auto idx  = std::distance(nz_indices.begin(), std::find(nz_indices.begin(), nz_indices.end(), index));
+  if (idx < nz_indices.size()) {
+    if (value == 0.) {
+      nz_indices.erase(nz_indices.begin() + idx);
+      nz_values.erase(nz_values.begin() + idx);
+    } 
+    else 
+      nz_values.at(idx) = value;
+    return;
+  }
+  if (value == 0.) return;
+  idx = std::distance(nz_indices.begin(), std::lower_bound(nz_indices.begin(), nz_indices.end(), index));
+  nz_indices.insert(nz_indices.begin() + idx, index);
+  nz_values.insert(nz_values.begin() + idx, value);
+}
 
 // double SparseVector::get(int index) const {
 //   auto idx  = std::distance(nz_indices.begin(), std::find(nz_indices.begin(), nz_indices.end(), index));
 //   return idx < nz_indices.size() ? nz_values.at(idx) : 0;
 // }
 
-double & SparseVector::operator[](int index) {
-  auto idx  = std::distance(nz_indices.begin(), std::find(nz_indices.begin(), nz_indices.end(), index));
-  if (idx < nz_indices.size())
-    return nz_values.at(idx);
-  else {
-    auto idx = std::distance(nz_indices.begin(), std::lower_bound(nz_indices.begin(), nz_indices.end(), index));
-    nz_indices.insert(nz_indices.begin() + idx, index);
-    nz_values.insert(nz_values.begin() + idx, 0.);
-    return *(nz_values.begin() + idx);
-  }
+// double & SparseVector::operator[](int index) {
+//   auto idx  = std::distance(nz_indices.begin(), std::find(nz_indices.begin(), nz_indices.end(), index));
+//   if (idx < nz_indices.size())
+//     return nz_values.at(idx);
+//   else {
+//     auto idx = std::distance(nz_indices.begin(), std::lower_bound(nz_indices.begin(), nz_indices.end(), index));
+//     nz_indices.insert(nz_indices.begin() + idx, index);
+//     nz_values.insert(nz_values.begin() + idx, 0.);
+//     return *(nz_values.begin() + idx);
+//   }
   
-}
+// }
 
-double SparseVector::operator[](int index) const {
+double SparseVector::operator[](unsigned index) const {
   auto idx  = std::distance(nz_indices.begin(), std::find(nz_indices.begin(), nz_indices.end(), index));
   return idx < nz_indices.size() ? nz_values.at(idx) : 0;
 }
+
+void SparseVector::truncate(int num_nz) {
+  if (num_nz > nz_indices.size()) return;
+  nz_indices.resize(num_nz);
+  nz_values.resize(num_nz);
+ }

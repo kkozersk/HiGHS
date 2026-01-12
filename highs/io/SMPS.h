@@ -87,6 +87,8 @@ struct LpIdxEntry : public LpEntry {
   int col_idx;  
   LpIdxEntry(LpEntry const & lp, bool is_objective, bool is_rhs, int row_idx, int col_idx) :
     LpEntry(lp), is_objective(is_objective), is_rhs(is_rhs), row_idx(row_idx), col_idx(col_idx) {}
+  bool operator==(LpIdxEntry const & other) const
+    { return LpEntry::operator==(other) && other.is_objective == is_objective && other.is_rhs == is_rhs && other.row_idx == row_idx && other.col_idx == col_idx; }
 };
 
 // std::vector<LpIdxEntry> annotate_lp_entries(std::vector<LpEntry> const & entries, SmpsCoreStructure const & core);
@@ -290,13 +292,15 @@ bool str_to_dbl(std::string const & str, double & val);
 Highs build_stochastic_model(SmpsCoreStructure const & core, SmpsTimeStructure const & time, SmpsStochasticStructure const & stoch);
 void add_node_entry(SmpsCoreStructure const & core, Node const & node, Highs & result);
 
+//TODO constructor
 struct SparseVector {
   std::vector<int> nz_indices;
   std::vector<double> nz_values;
 
-  double & operator[](int index);
-  double operator[](int index) const;
-  void truncate(int num_nz) { nz_indices.resize(num_nz); nz_values.resize(num_nz); }
-  // void set(int index, double value);
+  // double & operator[](int index);
+  double operator[](unsigned index) const;
+  void truncate(int num_nz);
+  void set(unsigned index, double value);
+  int num_nz() const { return nz_indices.size(); }
   // double get(int index) const;
 };
