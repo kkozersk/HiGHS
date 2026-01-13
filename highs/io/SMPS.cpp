@@ -503,27 +503,23 @@ Highs build_stochastic_model(SmpsCoreStructure const & core, SmpsTimeStructure c
 }
 
 void add_node_entry(SmpsCoreStructure const & core, Node const & node, Highs & result) {
+   
+    // TODO: redundant looping
+    // TODO: RHS
+    // TODO objective
     auto const & node_ranges = core.stage_submatrix.at(node.get_timestage());
     auto node_modifications = core.annotate_lp_entries(node.get_lp_modifications());
-    // TODO: redundant looping
+    auto in_problem_range = node_ranges.create_in_problem_range(result);
+    node_ranges.expand_problem_by_range_vars(result, core.col_lower_, core.col_upper_);
     for (int row = node_ranges.row_idx_begin; row < node_ranges.col_idx_end; ++row) {
-      int num_nz;
-      SparseVector row_data {std::vector<int>(core.num_col_), std::vector<double>(core.num_col_)};
-      core.a_matrix_.getRow(row, num_nz, row_data.nz_indices.data(), row_data.nz_values.data());
-      row_data.truncate(num_nz);
-
-      double rhs = kHighsInf;
-      for (auto const & mod : node_modifications) {
-        if (mod.row_idx == row) {
-          if (mod.is_rhs)
-            rhs = mod.value;
-          else
-            row_data.set(mod.col_idx, mod.value);
-        }
-        if (mod.is_objective)
-          /* modify */ ;
-      }
-
+      auto row_data = SparseVector::get_matrix_row(core.a_matrix_, row);
+      for (auto const & mod : node_modifications)
+        if (mod.row_idx == row && !mod.is_rhs)
+           row_data.set(mod.col_idx, mod.value);
+      row_data.shift_indices(in_problem_range.col_idx_begin);
+      result.addRow(core.row_lower_.at(row), core.row_upper_.at(row),
+                    row_data.num_nz(), row_data.nz_indices.data(), row_data.nz_values.data());
+        
     }        
 }
 
@@ -587,3 +583,22 @@ void SparseVector::truncate(int num_nz) {
   nz_indices.resize(num_nz);
   nz_values.resize(num_nz);
  }
+
+bool SubMatrixRange::expand_problem_by_range_vars(
+  Highs & problem, std::vector<double> const & col_lower, std::vector<double> const & col_upper) const {
+  auto status = problem.addVars(num_cols(),  col_lower.data() + col_idx_begin, col_upper.data() + col_idx_begin );
+  return status ==  HighsStatus::kOk;
+}
+
+void SparseVector::shift_indices(unsigned shift_by) {
+  std::transform(nz_indices.begin(), nz_indices.end(), nz_indices.begin(), [shift_by](int idx) { return idx + shift_by; });
+}
+
+SparseVector SparseVector::get_matrix_row(HighsSparseMatrix const & A, int row_idx) {
+    int num_nz;
+    // TODO: memory saving
+    SparseVector row_data {std::vector<int>(A.num_col_), std::vector<double>(A.num_col_)};
+    A.getRow(row_idx, num_nz, row_data.nz_indices.data(), row_data.nz_values.data());
+    row_data.truncate(num_nz);
+    return row_data;
+}

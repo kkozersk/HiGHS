@@ -6,6 +6,7 @@
 #include <map>
 #include <vector>
 #include "Highs.h"
+#include "util/HighsSparseMatrix.h"
 #include "lp_data/HighsLp.h"
 
 using Tokens = std::vector<std::string>;
@@ -67,6 +68,13 @@ struct SubMatrixRange {
   int col_idx_begin;
   int col_idx_end;  
   bool operator==(SubMatrixRange const & other) const { return row_idx_begin == other.row_idx_begin && row_idx_end == other.row_idx_end && col_idx_begin == other.col_idx_begin && col_idx_end == other.col_idx_end; };
+  int num_cols() const { return col_idx_end - col_idx_begin; }
+  int num_rows() const { return row_idx_end - row_idx_begin; }
+  bool expand_problem_by_range_vars(Highs & problem, std::vector<double> const & var_lower, std::vector<double> const & var_upper) const;
+  SubMatrixRange create_in_problem_range(Highs const & problem) const {
+    return {problem.getNumRow(), problem.getNumRow() + num_rows(), problem.getNumCol(), problem.getNumCol() + num_cols()};
+  }
+
 };
 
 struct LpEntry {
@@ -302,5 +310,8 @@ struct SparseVector {
   void truncate(int num_nz);
   void set(unsigned index, double value);
   int num_nz() const { return nz_indices.size(); }
+  void shift_indices(unsigned shift_by);
+
+  static SparseVector get_matrix_row(HighsSparseMatrix const & A, int row_idx);
   // double get(int index) const;
 };

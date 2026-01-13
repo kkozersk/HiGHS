@@ -4,6 +4,42 @@
 #include "HCheckConfig.h"
 #include "catch.hpp"
 #include "lp_data/HighsOptions.h"
+#include "util/HighsSparseMatrix.h"
+
+const double inf = kHighsInf;
+HighsLp get_test_problem() {
+  /*
+  min  [1 5 3 4 5 -6]^T x
+  [
+  	1 1  0  0 0 0      <=  4  
+  	1 0 -1 0 0 0       <=  0
+  	0 2  1 0 1 0   x   >=  3
+  	1 1  0 1 0 0       ==  5 
+  	0 0  0 0 1 0       <=  2
+  	1 0  0 0 0 1       ==  1
+  ]
+      x >= 0
+  */
+  std::vector<HighsInt> csr_index {0,1, 0,2, 1,2,4, 0,1,3, 4, 0,5};
+  std::vector<double> csr_values {1,1, 1,-1, 2,1,1, 1,1,1, 1, 1,1 };
+  std::vector<HighsInt> csr_starts {0,2,4,7,10,11,13};
+  HighsLp lp;
+  lp.offset_ = 0;
+  lp.num_col_ = 6;
+  lp.num_row_ = 6;
+  lp.col_lower_ = {0, 0, 0, 0, 0, 0};
+  lp.col_upper_ = {inf, inf, inf, inf, inf, inf};
+  lp.col_cost_ = {1, 5, 3, 4, 5, -6};
+  lp.row_lower_ = {-inf, -inf, 3, 5, -inf, 1};
+  lp.row_upper_ = {4, 0, inf, 5, 2, 1};
+  lp.a_matrix_.format_ = MatrixFormat::kRowwise;
+  lp.a_matrix_.start_ = csr_starts;
+  lp.a_matrix_.index_ = csr_index;
+  lp.a_matrix_.value_ = csr_values;
+  lp.a_matrix_.num_row_ = 6;
+  lp.a_matrix_.num_col_ = 6;
+  return lp;
+}
 
 TEST_CASE("test-read-invalid-time-file", "[highs_smps]") {
   std::istringstream empty_file ("");
@@ -1626,6 +1662,40 @@ TEST_CASE("test-truncate-sparse-vector", "[highs_smps]") {
   REQUIRE(vec.num_nz() == 0);
 }
 
+TEST_CASE("test-shift-sparse-vector", "[highs_smps]") {
+  SparseVector vec {{0, 2, 3}, {-2, 1.5, 4}};
+  vec.shift_indices(2);
+  REQUIRE(vec.num_nz() == 3);
+  REQUIRE(vec[0] == 0);
+  REQUIRE(vec[1] == 0);
+  REQUIRE(vec[2] == -2);
+  REQUIRE(vec[3] == 0);
+  REQUIRE(vec[4] == 1.5);
+  REQUIRE(vec[5] == 4);
+  REQUIRE(vec[6] == 0);
+
+  vec.shift_indices(0);
+  REQUIRE(vec.num_nz() == 3);
+  REQUIRE(vec[0] == 0);
+  REQUIRE(vec[1] == 0);
+  REQUIRE(vec[2] == -2);
+  REQUIRE(vec[3] == 0);
+  REQUIRE(vec[4] == 1.5);
+  REQUIRE(vec[5] == 4);
+  REQUIRE(vec[6] == 0);
+}
+
+TEST_CASE("test-sparse-vector-out-of-matrix", "[highs_smps]") {
+    auto A = get_test_problem().a_matrix_;
+    auto vec = SparseVector::get_matrix_row(A, 2);
+    REQUIRE(vec.num_nz() == 3);
+    REQUIRE(vec[0] == 0);
+    REQUIRE(vec[1] == 2);
+    REQUIRE(vec[2] == 1);
+    REQUIRE(vec[3] == 0);
+    REQUIRE(vec[4] == 1);
+}
+
 TEST_CASE("test-annotate-lp-entry", "[highs_smps]") {
   auto path = std::string(HIGHS_DIR) + "/check/instances/simple.cor";
   HighsOptions opt;
@@ -1639,3 +1709,63 @@ TEST_CASE("test-annotate-lp-entry", "[highs_smps]") {
           {entries[2], true, false, -1, 1},
   });
 }
+
+TEST_CASE("test-stage-submatrix", "[highs_smps]") {
+  auto path = std::string(HIGHS_DIR) + "/check/instances/simple.cor";
+  HighsOptions opt;
+  SmpsCoreStructure smps(opt, path);
+  REQUIRE(smps.is_valid());
+
+  
+  auto time_path = std::string(HIGHS_DIR) + "/check/instances/simple.tim";
+  SmpsTimeStructure time(time_path);
+  REQUIRE(time.is_valid());
+  REQUIRE(time.get_stage_names() == std::vector<std::string> {"TIME1", "TIME2"});
+
+
+  REQUIRE(smps.load_time_stages(time));
+  REQUIRE(smps.stage_submatrix.size() == 2);
+
+  REQUIRE(smps.stage_submatrix.at("TIME1") == SubMatrixRange {0, 1, 0, 1});
+  REQUIRE(smps.stage_submatrix == std::map<std::string, SubMatrixRange>{
+            {"TIME1", {0, 1, 0, 1}},
+            {"TIME2", {1, 2, 1, 2}}
+          });
+}
+
+TEST_CASE("test-create-submatrix", "[highs_smps]") {
+  SubMatrixRange range {1, 3, 4, 18};
+  REQUIRE(range.num_rows() == 2);
+  REQUIRE(range.num_cols() == 14);
+
+  SubMatrixRange range2 {0, 3, 4, 4};
+  REQUIRE(range2.num_rows() == 3);
+  REQUIRE(range2.num_cols() == 0);
+}
+
+TEST_CASE("test-create-range-in-problem", "[highs_smps]") {
+    auto lp = get_test_problem();
+    Highs highs;
+    highs.passModel(lp);
+    SubMatrixRange range { 2, 5, 3, 7};
+    REQUIRE(range.create_in_problem_range(highs) == SubMatrixRange {6, 9, 6, 10});
+}
+
+//TODO verification of A dimensionality
+TEST_CASE("test-expand-problem-by-range", "[highs_smps]") {
+    auto lp = get_test_problem();
+    Highs highs;
+    highs.passModel(lp);
+    SubMatrixRange range { 2, 5, 3, 7};
+    range.expand_problem_by_range_vars(highs, {0, 0, 0, 1, 2, 3, 4}, {0, 0, 0, 5, 6, 7, 8});
+    REQUIRE(highs.getNumCol() == 10);
+    std::vector<double> col_lower = {0, 0, 0, 0, 0, 0, 1, 2, 3, 4};
+    std::vector<double> col_upper = {inf, inf, inf, inf, inf, inf, 5, 6, 7, 8};
+    auto new_lp = highs.getModel().lp_;
+    REQUIRE(new_lp.col_lower_ == col_lower);
+    REQUIRE(new_lp.col_upper_ == col_upper);
+    REQUIRE(new_lp.a_matrix_.start_ == new_lp.a_matrix_.start_);
+    REQUIRE(new_lp.a_matrix_.index_ == new_lp.a_matrix_.index_);
+    REQUIRE(new_lp.a_matrix_.value_ == new_lp.a_matrix_.value_);
+}
+

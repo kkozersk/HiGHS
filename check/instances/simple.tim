@@ -1,0 +1,5 @@
+TIME          SCFXM1
+PERIODS
+    C1 .COST                   TIME1
+    C2  R2                     TIME2
+ENDATA
