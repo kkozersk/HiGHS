@@ -3,8 +3,41 @@
 #include "io/SMPS.h"
 #include "HCheckConfig.h"
 #include "catch.hpp"
+#include "lp_data/HConst.h"
 #include "lp_data/HighsOptions.h"
+#include "util/HighsInt.h"
 #include "util/HighsSparseMatrix.h"
+
+struct Matrix {
+  int n, m;
+  std::vector<double> vals;
+  double operator[](std::pair<int, int> idx) {return vals.at(idx.first * n + idx.second); }
+};
+
+HighsSparseMatrix to_csr(Matrix mat) {
+    int n = mat.n, m = mat.m;
+    std::vector<double> values;
+    std::vector<int> indices, starts {0};
+    double val;
+    for (int r = 0; r < n; ++r) {
+      for (int c = 0; c < m; ++c) {
+        if ((val = mat[{r,c}])) {
+            values.push_back(val);
+            indices.push_back(c);
+        }
+      }
+      starts.push_back(indices.size());
+    }
+    HighsSparseMatrix A;
+    A.format_ = MatrixFormat::kRowwise;
+    A.value_ = values;
+    A.index_ = indices;
+    A.start_ = starts;
+    A.num_row_ = n;
+    A.num_col_ = m;
+    return A;
+}
+
 
 const double inf = kHighsInf;
 HighsLp get_test_problem() {
@@ -1831,6 +1864,23 @@ TEST_CASE("test-add-tree-entry", "[highs_smps]") {
   add_tree_entries(core, tree, highs);
 
   REQUIRE(highs.getNumCol() == 9);
+
+  auto expectedA = to_csr({9, 9, {
+            50,0,0,0,0,0,0,0,0,
+            2,100,0,0,0,0,0,0,0,
+            2,0,200,0,0,0,0,0,0,
+            0,0,0,30,0,0,0,0,0,
+            0,0,0,2,100,0,0,0,0,
+            0,0,0,2,0,200,0,0,0,
+            0,0,0,0,0,0,10,0,0,
+            0,0,0,0,0,0,2,100,0,
+            0,0,0,0,0,0,2,0,200,
+                          }});
+  
+  auto lp = highs.getModel().lp_;
+  auto A = lp.a_matrix_;
+  A.ensureRowwise();
+  REQUIRE(A == expectedA);
 }
 
 TEST_CASE("test-translate-index-in-problem", "[highs_smps]") {

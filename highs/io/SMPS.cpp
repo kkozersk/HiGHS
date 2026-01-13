@@ -531,6 +531,7 @@ void add_node_tree_entries(SmpsCoreStructure const & core, Node & node, Highs & 
 }
 
 //TODO const tree?
+// TODO bread first?
 void add_tree_entries(const SmpsCoreStructure &core, const StochasticTree &tree, Highs &result) {
   for (int i = 0; i < tree.root->get_no_children(); ++i) add_node_tree_entries(core, *tree.root->get_child(i), result);
 }
