@@ -1,4 +1,4 @@
-TIME          SCFXM1
+TIME          PROBLEM
 PERIODS
     C1 .COST                   TIME1
     C2  R2                     TIME2

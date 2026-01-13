@@ -502,6 +502,7 @@ Highs build_stochastic_model(SmpsCoreStructure const & core, SmpsTimeStructure c
   return {};
 }
 
+//TODO BOUNDS!!!!!
 void add_node_entry(SmpsCoreStructure const & core, Node const & node, Highs & result) {
    
     // TODO: redundant looping
@@ -511,16 +512,25 @@ void add_node_entry(SmpsCoreStructure const & core, Node const & node, Highs & r
     auto node_modifications = core.annotate_lp_entries(node.get_lp_modifications());
     auto in_problem_range = node_ranges.create_in_problem_range(result);
     node_ranges.expand_problem_by_range_vars(result, core.col_lower_, core.col_upper_);
-    for (int row = node_ranges.row_idx_begin; row < node_ranges.col_idx_end; ++row) {
-      auto row_data = SparseVector::get_matrix_row(core.a_matrix_, row);
-      for (auto const & mod : node_modifications)
-        if (mod.row_idx == row && !mod.is_rhs)
-           row_data.set(mod.col_idx, mod.value);
-      row_data.shift_indices(in_problem_range.col_idx_begin);
-      result.addRow(core.row_lower_.at(row), core.row_upper_.at(row),
-                    row_data.num_nz(), row_data.nz_indices.data(), row_data.nz_values.data());
+    // for (int row = node_ranges.row_idx_begin; row < node_ranges.col_idx_end; ++row) {
+    //   auto row_data = SparseVector::get_matrix_row(core.a_matrix_, row);
+    //   for (auto const & mod : node_modifications)
+    //     if (mod.row_idx == row && !mod.is_rhs)
+    //        row_data.set(mod.col_idx, mod.value);
+    //   row_data.shift_indices(in_problem_range.col_idx_begin);
+    //   result.addRow(core.row_lower_.at(row), core.row_upper_.at(row),
+    //                 row_data.num_nz(), row_data.nz_indices.data(), row_data.nz_values.data());
         
-    }        
+    // }        
+}
+
+void add_node_tree_entries(SmpsCoreStructure const & core, Node const & node, Highs & result) {
+  add_node_entry(core, node, result); 
+  for (int i = 0; i < node.get_no_children(); ++i)  add_node_tree_entries(core, *node.get_child(i), result);
+}
+
+void add_tree_entries(const SmpsCoreStructure &core, const StochasticTree &tree, Highs &result) {
+  for (int i = 0; i < tree.root->get_no_children(); ++i) add_node_tree_entries(core, *tree.root->get_child(i), result);
 }
 
 LpIdxEntry SmpsCoreStructure::annotate_lp_entry(LpEntry const & entry) const {

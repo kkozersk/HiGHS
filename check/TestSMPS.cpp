@@ -1751,7 +1751,7 @@ TEST_CASE("test-create-range-in-problem", "[highs_smps]") {
     REQUIRE(range.create_in_problem_range(highs) == SubMatrixRange {6, 9, 6, 10});
 }
 
-//TODO verification of A dimensionality
+//TODO verification of A dimensionality (if the appropriate num_col are updated)
 TEST_CASE("test-expand-problem-by-range", "[highs_smps]") {
     auto lp = get_test_problem();
     Highs highs;
@@ -1769,3 +1769,66 @@ TEST_CASE("test-expand-problem-by-range", "[highs_smps]") {
     REQUIRE(new_lp.a_matrix_.value_ == new_lp.a_matrix_.value_);
 }
 
+//TODO verify bounds
+TEST_CASE("test-add-node-entry", "[highs_smps]") {
+  auto instance = std::string(HIGHS_DIR) + "/check/instances/simple";
+  HighsOptions opt;
+  SmpsCoreStructure core(opt, instance + ".cor");
+  REQUIRE(core.is_valid());
+
+  SmpsTimeStructure time(instance + ".tim");
+  REQUIRE(time.is_valid());
+
+  IndepStructure stoch(instance + ".sto");
+  REQUIRE(stoch.is_valid());
+  auto tree = stoch.constructTree();
+
+  core.load_time_stages(time);
+  auto const & node = tree.root->get_child(0);
+  Highs highs;
+  add_node_entry(core, *node, highs);
+
+  REQUIRE(highs.getNumCol() == 1);
+  
+}
+
+TEST_CASE("test-add-node-tree-entry", "[highs_smps]") {
+  auto instance = std::string(HIGHS_DIR) + "/check/instances/simple";
+  HighsOptions opt;
+  SmpsCoreStructure core(opt, instance + ".cor");
+  REQUIRE(core.is_valid());
+
+  SmpsTimeStructure time(instance + ".tim");
+  REQUIRE(time.is_valid());
+
+  IndepStructure stoch(instance + ".sto");
+  REQUIRE(stoch.is_valid());
+  auto tree = stoch.constructTree();
+
+  core.load_time_stages(time);
+  auto const & node = tree.root->get_child(0);
+  Highs highs;
+  add_node_tree_entries(core, *node, highs);
+
+  REQUIRE(highs.getNumCol() == 3);
+}
+
+TEST_CASE("test-add-tree-entry", "[highs_smps]") {
+  auto instance = std::string(HIGHS_DIR) + "/check/instances/simple";
+  HighsOptions opt;
+  SmpsCoreStructure core(opt, instance + ".cor");
+  REQUIRE(core.is_valid());
+
+  SmpsTimeStructure time(instance + ".tim");
+  REQUIRE(time.is_valid());
+
+  IndepStructure stoch(instance + ".sto");
+  REQUIRE(stoch.is_valid());
+  auto tree = stoch.constructTree();
+
+  core.load_time_stages(time);
+  Highs highs;
+  add_tree_entries(core, tree, highs);
+
+  REQUIRE(highs.getNumCol() == 9);
+}

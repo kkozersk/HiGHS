@@ -140,6 +140,7 @@ class Node {
     void add_child(std::unique_ptr<Node> && child);
     bool verify_children_probabilities() const;
     std::unique_ptr<Node> & get_child(int index) { return children.at(index); }
+    std::unique_ptr<Node> const & get_child(int index) const { return children.at(index); }
     int get_no_children() const { return children.size(); }
     // std::vector<std::unique_ptr<Node>> const & get_children() { return children; }
     Node const * get_parent() const { return parent; };
@@ -299,7 +300,8 @@ bool str_to_dbl(std::string const & str, double & val);
 
 Highs build_stochastic_model(SmpsCoreStructure const & core, SmpsTimeStructure const & time, SmpsStochasticStructure const & stoch);
 void add_node_entry(SmpsCoreStructure const & core, Node const & node, Highs & result);
-
+void add_node_tree_entries(SmpsCoreStructure const & core, Node const & node, Highs & result);
+void add_tree_entries(const SmpsCoreStructure &core, const StochasticTree &tree, Highs &result);
 //TODO constructor
 struct SparseVector {
   std::vector<int> nz_indices;
