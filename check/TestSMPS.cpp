@@ -1822,6 +1822,12 @@ TEST_CASE("test-add-node-entry", "[highs_smps]") {
   add_node_entry(core, *node, highs);
 
   REQUIRE(highs.getNumCol() == 1);
+  REQUIRE(highs.getNumRow() == 1);
+  auto expectedA = to_csr({1, 1, { 50, }});
+  auto lp = highs.getModel().lp_;
+  auto A = lp.a_matrix_;
+  A.ensureRowwise();
+  REQUIRE(A == expectedA);
   
 }
 
@@ -1844,6 +1850,16 @@ TEST_CASE("test-add-node-tree-entry", "[highs_smps]") {
   add_node_tree_entries(core, *node, highs);
 
   REQUIRE(highs.getNumCol() == 3);
+  auto expectedA = to_csr({3, 3, {
+            50,0,0,
+            2,100,0,
+            2,0,200,
+                          }});
+  
+  auto lp = highs.getModel().lp_;
+  auto A = lp.a_matrix_;
+  A.ensureRowwise();
+  REQUIRE(A == expectedA);
 }
 
 TEST_CASE("test-add-tree-entry", "[highs_smps]") {
