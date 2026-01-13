@@ -1832,3 +1832,41 @@ TEST_CASE("test-add-tree-entry", "[highs_smps]") {
 
   REQUIRE(highs.getNumCol() == 9);
 }
+
+TEST_CASE("test-translate-index-in-problem", "[highs_smps]") {
+  Timestage2Range in_core {
+    {"TIME1", {0, 0, 0, 5 }},
+    {"TIME2", {0, 0, 5, 8}},
+    {"TIME3", {0, 0, 8, 9}},
+  };
+  Timestage2Range in_problem {
+    {"TIME1", {0, 0, 10, 15 }},
+    {"TIME2", {0, 0, 40, 43}},
+    {"TIME3", {0, 0, 108, 109}},
+  };
+  REQUIRE(translate_index_to_in_problem(0, in_core, in_problem) == 10);
+  REQUIRE(translate_index_to_in_problem(1, in_core, in_problem) == 11);
+  REQUIRE(translate_index_to_in_problem(5, in_core, in_problem) == 40);
+  REQUIRE(translate_index_to_in_problem(7, in_core, in_problem) == 42);
+  REQUIRE(translate_index_to_in_problem(8, in_core, in_problem) == 108);
+  REQUIRE(translate_index_to_in_problem(9, in_core, in_problem) == -1);
+}
+
+TEST_CASE("test-translate-vector-indices-in-problem", "[highs_smps]") {
+  Timestage2Range in_core {
+    {"TIME1", {0, 0, 0, 5 }},
+    {"TIME2", {0, 0, 5, 8}},
+    {"TIME3", {0, 0, 8, 9}},
+  };
+  Timestage2Range in_problem {
+    {"TIME1", {0, 0, 10, 15 }},
+    {"TIME2", {0, 0, 40, 43}},
+    {"TIME3", {0, 0, 108, 109}},
+  };
+  SparseVector vec {{0, 1, 5, 7, 8, 9}, {1, 2, 3, 4, 5, 6}};
+  vec.translate_to_in_problem(in_core, in_problem);
+  REQUIRE(vec.num_nz() == 6);
+  std::vector<int> proper_indices {10, 11, 40, 42, 108, -1};
+  for (int i = 0; i < 6; ++i)
+    REQUIRE(vec[proper_indices.at(i)] == i + 1);
+}

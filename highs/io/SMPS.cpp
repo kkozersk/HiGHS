@@ -99,11 +99,11 @@ bool SmpsCoreStructure::load_time_stages(SmpsTimeStructure const & time_stage_da
 //   return result;
 // }
 
-std::map<std::string, SubMatrixRange> SmpsCoreStructure::load_stage_submatrices(std::vector<TimeStageEntry> const & timestage_indices, HighsNameHash const & row_name_hash,
+Timestage2Range SmpsCoreStructure::load_stage_submatrices(std::vector<TimeStageEntry> const & timestage_indices, HighsNameHash const & row_name_hash,
                   HighsNameHash const & col_name_hash) {
   auto const & row2index = row_name_hash.name2index;
   auto const & col2index = col_name_hash.name2index;
-  std::map<std::string, SubMatrixRange> result;
+  Timestage2Range result;
   for (int i = 0; i < timestage_indices.size(); ++i) {
     auto const & current_stage = timestage_indices.at(i);
     
@@ -503,32 +503,34 @@ Highs build_stochastic_model(SmpsCoreStructure const & core, SmpsTimeStructure c
 }
 
 //TODO BOUNDS!!!!!
-void add_node_entry(SmpsCoreStructure const & core, Node const & node, Highs & result) {
+void add_node_entry(SmpsCoreStructure const & core, Node & node, Highs & result) {
    
     // TODO: redundant looping
     // TODO: RHS
     // TODO objective
     auto const & node_ranges = core.stage_submatrix.at(node.get_timestage());
     auto node_modifications = core.annotate_lp_entries(node.get_lp_modifications());
-    auto in_problem_range = node_ranges.create_in_problem_range(result);
+    node.set_in_problem_range(node_ranges.create_in_problem_range(result));
     node_ranges.expand_problem_by_range_vars(result, core.col_lower_, core.col_upper_);
-    // for (int row = node_ranges.row_idx_begin; row < node_ranges.col_idx_end; ++row) {
-    //   auto row_data = SparseVector::get_matrix_row(core.a_matrix_, row);
-    //   for (auto const & mod : node_modifications)
-    //     if (mod.row_idx == row && !mod.is_rhs)
-    //        row_data.set(mod.col_idx, mod.value);
-    //   row_data.shift_indices(in_problem_range.col_idx_begin);
-    //   result.addRow(core.row_lower_.at(row), core.row_upper_.at(row),
-    //                 row_data.num_nz(), row_data.nz_indices.data(), row_data.nz_values.data());
+    auto timeperiod2range = create_stochastic_path_translation(node);
+    for (int row = node_ranges.row_idx_begin; row < node_ranges.col_idx_end; ++row) {
+      auto row_data = SparseVector::get_matrix_row(core.a_matrix_, row);
+      for (auto const & mod : node_modifications)
+        if (mod.row_idx == row && !mod.is_rhs)
+           row_data.set(mod.col_idx, mod.value);
+      row_data.translate_to_in_problem(core.stage_submatrix, timeperiod2range);
+      result.addRow(core.row_lower_.at(row), core.row_upper_.at(row),
+                    row_data.num_nz(), row_data.nz_indices.data(), row_data.nz_values.data());
         
-    // }        
+    }        
 }
 
-void add_node_tree_entries(SmpsCoreStructure const & core, Node const & node, Highs & result) {
+void add_node_tree_entries(SmpsCoreStructure const & core, Node & node, Highs & result) {
   add_node_entry(core, node, result); 
   for (int i = 0; i < node.get_no_children(); ++i)  add_node_tree_entries(core, *node.get_child(i), result);
 }
 
+//TODO const tree?
 void add_tree_entries(const SmpsCoreStructure &core, const StochasticTree &tree, Highs &result) {
   for (int i = 0; i < tree.root->get_no_children(); ++i) add_node_tree_entries(core, *tree.root->get_child(i), result);
 }
@@ -611,4 +613,26 @@ SparseVector SparseVector::get_matrix_row(HighsSparseMatrix const & A, int row_i
     A.getRow(row_idx, num_nz, row_data.nz_indices.data(), row_data.nz_values.data());
     row_data.truncate(num_nz);
     return row_data;
+}
+
+Timestage2Range create_stochastic_path_translation(Node const & node) {
+  Timestage2Range timeperiod2range;
+  for (Node const * parent = &node; parent != nullptr; parent = parent->get_parent())
+    timeperiod2range[parent->get_timestage()] = parent->get_in_problem_range();
+  return timeperiod2range;
+}
+
+void SparseVector::translate_to_in_problem(Timestage2Range const & in_core, Timestage2Range const & in_problem) {
+  std::transform(nz_indices.begin(), nz_indices.end(), nz_indices.begin(),
+                 [&in_core, &in_problem](int idx) {return translate_index_to_in_problem(idx, in_core, in_problem);});
+}
+
+//TODO -1 val
+int translate_index_to_in_problem(int index, Timestage2Range const & in_core, Timestage2Range const & in_problem) {
+  // TODO this can be made much faster
+  auto it = std::find_if(in_core.begin(), in_core.end(),
+                         [index](std::pair<std::string, SubMatrixRange> const & val) { return index < val.second.col_idx_end;});
+  if (it == in_core.end()) return -1;
+  int in_range_shift = index - it->second.col_idx_begin;
+  return in_problem.at(it->first).col_idx_begin + in_range_shift;
 }

@@ -77,6 +77,8 @@ struct SubMatrixRange {
 
 };
 
+using Timestage2Range = std::map<std::string, SubMatrixRange>;
+
 struct LpEntry {
   std::string row;
   std::string col; // can be RHS
@@ -109,7 +111,7 @@ class SmpsCoreStructure : public HighsLp {
 
     // std::vector<std::string> row_time_stage; // TODO is this needed?
     // std::vector<std::string> col_time_stage;
-    std::map<std::string, SubMatrixRange> stage_submatrix;
+    Timestage2Range stage_submatrix;
     LpIdxEntry annotate_lp_entry(LpEntry const &) const;
     std::vector<LpIdxEntry> annotate_lp_entries(std::vector<LpEntry> const & entries) const;
     
@@ -120,7 +122,7 @@ class SmpsCoreStructure : public HighsLp {
     // bool verify_stages(std::vector<TimeStageEntry> const & idx_time_stages, HighsNameHash const & row_hash, HighsNameHash const & col_hash) const; 
     // bool verify_stages(std::vector<IndexStage> const & idx_time_stages, HighsNameHash const & name_hash) const;
     // std::vector<string> load_stages(std::vector<IndexStage> const & stage_idx_data, HighsNameHash const & name_hash, int num_entries);
-    std::map<std::string, SubMatrixRange> load_stage_submatrices(std::vector<TimeStageEntry> const & timestage_indices, HighsNameHash const & row_name_hash,
+    Timestage2Range load_stage_submatrices(std::vector<TimeStageEntry> const & timestage_indices, HighsNameHash const & row_name_hash,
                       HighsNameHash const & col_name_hash);
 };
 
@@ -128,10 +130,11 @@ class SmpsCoreStructure : public HighsLp {
 
 class Node {
   std::vector<std::unique_ptr<Node>> children;
-  Node * parent = nullptr;
+  Node const * parent = nullptr;
   std::vector<LpEntry> lp_modifications;
   double node_probability; // TODO 0 <= p <= 1
   std::string timestage;
+  SubMatrixRange in_problem_range;
 
   double sum_children_prob() const; 
   public:
@@ -150,6 +153,8 @@ class Node {
     void fill_tree();
     bool is_leaf() const { return children.empty(); }
     std::string get_timestage() const { return timestage; }
+    SubMatrixRange get_in_problem_range() const { return in_problem_range; }
+    void set_in_problem_range(SubMatrixRange const & range) {in_problem_range = range; }
 
   // TimeStage timestage;
   // double get_in_tree_probability() const;
@@ -299,10 +304,11 @@ bool str_to_dbl(std::string const & str, double & val);
 
 
 Highs build_stochastic_model(SmpsCoreStructure const & core, SmpsTimeStructure const & time, SmpsStochasticStructure const & stoch);
-void add_node_entry(SmpsCoreStructure const & core, Node const & node, Highs & result);
-void add_node_tree_entries(SmpsCoreStructure const & core, Node const & node, Highs & result);
+void add_node_entry(SmpsCoreStructure const & core, Node & node, Highs & result);
+void add_node_tree_entries(SmpsCoreStructure const & core, Node & node, Highs & result);
 void add_tree_entries(const SmpsCoreStructure &core, const StochasticTree &tree, Highs &result);
 //TODO constructor
+// TODO rename to row
 struct SparseVector {
   std::vector<int> nz_indices;
   std::vector<double> nz_values;
@@ -312,8 +318,13 @@ struct SparseVector {
   void truncate(int num_nz);
   void set(unsigned index, double value);
   int num_nz() const { return nz_indices.size(); }
+  //TODO is this needed?
   void shift_indices(unsigned shift_by);
 
   static SparseVector get_matrix_row(HighsSparseMatrix const & A, int row_idx);
+  void translate_to_in_problem(Timestage2Range const & in_core, Timestage2Range const & in_problem);
   // double get(int index) const;
 };
+
+int translate_index_to_in_problem(int index, Timestage2Range const & in_core, Timestage2Range const & in_problem);
+Timestage2Range create_stochastic_path_translation(Node const & node);
