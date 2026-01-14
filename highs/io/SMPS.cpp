@@ -556,9 +556,14 @@ void add_node_entry(SmpsCoreStructure const & core, Node & node, Highs & result)
       row_data.translate_to_in_problem(translator);
       result.addRow(LB, UB, row_data.num_nz(), row_data.nz_indices.data(), row_data.nz_values.data());
     }        
+    // TODO prepare and a single call to changeColCosts
+    auto prob = node.get_in_tree_probability();
+    for (int col = node_ranges.col_idx_begin; col < node_ranges.col_idx_end; ++col)
+      if (core.col_cost_.at(col) != 0)
+        result.changeColCost(translator(col), core.col_cost_.at(col) * prob);
     for (auto const & mod : node_modifications)
       if (mod.is_objective) 
-        result.changeColCost(translator(mod.col_idx), node.get_in_tree_probability() * mod.value);
+        result.changeColCost(translator(mod.col_idx), mod.value * prob);
 }
 
 void add_node_tree_entries(SmpsCoreStructure const & core, Node & node, Highs & result) {
@@ -635,6 +640,7 @@ void SparseVector::truncate(int num_nz) {
 
 bool SubMatrixRange::expand_problem_by_range_vars(
   Highs & problem, std::vector<double> const & col_lower, std::vector<double> const & col_upper) const {
+  //TODO integrality!
   auto status = problem.addVars(num_cols(),  col_lower.data() + col_idx_begin, col_upper.data() + col_idx_begin );
   return status ==  HighsStatus::kOk;
 }

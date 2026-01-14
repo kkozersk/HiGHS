@@ -2243,3 +2243,44 @@ TEST_CASE("test-update-bounds", "[highs_smps]") {
   REQUIRE(update_lb(3, 0) == 0);
   // TODO what if both are +- inf or invalid?
 }
+
+
+TEST_CASE("test-build-dummy-example", "[highs_smps]") {
+  Highs highs;
+  auto path = std::string(HIGHS_DIR) + "/check/instances/less_simple";
+  auto res = build_stochastic_problem(highs, path);
+  REQUIRE(res);
+
+  REQUIRE(highs.getNumCol() == 12);
+  REQUIRE(highs.getNumRow() == 12);
+
+  auto expectedA = to_csr({12, 12, {
+                          1,1,0,0,0,0,0,0,0,0,0,0
+                          ,1,0,0,0,0,0,0,0,0,0,0,0
+                          ,-1,0,2,0,0,0,0,0,0,0,0,0
+                          ,-1,0,0,2,0,0,0,0,0,0,0,0
+                          ,-1,0,0,0,3,0,0,0,0,0,0,0
+                          ,-1,0,0,0,0,3,0,0,0,0,0,0
+                          ,0,0,0,0,0,0,1,1,0,0,0,0
+                          ,0,0,0,0,0,0,1,0,0,0,0,0
+                          ,0,0,0,0,0,0,-1,0,2,0,0,0
+                          ,0,0,0,0,0,0,-1,0,0,2,0,0
+                          ,0,0,0,0,0,0,-1,0,0,0,3,0
+                          ,0,0,0,0,0,0,-1,0,0,0,0,3
+                          }});
+  
+  auto lp = highs.getModel().lp_;
+  auto A = lp.a_matrix_;
+  A.ensureRowwise();
+  REQUIRE(A.value_ == expectedA.value_);
+  REQUIRE(A == expectedA);
+
+  REQUIRE(lp.row_lower_ == std::vector<double> {-inf, 1, 0, 0, 0, 0, -inf, 1, 0, 0, 0,0 });
+  REQUIRE(lp.row_upper_ == std::vector<double> {5, inf, 0, 0, 0, 0, 7, inf, 0, 0, 0,0 });
+
+   REQUIRE(lp.col_cost_ == std::vector<double> {
+           0.5, 0.5, 0.5*0.5*0.2, 0.5*0.5*0.8*-5, 0.5*0.5*0.2, 0.5*0.5*0.8*-5,
+           0.5, 0.5, 0.5*0.5*0.2, 0.5*0.5*0.8*-5, 0.5*0.5*0.2, 0.5*0.5*0.8*-5,
+         });
+
+}

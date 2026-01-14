@@ -1,0 +1,5 @@
+TIME          PROBLEM
+PERIODS
+    X .COST                   TIME1
+    Z  SELL                   TIME2
+ENDATA
