@@ -139,6 +139,8 @@ class Node {
   SubMatrixRange in_problem_range;
 
   double sum_children_prob() const; 
+
+  void insert_intermediate_child(Node * intermediate_child, std::unique_ptr<Node> & current_child, bool swap_probability=true);
   public:
     Node(std::string timestage, double node_probability = 1., std::vector<LpEntry> const & lp_modifications={}):
         lp_modifications(lp_modifications), node_probability(node_probability), timestage(timestage) {}
@@ -157,6 +159,10 @@ class Node {
     std::string get_timestage() const { return timestage; }
     SubMatrixRange get_in_problem_range() const { return in_problem_range; }
     void set_in_problem_range(SubMatrixRange const & range) {in_problem_range = range; }
+    bool fill_missing_timestages(std::vector<std::string> const & timestages_in_order);
+
+    //TODO it should be in TimeStructure
+    std::string get_next_timestage(std::vector<std::string> const & timestages_in_order) const;
 
   // TimeStage timestage;
     double get_in_tree_probability() const;
@@ -165,7 +171,12 @@ class Node {
 struct StochasticTree {
   std::unique_ptr<Node> root;
   StochasticTree(std::unique_ptr<Node> && root) : root(std::move(root)) {}
-  void fill_tree() { root->fill_tree(); }
+  // void fill_tree() { root->fill_tree(); }
+  void fix_tree(SmpsTimeStructure const & time) {
+    root->fill_tree();
+    // TODO requires fixing
+    // root->fill_missing_timestages(time.get_stage_names());
+   }
 };
 
 //TODO dual input on a single line

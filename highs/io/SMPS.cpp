@@ -1,6 +1,7 @@
 #include "SMPS.h"
 #include <algorithm>
 #include <cstdio>
+#include <exception>
 #include <fstream>
 #include <iterator>
 #include <map>
@@ -485,16 +486,52 @@ RandomVector append_to_random_vector(RandomVector const & to_append, RandomVecto
   return result;
 }
 
+//TODO akward error passing
+std::string Node::get_next_timestage(std::vector<std::string> const & timestages_in_order) const {
+   // TODO akward root keyword
+   if (timestages_in_order.size() == 0) return "";
+   if (timestage == "root") return timestages_in_order.front();
+   auto it = std::find(timestages_in_order.begin(), timestages_in_order.end(), timestage);
+   if (it == timestages_in_order.end()) return "";
+   return it == timestages_in_order.end() - 1 ? timestage : *(it + 1);
+}
+
 void Node::fill_missing_child() {
   double missing_probability  = 1 - sum_children_prob();  
   if (get_no_children() == 0 || missing_probability < 1e-6) return;
-  //TODO missing timestage
-  add_child(std::unique_ptr<Node>(new Node("", missing_probability)));
+  add_child(std::unique_ptr<Node>(new Node(children.at(0)->timestage, missing_probability)));
 }
 
 void Node::fill_tree() {
   fill_missing_child();
   for (auto & child : children)  child->fill_tree();
+}
+
+//TODO use return values
+bool Node::fill_missing_timestages(std::vector<std::string> const & timestages_in_order) {
+   auto next_timestage = get_next_timestage(timestages_in_order);
+   if (next_timestage == "") return false;
+   if (next_timestage == timestage) return true;
+   if (is_leaf()) add_child(std::unique_ptr<Node>{new Node(next_timestage)});
+   for (auto & child : children) {
+      if (child->get_timestage() != next_timestage)
+        insert_intermediate_child(new Node(next_timestage), child);
+      if (!child->fill_missing_timestages(timestages_in_order)) return false;
+   }
+   return true;
+}
+
+// TODO move semantics?
+void Node::insert_intermediate_child(Node * intermediate_child, std::unique_ptr<Node> & current_child, bool swap_probability) {
+  if (swap_probability) {
+    auto current_child_prob = current_child->node_probability;
+    current_child->node_probability = intermediate_child->node_probability;
+    intermediate_child->node_probability = current_child_prob; 
+  }
+  auto current_child_ptr = current_child.release();
+  intermediate_child->add_child(std::unique_ptr<Node> {current_child_ptr});
+  current_child.reset(intermediate_child);
+  current_child->parent = this;
 }
 
 //TODO BOUNDS!!!!!
@@ -659,8 +696,7 @@ bool build_stochastic_problem(Highs & problem,
     auto stoch = read_stochastic_file(stoch_filename);
     if (stoch == nullptr || !stoch->is_valid()) return false;
     auto tree = stoch->constructTree();
-    //TODO akward place to call this?
-    tree.fill_tree();
+    tree.fix_tree(time);
 
     if (!core.load_time_stages(time)) return false;
     //TODO some checking should be done here
