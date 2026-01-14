@@ -7,7 +7,9 @@
 #include <vector>
 #include "Highs.h"
 #include "util/HighsSparseMatrix.h"
+#include "lp_data/HighsOptions.h"
 #include "lp_data/HighsLp.h"
+#include "lp_data/HConst.h"
 
 using Tokens = std::vector<std::string>;
 
@@ -157,7 +159,7 @@ class Node {
     void set_in_problem_range(SubMatrixRange const & range) {in_problem_range = range; }
 
   // TimeStage timestage;
-  // double get_in_tree_probability() const;
+    double get_in_tree_probability() const;
 };
 
 struct StochasticTree {
@@ -166,6 +168,7 @@ struct StochasticTree {
   void fill_tree() { root->fill_tree(); }
 };
 
+//TODO dual input on a single line
 class SmpsStochasticStructure {
   private:
     virtual bool process_data(std::istream & input) = 0;
@@ -302,11 +305,25 @@ RandomVector append_to_random_vector(RandomVariable const & rv, RandomVector con
 RandomVector append_to_random_vector(RandomVector const & to_append, RandomVector const & rvec);
 bool str_to_dbl(std::string const & str, double & val);
 
+bool build_stochastic_problem(Highs & problem,
+                              std::string const & core_filename,
+                              std::string const & time_filename,
+                              std::string const & stoch_filename,
+                              HighsOptions const & highs_mps_options = HighsOptions());
 
-Highs build_stochastic_model(SmpsCoreStructure const & core, SmpsTimeStructure const & time, SmpsStochasticStructure const & stoch);
+bool build_stochastic_problem(Highs & problem, std::string const & mutual_name, HighsOptions const & highs_mps_options = HighsOptions());
+
 void add_node_entry(SmpsCoreStructure const & core, Node & node, Highs & result);
 void add_node_tree_entries(SmpsCoreStructure const & core, Node & node, Highs & result);
 void add_tree_entries(const SmpsCoreStructure &core, const StochasticTree &tree, Highs &result);
+
+struct IdxTranslator {
+  Timestage2Range const & in_core;  
+  Timestage2Range const & in_problem;  
+  int operator()(int idx) const;
+  // int idx_to_in_problem(int idx) const;
+};
+
 //TODO constructor
 // TODO rename to row
 struct SparseVector {
@@ -322,9 +339,11 @@ struct SparseVector {
   void shift_indices(unsigned shift_by);
 
   static SparseVector get_matrix_row(HighsSparseMatrix const & A, int row_idx);
-  void translate_to_in_problem(Timestage2Range const & in_core, Timestage2Range const & in_problem);
+  void translate_to_in_problem(IdxTranslator const & translator);
   // double get(int index) const;
 };
 
-int translate_index_to_in_problem(int index, Timestage2Range const & in_core, Timestage2Range const & in_problem);
 Timestage2Range create_stochastic_path_translation(Node const & node);
+
+inline double update_ub(double old_ub, double new_rhs) { return old_ub == kHighsInf ? kHighsInf : new_rhs; };
+inline double update_lb(double old_lb, double new_rhs) { return old_lb == -kHighsInf ? -kHighsInf : new_rhs; };

@@ -11,7 +11,6 @@
 #include <vector>
 #include "Filereader.h"
 #include "FilereaderMps.h"
-#include "HConst.h"
 #include "lp_data/HStruct.h"
 #include "model/HighsModel.h"
 #include "lp_data/HighsOptions.h"
@@ -498,31 +497,31 @@ void Node::fill_tree() {
   for (auto & child : children)  child->fill_tree();
 }
 
-Highs build_stochastic_model(SmpsCoreStructure const & core, SmpsTimeStructure const & time, SmpsStochasticStructure const & stoch) {
-  return {};
-}
-
 //TODO BOUNDS!!!!!
 void add_node_entry(SmpsCoreStructure const & core, Node & node, Highs & result) {
-   
     // TODO: redundant looping
-    // TODO: RHS
-    // TODO objective
     auto const & node_ranges = core.stage_submatrix.at(node.get_timestage());
     auto node_modifications = core.annotate_lp_entries(node.get_lp_modifications());
     node.set_in_problem_range(node_ranges.create_in_problem_range(result));
     node_ranges.expand_problem_by_range_vars(result, core.col_lower_, core.col_upper_);
-    auto timeperiod2range = create_stochastic_path_translation(node);
+    IdxTranslator translator {core.stage_submatrix, create_stochastic_path_translation(node)};
+    // auto timeperiod2range = create_stochastic_path_translation(node);
     for (int row = node_ranges.row_idx_begin; row < node_ranges.col_idx_end; ++row) {
+      auto LB = core.row_lower_.at(row);
+      auto UB = core.row_upper_.at(row);
       auto row_data = SparseVector::get_matrix_row(core.a_matrix_, row);
       for (auto const & mod : node_modifications)
-        if (mod.row_idx == row && !mod.is_rhs)
+        if (mod.row_idx == row && mod.is_rhs) {
+          LB = update_lb(LB, mod.value);
+          UB = update_ub(UB, mod.value);
+        } else if (mod.row_idx == row)
            row_data.set(mod.col_idx, mod.value);
-      row_data.translate_to_in_problem(core.stage_submatrix, timeperiod2range);
-      result.addRow(core.row_lower_.at(row), core.row_upper_.at(row),
-                    row_data.num_nz(), row_data.nz_indices.data(), row_data.nz_values.data());
-        
+      row_data.translate_to_in_problem(translator);
+      result.addRow(LB, UB, row_data.num_nz(), row_data.nz_indices.data(), row_data.nz_values.data());
     }        
+    for (auto const & mod : node_modifications)
+      if (mod.is_objective) 
+        result.changeColCost(translator(mod.col_idx), node.get_in_tree_probability() * mod.value);
 }
 
 void add_node_tree_entries(SmpsCoreStructure const & core, Node & node, Highs & result) {
@@ -623,17 +622,52 @@ Timestage2Range create_stochastic_path_translation(Node const & node) {
   return timeperiod2range;
 }
 
-void SparseVector::translate_to_in_problem(Timestage2Range const & in_core, Timestage2Range const & in_problem) {
-  std::transform(nz_indices.begin(), nz_indices.end(), nz_indices.begin(),
-                 [&in_core, &in_problem](int idx) {return translate_index_to_in_problem(idx, in_core, in_problem);});
+void SparseVector::translate_to_in_problem(IdxTranslator const & translator) {
+  std::transform(nz_indices.begin(), nz_indices.end(), nz_indices.begin(), [&translator](int idx) {return translator(idx);});
 }
 
 //TODO -1 val
-int translate_index_to_in_problem(int index, Timestage2Range const & in_core, Timestage2Range const & in_problem) {
+int IdxTranslator::operator()(int idx) const {
   // TODO this can be made much faster
   auto it = std::find_if(in_core.begin(), in_core.end(),
-                         [index](std::pair<std::string, SubMatrixRange> const & val) { return index < val.second.col_idx_end;});
+                         [idx](std::pair<std::string, SubMatrixRange> const & val) { return idx < val.second.col_idx_end;});
   if (it == in_core.end()) return -1;
-  int in_range_shift = index - it->second.col_idx_begin;
+  int in_range_shift = idx - it->second.col_idx_begin;
   return in_problem.at(it->first).col_idx_begin + in_range_shift;
+}
+
+double Node::get_in_tree_probability() const {
+  // TODO sum algorithm?
+  auto probability = 1.;
+  for (Node const * parent = this; parent != nullptr; parent = parent->get_parent())
+    probability *= parent->get_node_probability();
+  return probability;
+}
+
+bool build_stochastic_problem(Highs & problem,
+                              std::string const & core_filename,
+                              std::string const & time_filename,
+                              std::string const & stoch_filename,
+                              HighsOptions const & highs_mps_options) {
+  
+    SmpsCoreStructure core(highs_mps_options, core_filename);
+    if (!core.is_valid()) return false;
+
+    SmpsTimeStructure time(time_filename);
+    if (!time.is_valid()) return false;
+
+    auto stoch = read_stochastic_file(stoch_filename);
+    if (stoch == nullptr || !stoch->is_valid()) return false;
+    auto tree = stoch->constructTree();
+    //TODO akward place to call this?
+    tree.fill_tree();
+
+    if (!core.load_time_stages(time)) return false;
+    //TODO some checking should be done here
+    add_tree_entries(core, tree, problem);
+    return true;
+}
+
+bool build_stochastic_problem(Highs & problem, std::string const & mutual_name, HighsOptions const & highs_mps_options) {
+  return build_stochastic_problem(problem, mutual_name + ".cor", mutual_name + ".tim", mutual_name + ".sto", highs_mps_options);
 }

@@ -1864,20 +1864,22 @@ TEST_CASE("test-add-node-tree-entry", "[highs_smps]") {
 
 TEST_CASE("test-add-tree-entry", "[highs_smps]") {
   auto instance = std::string(HIGHS_DIR) + "/check/instances/simple";
-  HighsOptions opt;
-  SmpsCoreStructure core(opt, instance + ".cor");
-  REQUIRE(core.is_valid());
-
-  SmpsTimeStructure time(instance + ".tim");
-  REQUIRE(time.is_valid());
-
-  IndepStructure stoch(instance + ".sto");
-  REQUIRE(stoch.is_valid());
-  auto tree = stoch.constructTree();
-
-  core.load_time_stages(time);
   Highs highs;
-  add_tree_entries(core, tree, highs);
+  build_stochastic_problem(highs, instance);
+  // HighsOptions opt;
+  // SmpsCoreStructure core(opt, instance + ".cor");
+  // REQUIRE(core.is_valid());
+
+  // SmpsTimeStructure time(instance + ".tim");
+  // REQUIRE(time.is_valid());
+
+  // IndepStructure stoch(instance + ".sto");
+  // REQUIRE(stoch.is_valid());
+  // auto tree = stoch.constructTree();
+
+  // core.load_time_stages(time);
+  // Highs highs;
+  // add_tree_entries(core, tree, highs);
 
   REQUIRE(highs.getNumCol() == 9);
 
@@ -1910,12 +1912,13 @@ TEST_CASE("test-translate-index-in-problem", "[highs_smps]") {
     {"TIME2", {0, 0, 40, 43}},
     {"TIME3", {0, 0, 108, 109}},
   };
-  REQUIRE(translate_index_to_in_problem(0, in_core, in_problem) == 10);
-  REQUIRE(translate_index_to_in_problem(1, in_core, in_problem) == 11);
-  REQUIRE(translate_index_to_in_problem(5, in_core, in_problem) == 40);
-  REQUIRE(translate_index_to_in_problem(7, in_core, in_problem) == 42);
-  REQUIRE(translate_index_to_in_problem(8, in_core, in_problem) == 108);
-  REQUIRE(translate_index_to_in_problem(9, in_core, in_problem) == -1);
+  IdxTranslator translator {in_core, in_problem};
+  REQUIRE(translator(0) == 10);
+  REQUIRE(translator(1) == 11);
+  REQUIRE(translator(5) == 40);
+  REQUIRE(translator(7) == 42);
+  REQUIRE(translator(8) == 108);
+  REQUIRE(translator(9) == -1);
 }
 
 TEST_CASE("test-translate-vector-indices-in-problem", "[highs_smps]") {
@@ -1930,9 +1933,28 @@ TEST_CASE("test-translate-vector-indices-in-problem", "[highs_smps]") {
     {"TIME3", {0, 0, 108, 109}},
   };
   SparseVector vec {{0, 1, 5, 7, 8, 9}, {1, 2, 3, 4, 5, 6}};
-  vec.translate_to_in_problem(in_core, in_problem);
+  IdxTranslator translator {in_core, in_problem};
+  vec.translate_to_in_problem(translator);
   REQUIRE(vec.num_nz() == 6);
   std::vector<int> proper_indices {10, 11, 40, 42, 108, -1};
   for (int i = 0; i < 6; ++i)
     REQUIRE(vec[proper_indices.at(i)] == i + 1);
+}
+
+TEST_CASE("test-update-bounds", "[highs_smps]") {
+  REQUIRE(update_ub(3, 0) == 0);
+  REQUIRE(update_lb(-inf, 0) == -inf);
+
+  REQUIRE(update_ub(3, inf) == inf);
+  REQUIRE(update_lb(-inf, inf) == -inf);
+
+  REQUIRE(update_ub(inf, 0) == inf);
+  REQUIRE(update_lb(-2, 0) == 0);
+
+  REQUIRE(update_ub(inf, -inf) == inf);
+  REQUIRE(update_lb(-2, -inf) == -inf);
+
+  REQUIRE(update_ub(3, 0) == 0);
+  REQUIRE(update_lb(3, 0) == 0);
+  // TODO what if both are +- inf or invalid?
 }
