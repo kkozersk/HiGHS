@@ -1,7 +1,7 @@
 #include "SMPS.h"
 #include <algorithm>
+#include <cstddef>
 #include <cstdio>
-#include <exception>
 #include <fstream>
 #include <iterator>
 #include <map>
@@ -12,6 +12,7 @@
 #include <vector>
 #include "Filereader.h"
 #include "FilereaderMps.h"
+#include "catch.hpp"
 #include "lp_data/HStruct.h"
 #include "model/HighsModel.h"
 #include "lp_data/HighsOptions.h"
@@ -235,7 +236,7 @@ bool IndepStructure::process_data(std::istream & input) {
   return is_proper_ending(tokens);
 };
 
-StochasticTree IndepStructure::constructTree() const {
+StochasticTree IndepStructure::constructTree(SmpsTimeStructure const & time, SmpsCoreStructure const & core) {
   auto root = std::unique_ptr<Node>(new Node("root"));
   std::vector<Node*> current_level = {root.get()}, next_level;
   for (auto const & timestage_rvs : timestage_random_entries) {
@@ -248,7 +249,7 @@ StochasticTree IndepStructure::constructTree() const {
     current_level = next_level;
     next_level.clear();
   }
-  return StochasticTree(std::move(root));
+  return StochasticTree(std::move(root), time);
 }
 
 RandomVector append_to_random_vector(RandomVariable const & rv, RandomVector const & rvec) {
@@ -358,7 +359,7 @@ bool BlockStructure::process_data(std::istream & input) {
   return is_proper_ending(tokens);
 }
 
-StochasticTree BlockStructure::constructTree() const {
+StochasticTree BlockStructure::constructTree(SmpsTimeStructure const & time, SmpsCoreStructure const & core) {
   auto root = std::unique_ptr<Node>(new Node("root"));
   std::vector<Node*> current_level = {root.get()}, next_level;
   for (auto const & timestage_rvs : timestage_random_vectors) {
@@ -371,7 +372,7 @@ StochasticTree BlockStructure::constructTree() const {
     current_level = next_level;
     next_level.clear();
   }
-  return StochasticTree(std::move(root));
+  return StochasticTree(std::move(root), time);
 }
 
 bool str_to_dbl(std::string const & str, double & val) {
@@ -430,15 +431,50 @@ bool ScenarioStructure::read_from_file(std::istream & input) {
             && process_data(input) && !scenarios.empty();
 }
 
-StochasticTree ScenarioStructure::constructTree() const {
-  auto root = std::unique_ptr<Node>(new Node("root"));
-  std::map<std::string, Node*> scen2node {{"ROOT", root.get()}};
-  for (auto const & scen : scenarios) {
-    auto child = new Node(scen.timestage, scen.probability, scen.lp_modifications);
-    scen2node[scen.parent_scenario]->add_child(std::unique_ptr<Node>(child));
-    scen2node[scen.scenario_name] = child;
+bool ScenarioStructure::construct_parent_mapping() {
+  for (int i = 0; i < scenarios.size(); ++i) {
+    auto const & scen = scenarios[i];
+    name2scen_idx.emplace(scen.scenario_name, i);
+    if (scen.parent_scenario != "ROOT" && name2scen_idx.find(scen.parent_scenario) == name2scen_idx.end())
+        return false;
   }
-  return StochasticTree(std::move(root));
+  return true;
+}
+
+StochasticTree ScenarioStructure::constructTree(SmpsTimeStructure const & time, SmpsCoreStructure const & core) {
+  auto root = std::unique_ptr<Node>(new Node("root"));
+  std::map<std::pair<std::string, std::string>, Node *> scen_time2node {{{"ROOT", "ROOT"}, root.get()}};
+  for (auto & scen : scenarios) {
+    auto parent_timestage = scen.parent_scenario == "ROOT" ? "ROOT" : get_scenario(scen.parent_scenario).timestage;
+    if (scen.parent_scenario != "ROOT") scen += get_scenario(scen.parent_scenario);
+    Node * parent = scen_time2node.at({scen.parent_scenario, parent_timestage});
+    for (int t = time.get_stage_index(scen.timestage); t < time.get_no_timestages(); ++t) {
+      auto timestage = time.get_timestage(t);
+      auto path_prob = t == time.get_no_timestages() - 1 ? scen.probability : 0;
+      auto modifications = scen.filter_by_proper_timestage(core, timestage);
+      auto child = new Node(timestage, path_prob, modifications);
+      scen_time2node[{scen.scenario_name, timestage}] = child;
+      parent->add_child(std::unique_ptr<Node>(child));
+      parent = child;
+    }
+  }
+  return root->rescale_tree_to_leaf_probability() ? StochasticTree(std::move(root), time) : nullptr;
+}
+
+bool Node::rescale_to_children_probability() {
+  if (is_leaf()) return true;
+  auto child_prob = sum_children_prob();
+  if (child_prob == 0) return false;
+  node_probability = child_prob;
+  for (auto & child : children) child->node_probability /= node_probability;
+  return true;
+}
+
+bool Node::rescale_tree_to_leaf_probability() {
+  for (auto & child : children)
+    if(!child->rescale_tree_to_leaf_probability())
+      return false;
+  return rescale_to_children_probability();
 }
 
 bool RandomVector::fill_missing_entries() {
@@ -701,8 +737,7 @@ bool build_stochastic_problem(Highs & problem,
 
     auto stoch = read_stochastic_file(stoch_filename);
     if (stoch == nullptr || !stoch->is_valid()) return false;
-    auto tree = stoch->constructTree();
-    tree.fix_tree(time);
+    auto tree = stoch->constructTree(time, core);
 
     if (!core.load_time_stages(time)) return false;
     //TODO some checking should be done here
@@ -712,4 +747,33 @@ bool build_stochastic_problem(Highs & problem,
 
 bool build_stochastic_problem(Highs & problem, std::string const & mutual_name, HighsOptions const & highs_mps_options) {
   return build_stochastic_problem(problem, mutual_name + ".cor", mutual_name + ".tim", mutual_name + ".sto", highs_mps_options);
+}
+
+std::string SmpsCoreStructure::entry2stage(LpEntry const & entry) const {
+  if (entry.row == objective_name_) {
+    int col_idx = col_hash_.name2index.at(entry.col);
+    for (auto const & time_submatrix : stage_submatrix)
+      if (col_idx < time_submatrix.second.col_idx_end) return time_submatrix.first;
+  }
+  else {
+    int row_idx = row_hash_.name2index.at(entry.row);
+    for (auto const & time_submatrix : stage_submatrix)
+      if (row_idx < time_submatrix.second.row_idx_end) return time_submatrix.first;
+  }
+  //TODO better error return
+  return "";
+}
+
+BlockLpEntry ScenarioModifications::filter_by_proper_timestage(SmpsCoreStructure const & core, std::string const & timestage) const {
+  BlockLpEntry modifications;
+  std::copy_if(lp_modifications.begin(), lp_modifications.end(), std::back_inserter(modifications),
+                [&core, &timestage](LpEntry const & entry) { return core.entry2stage(entry) == timestage;});
+  return modifications;
+}
+
+void ScenarioModifications::operator+=(ScenarioModifications const & base) {
+  for (auto const & mod : base.lp_modifications)
+    if (lp_modifications.end() == std::find_if(lp_modifications.begin(), lp_modifications.end(),
+                      [&mod](LpEntry const & entry) {return mod.col == entry.col && mod.row == entry.row;}))
+      lp_modifications.push_back(mod);
 }

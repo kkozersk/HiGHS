@@ -1,5 +1,7 @@
 #pragma once
+#include <cstddef>
 #include <fstream>
+#include <functional>
 #include <istream>
 #include <memory>
 #include <string>
@@ -47,6 +49,8 @@ class SmpsTimeStructure {
     // std::vector<IndexStage> const & get_col_stages() const { return col_stages; }
     std::vector<TimeStageEntry> const & get_entries() const { return timestage_entries; }
     int get_stage_index(std::string const & stage) const;
+    int get_no_timestages() const { return timestage_entries.size(); }
+    std::string get_timestage(int index) const { return stage_names.at(index); }
   private:
     void read_file(std::istream & input);
 
@@ -116,6 +120,7 @@ class SmpsCoreStructure : public HighsLp {
     Timestage2Range stage_submatrix;
     LpIdxEntry annotate_lp_entry(LpEntry const &) const;
     std::vector<LpIdxEntry> annotate_lp_entries(std::vector<LpEntry> const & entries) const;
+    std::string entry2stage(LpEntry const & entry) const;
     
   private:
     bool is_valid_ = false;
@@ -160,6 +165,8 @@ class Node {
     SubMatrixRange get_in_problem_range() const { return in_problem_range; }
     void set_in_problem_range(SubMatrixRange const & range) {in_problem_range = range; }
     bool fill_missing_timestages(std::vector<std::string> const & timestages_in_order);
+    bool rescale_to_children_probability();
+    bool rescale_tree_to_leaf_probability();
 
     //TODO it should be in TimeStructure
     std::string get_next_timestage(std::vector<std::string> const & timestages_in_order) const;
@@ -170,8 +177,11 @@ class Node {
 
 struct StochasticTree {
   std::unique_ptr<Node> root;
-  StochasticTree(std::unique_ptr<Node> && root) : root(std::move(root)) {}
+  StochasticTree(std::unique_ptr<Node> && root) : root(std::move(root)) { }
+  StochasticTree(std::unique_ptr<Node> && root, SmpsTimeStructure const & time) : root(std::move(root)) { fix_tree(time); }
+  StochasticTree(std::nullptr_t) {}
   // void fill_tree() { root->fill_tree(); }
+  private:
   void fix_tree(SmpsTimeStructure const & time) {
     root->fill_tree();
     // TODO requires fixing
@@ -196,7 +206,7 @@ class SmpsStochasticStructure {
   public:
     SmpsStochasticStructure() = default;
     virtual ~SmpsStochasticStructure() = default;
-    virtual StochasticTree constructTree() const = 0;
+    virtual StochasticTree constructTree(SmpsTimeStructure const & time, SmpsCoreStructure const & core) = 0;
     SmpsStochasticStructure(std::string problem_name) : problem_name(problem_name) {}
     std::string get_problem_name() const { return problem_name; }
     bool is_valid() const { return is_valid_; }
@@ -256,7 +266,7 @@ class IndepStructure : public SmpsStochasticStructure {
   public:
     IndepStructure(std::istream & input);
     IndepStructure(std::string const & filename);
-    virtual StochasticTree constructTree() const;
+    virtual StochasticTree constructTree(SmpsTimeStructure const & time, SmpsCoreStructure const & core);
     int get_no_timestage_random_entries() const { return timestage_random_entries.size(); }
     TimestageRandomVariables const & get_timestage_random_entry(int index) { return timestage_random_entries.at(index); }
     // std::vector<TimestageRandomVariables> const & get_modifications() { return modifications; };
@@ -274,11 +284,12 @@ class BlockStructure : public SmpsStochasticStructure {
   public:
     BlockStructure(std::string const & filepath) { std::ifstream input(filepath); is_valid_ = read_from_file(input); }
     BlockStructure(std::istream & input) { is_valid_ = read_from_file(input); };
-    virtual StochasticTree constructTree() const;
+    virtual StochasticTree constructTree(SmpsTimeStructure const & time, SmpsCoreStructure const & core);
     int get_no_timestage_random_vectors() const { return timestage_random_vectors.size(); }
     TimestageRandomVectors const & get_timestage_random_vector(int index) { return timestage_random_vectors.at(index); }
 };
 
+//TODO rename to scenario?
 struct ScenarioModifications {
   BlockLpEntry lp_modifications;
   double probability;
@@ -288,6 +299,9 @@ struct ScenarioModifications {
   ScenarioModifications(BlockLpEntry const & lp_modifications, double probability, std::string const & timestage,
       std::string const & scenario_name, std::string const & parent_scenario) : lp_modifications(lp_modifications), probability(probability),
       timestage(timestage), scenario_name(scenario_name), parent_scenario(parent_scenario) {}
+  //TODO not here
+  BlockLpEntry filter_by_proper_timestage(SmpsCoreStructure const & core, std::string const & timestage) const;
+  void operator+=(ScenarioModifications const & base);
   bool operator==(ScenarioModifications const & other) const {
     return lp_modifications == other.lp_modifications && probability == other.probability && timestage == other.timestage &&
     scenario_name == other.scenario_name && parent_scenario == other.parent_scenario;
@@ -296,6 +310,8 @@ struct ScenarioModifications {
 
 class ScenarioStructure : public SmpsStochasticStructure {
   std::vector<ScenarioModifications> scenarios;
+  std::map<std::string, unsigned> name2scen_idx;
+  bool construct_parent_mapping();
   bool process_data(std::istream & input);
   bool read_from_file(std::istream & input);
   bool is_new_scenario(Tokens const & tokens) const;
@@ -304,10 +320,11 @@ class ScenarioStructure : public SmpsStochasticStructure {
   bool process_scenario_entry(Tokens const & tokens, std::string & column, std::string & row, double & value) const;
   public:
     ScenarioStructure(std::string const & filepath) { std::ifstream input(filepath); is_valid_ = read_from_file(input); }
-    ScenarioStructure(std::istream & input) { is_valid_ = read_from_file(input); };
-    virtual StochasticTree constructTree() const;
+    ScenarioStructure(std::istream & input) { is_valid_ = read_from_file(input) && construct_parent_mapping(); };
+    virtual StochasticTree constructTree(SmpsTimeStructure const & time, SmpsCoreStructure const & core);
     int get_no_scenarios() const { return scenarios.size(); }
-    ScenarioModifications const & get_scenario(int index) { return scenarios.at(index); }
+    ScenarioModifications const & get_scenario(std::string const scen_name) const { return scenarios.at(name2scen_idx.at(scen_name)); }
+    ScenarioModifications const & get_scenario(int index) const { return scenarios.at(index); }
 };
 
 std::unique_ptr<SmpsStochasticStructure> read_stochastic_file(std::string const & filepath);
