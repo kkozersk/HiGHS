@@ -509,16 +509,6 @@ RandomVector append_to_random_vector(RandomVector const & to_append, RandomVecto
   return result;
 }
 
-//TODO akward error passing
-std::string Node::get_next_timestage(std::vector<std::string> const & timestages_in_order) const {
-   // TODO akward root keyword
-   if (timestages_in_order.size() == 0) return "";
-   if (timestage == "root") return timestages_in_order.front();
-   auto it = std::find(timestages_in_order.begin(), timestages_in_order.end(), timestage);
-   if (it == timestages_in_order.end()) return "";
-   return it == timestages_in_order.end() - 1 ? timestage : *(it + 1);
-}
-
 // TODO move semantics?
 void Node::insert_intermediate_child(Node * intermediate_child, std::unique_ptr<Node> & current_child, bool swap_probability) {
   if (swap_probability) {

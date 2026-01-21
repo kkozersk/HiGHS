@@ -148,9 +148,6 @@ class Node {
     bool rescale_to_children_probability();
     bool rescale_tree_to_leaf_probability();
 
-    //TODO it should be in TimeStructure
-    std::string get_next_timestage(std::vector<std::string> const & timestages_in_order) const;
-
     double get_in_tree_probability() const;
 };
 
