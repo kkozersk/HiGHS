@@ -2265,3 +2265,54 @@ TEST_CASE("test-filter-mods", "[highs_smps]") {
             
           });
 }
+
+TEST_CASE("test-rescale-to-child", "[highs_smps]") {
+  {
+    Node node("t1", 0);
+    node.add_child(std::unique_ptr<Node>(new Node("t2", 0.3)));
+    node.add_child(std::unique_ptr<Node>(new Node("t2", 0.2)));
+    node.add_child(std::unique_ptr<Node>(new Node("t2", 0.1)));
+    node.get_child(0)->add_child(std::unique_ptr<Node>(new Node("t3", 0.1)));
+    REQUIRE(node.rescale_to_children_probability());
+    REQUIRE(node.get_node_probability() == 0.6);
+    REQUIRE(node.get_child(0)->get_node_probability() == 0.5);
+    REQUIRE(std::abs(node.get_child(1)->get_node_probability() - 1./3.) < 1e-6);
+    REQUIRE(std::abs(node.get_child(2)->get_node_probability() - 1./6.) < 1e-6);
+    REQUIRE(node.get_child(0)->get_child(0)->get_node_probability() == 0.1);
+  }
+  {
+    Node node("t1", 0);
+    node.add_child(std::unique_ptr<Node>(new Node("t2", 0.3)));
+    node.add_child(std::unique_ptr<Node>(new Node("t2", 0.6)));
+    node.add_child(std::unique_ptr<Node>(new Node("t2", 0.1)));
+    node.get_child(0)->add_child(std::unique_ptr<Node>(new Node("t3", 0.1)));
+    REQUIRE(node.rescale_to_children_probability());
+    REQUIRE(std::abs(node.get_node_probability() - 1.));
+    REQUIRE(std::abs(node.get_child(0)->get_node_probability() - 0.3) < 1e-6);
+    REQUIRE(std::abs(node.get_child(1)->get_node_probability() - 0.6) < 1e-6);
+    REQUIRE(std::abs(node.get_child(2)->get_node_probability() - 0.1) < 1e-6);
+    REQUIRE(node.get_child(0)->get_child(0)->get_node_probability() == 0.1);
+  }
+  {
+    Node node("t1", 0);
+    node.add_child(std::unique_ptr<Node>(new Node("t2", 0.3)));
+    node.get_child(0)->add_child(std::unique_ptr<Node>(new Node("t3", 0.1)));
+    REQUIRE(node.rescale_to_children_probability());
+    REQUIRE(std::abs(node.get_node_probability() - 0.3) < 1e-6);
+    REQUIRE(std::abs(node.get_child(0)->get_node_probability() - 1.) < 1e-6);
+    REQUIRE(node.get_child(0)->get_child(0)->get_node_probability() == 0.1);
+  }
+  {
+    Node node("t1", 0);
+    REQUIRE(node.rescale_to_children_probability());
+    REQUIRE(node.get_node_probability() == 0);
+  }
+  {
+    Node node("t1", 0);
+    node.add_child(std::unique_ptr<Node>(new Node("t2", 0)));
+    node.add_child(std::unique_ptr<Node>(new Node("t2", 0)));
+    node.add_child(std::unique_ptr<Node>(new Node("t2", 0)));
+    node.get_child(0)->add_child(std::unique_ptr<Node>(new Node("t3", 0.1)));
+    REQUIRE(!node.rescale_to_children_probability());
+  }
+}
