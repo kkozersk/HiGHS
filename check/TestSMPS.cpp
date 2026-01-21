@@ -1,3 +1,5 @@
+#include <cstdio>
+#include <fstream>
 #include <memory>
 #include <sstream>
 #include "io/SMPS.h"
@@ -136,7 +138,6 @@ TEST_CASE("test-read-valid-time-file", "[highs_smps]") {
   SmpsTimeStructure smps(data);
   REQUIRE(smps.is_valid());
   REQUIRE(smps.get_entries() == std::vector<TimeStageEntry>  {{"R1","C1","T1"}, {"R3","C1", "T2"}, {"R4", "C3", "T3"}});
-  // REQUIRE(smps.get_row_stages() == std::vector<IndexStage> {{"R1","T1"}, {"R3", "T2"}, {"R4", "T3"}});
   REQUIRE(smps.get_stage_names() == std::vector<std::string> {"T1", "T2", "T3"});
   REQUIRE(smps.get_problem_name() == "NAME");
   REQUIRE(smps.get_stage_index("T1") == 0);
@@ -147,8 +148,6 @@ TEST_CASE("test-read-valid-time-file", "[highs_smps]") {
   smps = SmpsTimeStructure(path);
   REQUIRE(smps.is_valid());
   REQUIRE(smps.get_entries() == std::vector<TimeStageEntry> {{".COSTA", "1D1IK","TIME1"}, {"1DT019", "SCCOL1", "TIME2"}});
-  // REQUIRE(smps.get_col_stages() == std::vector<IndexStage> {{"1D1IK","TIME1"}, {"SCCOL1", "TIME2"}});
-  // REQUIRE(smps.get_row_stages() == std::vector<IndexStage> {{".COSTA","TIME1"}, {"1DT019", "TIME2"}});
   REQUIRE(smps.get_stage_names() == std::vector<std::string> {"TIME1", "TIME2"});
   REQUIRE(smps.get_problem_name() == "SCFXM1");
   REQUIRE(smps.get_stage_index("TIME1") == 0);
@@ -191,10 +190,6 @@ TEST_CASE("test-assign-time-to-core", "[highs_smps]") {
             {"TIME1", {0, 92, 0, 114}},
             {"TIME2", {92, smps_core.num_row_, 114, smps_core.num_col_}}
           });
-  // for (int i = 0; i < smps_core.row_time_stage.size(); ++i)
-    // REQUIRE(smps_core.row_time_stage.at(i) == (i < 92 ? "TIME1" : "TIME2"));
-  // for (int i = 0; i < smps_core.col_time_stage.size(); ++i)
-    // REQUIRE(smps_core.col_time_stage.at(i) == (i < 114 ? "TIME1" : "TIME2"));
 }
 
 TEST_CASE("test-assign-invalid-time-to-core", "[highs_smps]") {
@@ -1078,6 +1073,16 @@ TEST_CASE("test-malformed-block-structure", "[highs_smps]") {
 }
 
 TEST_CASE("test-create-simple-scenario-structure", "[highs_smps]") {
+   std::istringstream timedata("TIME NAME\n"
+                                       "PERIODS\n"
+                                 "C1 R1 PERIOD2\n"
+                             "ENDATA");
+   SmpsTimeStructure time(timedata);
+   REQUIRE(time.is_valid());
+   auto path = std::string(HIGHS_DIR) + "/check/instances/simple.cor";
+   SmpsCoreStructure core({}, path);
+   REQUIRE(core.is_valid());
+
   std::istringstream data("SCENARIOS DISCRETE\n"
                           "SC S01 ROOT 0.5 PERIOD2\n"
                           "RHS R1 50\n"
@@ -1086,7 +1091,8 @@ TEST_CASE("test-create-simple-scenario-structure", "[highs_smps]") {
                           "RHS R1 40\n"
                           "RHS R2 50\n"
                           "ENDATA");
-  ScenarioStructure smps(data);
+
+  ScenarioStructure smps(data, time, core);
   REQUIRE(smps.is_valid());
   REQUIRE(smps.get_no_scenarios() == 2);
   ScenarioModifications scen1 {
@@ -1100,6 +1106,15 @@ TEST_CASE("test-create-simple-scenario-structure", "[highs_smps]") {
 }
 
 TEST_CASE("test-create-complex-scenario-structure", "[highs_smps]") {
+   std::istringstream timedata("TIME NAME\n"
+                                       "PERIODS\n"
+                                 "C1 R1 PERIOD2\n"
+                             "ENDATA");
+   SmpsTimeStructure time(timedata);
+   REQUIRE(time.is_valid());
+   auto path = std::string(HIGHS_DIR) + "/check/instances/simple.cor";
+   SmpsCoreStructure core({}, path);
+   REQUIRE(core.is_valid());
   std::istringstream data("SCENARIOS DISCRETE\n"
                           "SC S01 ROOT 0.5 PERIOD2\n"
                           "RHS R1 50\n"
@@ -1112,7 +1127,7 @@ TEST_CASE("test-create-complex-scenario-structure", "[highs_smps]") {
                           "SC S04 S03 0.3 PERIOD4\n"
                           "RHS R4 25\n"
                           "ENDATA");
-  ScenarioStructure smps(data);
+  ScenarioStructure smps(data, time, core);
   REQUIRE(smps.is_valid());
   REQUIRE(smps.get_no_scenarios() == 4);
   ScenarioModifications scen1 {
@@ -1134,6 +1149,15 @@ TEST_CASE("test-create-complex-scenario-structure", "[highs_smps]") {
 }
 
 TEST_CASE("test-create-scenario-structure-with-comments", "[highs_smps]") {
+   std::istringstream timedata("TIME NAME\n"
+                                       "PERIODS\n"
+                                 "C1 R1 PERIOD2\n"
+                             "ENDATA");
+   SmpsTimeStructure time(timedata);
+   REQUIRE(time.is_valid());
+   auto path = std::string(HIGHS_DIR) + "/check/instances/simple.cor";
+   SmpsCoreStructure core({}, path);
+   REQUIRE(core.is_valid());
   std::istringstream data("SCENARIOS DISCRETE\n"
                           "*\n"
                           "*\n"
@@ -1153,7 +1177,7 @@ TEST_CASE("test-create-scenario-structure-with-comments", "[highs_smps]") {
                           "RHS R4 25\n"
                           "*\n"
                           "ENDATA");
-  ScenarioStructure smps(data);
+  ScenarioStructure smps(data, time, core);
   REQUIRE(smps.is_valid());
   REQUIRE(smps.get_no_scenarios() == 4);
   ScenarioModifications scen1 {
@@ -1175,6 +1199,16 @@ TEST_CASE("test-create-scenario-structure-with-comments", "[highs_smps]") {
 }
 
 TEST_CASE("test-create-malformed-stochastic-structure", "[highs_smps]") {
+   std::istringstream timedata("TIME NAME\n"
+                                       "PERIODS\n"
+                                 "C1 R1 PERIOD2\n"
+                             "ENDATA");
+   SmpsTimeStructure time(timedata);
+   REQUIRE(time.is_valid());
+   REQUIRE(time.is_valid());
+   auto path = std::string(HIGHS_DIR) + "/check/instances/simple.cor";
+   SmpsCoreStructure core({}, path);
+   REQUIRE(core.is_valid());
   std::istringstream malformed_scenario_header("SCENARIOS DISCRETE\n"
                           "SC S01 ROOT 0.5 PERIOD2\n"
                           "RHS R1 50\n"
@@ -1187,220 +1221,234 @@ TEST_CASE("test-create-malformed-stochastic-structure", "[highs_smps]") {
                           "SC S04 S03 0.3 PERIOD4\n"
                           "RHS R4 25\n"
                           "ENDATA");
-  ScenarioStructure smps(malformed_scenario_header);
+  ScenarioStructure smps(malformed_scenario_header, time, core);
   REQUIRE(!smps.is_valid());
-
-  std::istringstream malformed_scenario_header2("SCENARIOS DISCRETE\n"
-                          "SC S01 ROOT 0.5 PERIOD2\n"
-                          "RHS R1 50\n"
-                          "RHS R2 40\n"
-                          "SC S02 ROOT 0.3 PERIOD2 R2\n"
-                          "RHS R1 40\n"
-                          "RHS R2 50\n"
-                          "SC S03 S02 0.6 PERIOD3\n"
-                          "RHS R3 30\n"
-                          "SC S04 S03 0.3 PERIOD4\n"
-                          "RHS R4 25\n"
-                          "ENDATA");
-  smps = ScenarioStructure(malformed_scenario_header2);
-  REQUIRE(!smps.is_valid());
-
-  std::istringstream malformed_scenario_entry("SCENARIOS DISCRETE\n"
-                          "SC S01 ROOT 0.5 PERIOD2\n"
-                          "RHS R1 50\n"
-                          "RHS R2 40\n"
-                          "SC S02 ROOT 0.3 PERIOD2\n"
-                          "RHS R1 40\n"
-                          "R2 50\n"
-                          "SC S03 S02 0.6 PERIOD3\n"
-                          "RHS R3 30\n"
-                          "SC S04 S03 0.3 PERIOD4\n"
-                          "RHS R4 25\n"
-                          "ENDATA");
-  smps = ScenarioStructure(malformed_scenario_entry);
-  REQUIRE(!smps.is_valid());
-
-  std::istringstream malformed_scenario_entry2("SCENARIOS DISCRETE\n"
-                          "SC S01 ROOT 0.5 PERIOD2\n"
-                          "RHS R1 50\n"
-                          "RHS R2 40\n"
-                          "SC S02 ROOT 0.3 PERIOD2\n"
-                          "RHS R1 40 PERIOD2\n"
-                          "RHS R2 50\n"
-                          "SC S03 S02 0.6 PERIOD3\n"
-                          "RHS R3 30\n"
-                          "SC S04 S03 0.3 PERIOD4\n"
-                          "RHS R4 25\n"
-                          "ENDATA");
-  smps = ScenarioStructure(malformed_scenario_entry2);
-  REQUIRE(!smps.is_valid());
-
-  std::istringstream empty_scenario("SCENARIOS DISCRETE\n"
-                          "SC S01 ROOT 0.5 PERIOD2\n"
-                          "RHS R1 50\n"
-                          "RHS R2 40\n"
-                          "SC S02 ROOT 0.3 PERIOD2\n"
-                          "SC S03 S02 0.6 PERIOD3\n"
-                          "RHS R3 30\n"
-                          "SC S04 S03 0.3 PERIOD4\n"
-                          "RHS R4 25\n"
-                          "ENDATA");
-  smps = ScenarioStructure(empty_scenario);
-  REQUIRE(!smps.is_valid());
-
-  std::istringstream missing_end("SCENARIOS DISCRETE\n"
-                          "SC S01 ROOT 0.5 PERIOD2\n"
-                          "RHS R1 50\n"
-                          "RHS R2 40\n"
-                          "SC S02 ROOT 0.3 PERIOD2\n"
-                          "RHS R1 40\n"
-                          "RHS R2 50\n"
-                          "SC S03 S02 0.6 PERIOD3\n"
-                          "RHS R3 30\n"
-                          "SC S04 S03 0.3 PERIOD4\n"
-                          "RHS R4 25"
-                          );
-  smps = ScenarioStructure(missing_end);
-  REQUIRE(!smps.is_valid());
-
-  std::istringstream malformed_end("SCENARIOS DISCRETE\n"
-                          "SC S01 ROOT 0.5 PERIOD2\n"
-                          "RHS R1 50\n"
-                          "RHS R2 40\n"
-                          "SC S02 ROOT 0.3 PERIOD2\n"
-                          "RHS R1 40\n"
-                          "RHS R2 50\n"
-                          "SC S03 S02 0.6 PERIOD3\n"
-                          "RHS R3 30\n"
-                          "SC S04 S03 0.3 PERIOD4\n"
-                          "RHS R4 25\n"
-                          "ENDDATA");
-  smps = ScenarioStructure(malformed_end);
-  REQUIRE(!smps.is_valid());
-
-  std::istringstream nonnumeric("SCENARIOS DISCRETE\n"
-                          "SC S01 ROOT 0.5 PERIOD2\n"
-                          "RHS R1 50\n"
-                          "RHS R2 40\n"
-                          "SC S02 ROOT 0.3A PERIOD2\n"
-                          "RHS R1 40\n"
-                          "RHS R2 50\n"
-                          "SC S03 S02 0.6 PERIOD3\n"
-                          "RHS R3 30\n"
-                          "SC S04 S03 0.3 PERIOD4\n"
-                          "RHS R4 25\n"
-                          "ENDATA");
-  smps = ScenarioStructure(nonnumeric);
-  REQUIRE(!smps.is_valid());
-
-  std::istringstream nonumeric2("SCENARIOS DISCRETE\n"
-                          "SC S01 ROOT 0.5 PERIOD2\n"
-                          "RHS R1 50\n"
-                          "RHS R2 RHS\n"
-                          "SC S02 ROOT 0.3 PERIOD2\n"
-                          "RHS R1 40\n"
-                          "RHS R2 50\n"
-                          "SC S03 S02 0.6 PERIOD3\n"
-                          "RHS R3 30\n"
-                          "SC S04 S03 0.3 PERIOD4\n"
-                          "RHS R4 25\n"
-                          "ENDATA");
-  smps = ScenarioStructure(nonumeric2);
-  REQUIRE(!smps.is_valid());
-
-  std::istringstream invalid_probability("SCENARIOS DISCRETE\n"
-                          "SC S01 ROOT -0.5 PERIOD2\n"
-                          "RHS R1 50\n"
-                          "RHS R2 40\n"
-                          "SC S02 ROOT 0.3 PERIOD2\n"
-                          "RHS R1 40\n"
-                          "RHS R2 50\n"
-                          "SC S03 S02 0.6 PERIOD3\n"
-                          "RHS R3 30\n"
-                          "SC S04 S03 0.3 PERIOD4\n"
-                          "RHS R4 25\n"
-                          "ENDATA");
-  smps = ScenarioStructure(invalid_probability);
-  REQUIRE(!smps.is_valid());
-
-  std::istringstream invalid_probability2("SCENARIOS DISCRETE\n"
-                          "SC S01 ROOT 0.5 PERIOD2\n"
-                          "RHS R1 50\n"
-                          "RHS R2 40\n"
-                          "SC S02 ROOT 0.3 PERIOD2\n"
-                          "RHS R1 40\n"
-                          "RHS R2 50\n"
-                          "SC S03 S02 2.6 PERIOD3\n"
-                          "RHS R3 30\n"
-                          "SC S04 S03 0.3 PERIOD4\n"
-                          "RHS R4 25\n"
-                          "ENDATA");
-  smps = ScenarioStructure(invalid_probability2);
-  REQUIRE(!smps.is_valid());
-
-  std::istringstream malformed_header("STOCH NAME\n"
-                                      "SCENARIOS DISCRETE\n"
-                          "SC S01 ROOT 0.5 PERIOD2\n"
-                          "RHS R1 50\n"
-                          "RHS R2 40\n"
-                          "SC S02 ROOT 0.3 PERIOD2\n"
-                          "RHS R1 40\n"
-                          "RHS R2 50\n"
-                          "SC S03 S02 0.6 PERIOD3\n"
-                          "RHS R3 30\n"
-                          "SC S04 S03 0.3 PERIOD4\n"
-                          "RHS R4 25\n"
-                          "ENDATA");
-  smps = ScenarioStructure(malformed_header);
-  REQUIRE(!smps.is_valid());
-
-  std::istringstream malformed_header2(
-                                      "SCENARIO DISCRETE\n"
-                          "SC S01 ROOT 0.5 PERIOD2\n"
-                          "RHS R1 50\n"
-                          "RHS R2 40\n"
-                          "SC S02 ROOT 0.3 PERIOD2\n"
-                          "RHS R1 40\n"
-                          "RHS R2 50\n"
-                          "SC S03 S02 0.6 PERIOD3\n"
-                          "RHS R3 30\n"
-                          "SC S04 S03 0.3 PERIOD4\n"
-                          "RHS R4 25\n"
-                          "ENDATA");
-  smps = ScenarioStructure(malformed_header2);
-  REQUIRE(!smps.is_valid());
-
-  std::istringstream malformed_header3(
-                          "SC S01 ROOT 0.5 PERIOD2\n"
-                          "RHS R1 50\n"
-                          "RHS R2 40\n"
-                          "SC S02 ROOT 0.3 PERIOD2\n"
-                          "RHS R1 40\n"
-                          "RHS R2 50\n"
-                          "SC S03 S02 0.6 PERIOD3\n"
-                          "RHS R3 30\n"
-                          "SC S04 S03 0.3 PERIOD4\n"
-                          "RHS R4 25\n"
-                          "ENDATA");
-  smps = ScenarioStructure(malformed_header3);
-  REQUIRE(!smps.is_valid());
-
-  std::istringstream end_comments(
-                          "SCENARIOS DISCRETE\n"
-                          "SC S01 ROOT 0.5 PERIOD2\n"
-                          "RHS R1 50\n"
-                          "RHS R2 40\n"
-                          "SC S02 ROOT 0.3 PERIOD2\n"
-                          "RHS R1 40\n"
-                          "RHS R2 50\n"
-                          "SC S03 S02 0.6 PERIOD3\n"
-                          "RHS R3 30\n"
-                          "SC S04 S03 0.3 PERIOD4\n"
-                          "RHS R4 25\n"
-                          "*\n"
-                          "*");
-  smps = ScenarioStructure(end_comments);
-  REQUIRE(!smps.is_valid());
+  {
+    std::istringstream malformed_scenario_header2("SCENARIOS DISCRETE\n"
+                            "SC S01 ROOT 0.5 PERIOD2\n"
+                            "RHS R1 50\n"
+                            "RHS R2 40\n"
+                            "SC S02 ROOT 0.3 PERIOD2 R2\n"
+                            "RHS R1 40\n"
+                            "RHS R2 50\n"
+                            "SC S03 S02 0.6 PERIOD3\n"
+                            "RHS R3 30\n"
+                            "SC S04 S03 0.3 PERIOD4\n"
+                            "RHS R4 25\n"
+                            "ENDATA");
+    auto smps = ScenarioStructure(malformed_scenario_header2, time, core);
+    REQUIRE(!smps.is_valid());
+  }
+  {
+    std::istringstream malformed_scenario_entry("SCENARIOS DISCRETE\n"
+                            "SC S01 ROOT 0.5 PERIOD2\n"
+                            "RHS R1 50\n"
+                            "RHS R2 40\n"
+                            "SC S02 ROOT 0.3 PERIOD2\n"
+                            "RHS R1 40\n"
+                            "R2 50\n"
+                            "SC S03 S02 0.6 PERIOD3\n"
+                            "RHS R3 30\n"
+                            "SC S04 S03 0.3 PERIOD4\n"
+                            "RHS R4 25\n"
+                            "ENDATA");
+    auto smps = ScenarioStructure(malformed_scenario_entry, time, core);
+    REQUIRE(!smps.is_valid());
+  }
+  {
+    std::istringstream malformed_scenario_entry2("SCENARIOS DISCRETE\n"
+                            "SC S01 ROOT 0.5 PERIOD2\n"
+                            "RHS R1 50\n"
+                            "RHS R2 40\n"
+                            "SC S02 ROOT 0.3 PERIOD2\n"
+                            "RHS R1 40 PERIOD2\n"
+                            "RHS R2 50\n"
+                            "SC S03 S02 0.6 PERIOD3\n"
+                            "RHS R3 30\n"
+                            "SC S04 S03 0.3 PERIOD4\n"
+                            "RHS R4 25\n"
+                            "ENDATA");
+    auto smps = ScenarioStructure(malformed_scenario_entry2, time, core);
+    REQUIRE(!smps.is_valid());
+  }
+  {
+    std::istringstream empty_scenario("SCENARIOS DISCRETE\n"
+                            "SC S01 ROOT 0.5 PERIOD2\n"
+                            "RHS R1 50\n"
+                            "RHS R2 40\n"
+                            "SC S02 ROOT 0.3 PERIOD2\n"
+                            "SC S03 S02 0.6 PERIOD3\n"
+                            "RHS R3 30\n"
+                            "SC S04 S03 0.3 PERIOD4\n"
+                            "RHS R4 25\n"
+                            "ENDATA");
+    auto smps = ScenarioStructure(empty_scenario, time, core);
+    REQUIRE(!smps.is_valid());
+  }
+  {
+    std::istringstream missing_end("SCENARIOS DISCRETE\n"
+                            "SC S01 ROOT 0.5 PERIOD2\n"
+                            "RHS R1 50\n"
+                            "RHS R2 40\n"
+                            "SC S02 ROOT 0.3 PERIOD2\n"
+                            "RHS R1 40\n"
+                            "RHS R2 50\n"
+                            "SC S03 S02 0.6 PERIOD3\n"
+                            "RHS R3 30\n"
+                            "SC S04 S03 0.3 PERIOD4\n"
+                            "RHS R4 25"
+                            );
+    auto smps = ScenarioStructure(missing_end, time, core);
+    REQUIRE(!smps.is_valid());
+  }
+  {
+    std::istringstream malformed_end("SCENARIOS DISCRETE\n"
+                            "SC S01 ROOT 0.5 PERIOD2\n"
+                            "RHS R1 50\n"
+                            "RHS R2 40\n"
+                            "SC S02 ROOT 0.3 PERIOD2\n"
+                            "RHS R1 40\n"
+                            "RHS R2 50\n"
+                            "SC S03 S02 0.6 PERIOD3\n"
+                            "RHS R3 30\n"
+                            "SC S04 S03 0.3 PERIOD4\n"
+                            "RHS R4 25\n"
+                            "ENDDATA");
+    auto smps = ScenarioStructure(malformed_end, time, core);
+    REQUIRE(!smps.is_valid());
+  }
+  {
+    std::istringstream nonnumeric("SCENARIOS DISCRETE\n"
+                            "SC S01 ROOT 0.5 PERIOD2\n"
+                            "RHS R1 50\n"
+                            "RHS R2 40\n"
+                            "SC S02 ROOT 0.3A PERIOD2\n"
+                            "RHS R1 40\n"
+                            "RHS R2 50\n"
+                            "SC S03 S02 0.6 PERIOD3\n"
+                            "RHS R3 30\n"
+                            "SC S04 S03 0.3 PERIOD4\n"
+                            "RHS R4 25\n"
+                            "ENDATA");
+    auto smps = ScenarioStructure(nonnumeric, time, core);
+    REQUIRE(!smps.is_valid());
+  }
+  {
+    std::istringstream nonumeric2("SCENARIOS DISCRETE\n"
+                            "SC S01 ROOT 0.5 PERIOD2\n"
+                            "RHS R1 50\n"
+                            "RHS R2 RHS\n"
+                            "SC S02 ROOT 0.3 PERIOD2\n"
+                            "RHS R1 40\n"
+                            "RHS R2 50\n"
+                            "SC S03 S02 0.6 PERIOD3\n"
+                            "RHS R3 30\n"
+                            "SC S04 S03 0.3 PERIOD4\n"
+                            "RHS R4 25\n"
+                            "ENDATA");
+    auto smps = ScenarioStructure(nonumeric2, time, core);
+    REQUIRE(!smps.is_valid());
+  }
+  {
+    std::istringstream invalid_probability("SCENARIOS DISCRETE\n"
+                            "SC S01 ROOT -0.5 PERIOD2\n"
+                            "RHS R1 50\n"
+                            "RHS R2 40\n"
+                            "SC S02 ROOT 0.3 PERIOD2\n"
+                            "RHS R1 40\n"
+                            "RHS R2 50\n"
+                            "SC S03 S02 0.6 PERIOD3\n"
+                            "RHS R3 30\n"
+                            "SC S04 S03 0.3 PERIOD4\n"
+                            "RHS R4 25\n"
+                            "ENDATA");
+    auto smps = ScenarioStructure(invalid_probability, time, core);
+    REQUIRE(!smps.is_valid());
+  }
+  {
+    std::istringstream invalid_probability2("SCENARIOS DISCRETE\n"
+                            "SC S01 ROOT 0.5 PERIOD2\n"
+                            "RHS R1 50\n"
+                            "RHS R2 40\n"
+                            "SC S02 ROOT 0.3 PERIOD2\n"
+                            "RHS R1 40\n"
+                            "RHS R2 50\n"
+                            "SC S03 S02 2.6 PERIOD3\n"
+                            "RHS R3 30\n"
+                            "SC S04 S03 0.3 PERIOD4\n"
+                            "RHS R4 25\n"
+                            "ENDATA");
+    auto smps = ScenarioStructure(invalid_probability2, time, core);
+    REQUIRE(!smps.is_valid());
+  }
+  {
+    std::istringstream malformed_header("STOCH NAME\n"
+                                        "SCENARIOS DISCRETE\n"
+                            "SC S01 ROOT 0.5 PERIOD2\n"
+                            "RHS R1 50\n"
+                            "RHS R2 40\n"
+                            "SC S02 ROOT 0.3 PERIOD2\n"
+                            "RHS R1 40\n"
+                            "RHS R2 50\n"
+                            "SC S03 S02 0.6 PERIOD3\n"
+                            "RHS R3 30\n"
+                            "SC S04 S03 0.3 PERIOD4\n"
+                            "RHS R4 25\n"
+                            "ENDATA");
+    auto smps = ScenarioStructure(malformed_header, time, core);
+    REQUIRE(!smps.is_valid());
+  }
+  {
+    std::istringstream malformed_header2(
+                                        "SCENARIO DISCRETE\n"
+                            "SC S01 ROOT 0.5 PERIOD2\n"
+                            "RHS R1 50\n"
+                            "RHS R2 40\n"
+                            "SC S02 ROOT 0.3 PERIOD2\n"
+                            "RHS R1 40\n"
+                            "RHS R2 50\n"
+                            "SC S03 S02 0.6 PERIOD3\n"
+                            "RHS R3 30\n"
+                            "SC S04 S03 0.3 PERIOD4\n"
+                            "RHS R4 25\n"
+                            "ENDATA");
+    auto smps = ScenarioStructure(malformed_header2, time, core);
+    REQUIRE(!smps.is_valid());
+  }
+  {
+    std::istringstream malformed_header3(
+                            "SC S01 ROOT 0.5 PERIOD2\n"
+                            "RHS R1 50\n"
+                            "RHS R2 40\n"
+                            "SC S02 ROOT 0.3 PERIOD2\n"
+                            "RHS R1 40\n"
+                            "RHS R2 50\n"
+                            "SC S03 S02 0.6 PERIOD3\n"
+                            "RHS R3 30\n"
+                            "SC S04 S03 0.3 PERIOD4\n"
+                            "RHS R4 25\n"
+                            "ENDATA");
+    auto smps = ScenarioStructure(malformed_header3, time, core);
+    REQUIRE(!smps.is_valid());
+  }
+  {
+    std::istringstream end_comments(
+                            "SCENARIOS DISCRETE\n"
+                            "SC S01 ROOT 0.5 PERIOD2\n"
+                            "RHS R1 50\n"
+                            "RHS R2 40\n"
+                            "SC S02 ROOT 0.3 PERIOD2\n"
+                            "RHS R1 40\n"
+                            "RHS R2 50\n"
+                            "SC S03 S02 0.6 PERIOD3\n"
+                            "RHS R3 30\n"
+                            "SC S04 S03 0.3 PERIOD4\n"
+                            "RHS R4 25\n"
+                            "*\n"
+                            "*");
+    auto smps = ScenarioStructure(end_comments, time, core);
+    REQUIRE(!smps.is_valid());
+  }
 }
 
 TEST_CASE("test-indep-to-stochastic-tree", "[highs_smps]") {
@@ -1510,422 +1558,289 @@ TEST_CASE("test-block-to-stochastic-tree", "[highs_smps]") {
     }
   }
 }
-//TODO skipping doesn't work!
-// TEST_CASE("test-block-with-skips", "[highs_smps]") {
-//   std::istringstream data("STOCH NAME\n"
-//                           "BLOCKS DISCRETE\n"
-//                           "BL BLOCK01 TIME2 0.3\n"
-//                           "RHS R1 50\n"
-//                           "RHS R2 40\n"
-//                           "BL BLOCK01 TIME2 0.7\n"
-//                           "RHS R1 40\n"
-//                           "RHS R2 50\n"
-//                           "BL BLOCK02 TIME4 1\n"
-//                           "RHS R3 50\n"
-//                           "RHS R4 40\n"
-//                           "ENDATA");
-//   BlockStructure smps(data);
-//   REQUIRE(smps.is_valid());
-//   auto tree = smps.constructTree();
 
-//   std::istringstream timedata("TIME NAME\n"
-//                                       "PERIODS\n"
-//                                 "X X TIME1\n"
-//                                 "X X TIME2\n"
-//                                 "X X TIME3\n"
-//                                 "X X TIME4\n"
-//                             "ENDATA");
-//   SmpsTimeStructure time(timedata);
-//   REQUIRE(time.is_valid());
-//   tree.fix_tree(time);
+TEST_CASE("test-scenario-structure-tree", "[highs_smps]") {
+   std::string filename = std::tmpnam(nullptr);
+   std::ofstream(filename) << R"(
+    NAME PROBLEM
+    ROWS
+    	N .COST
+    	E R1
+    	E R2
+    	E R3
+    	E R4
+    COLUMNS
+    	C1 R1 1 R2 2
+    	C1  .COST -1
+    	C2  R2 4
+    	C2 .COST -2
+    	C2 R3 4 R4 4
+    	C3 R3 4
+    	C4 R4 5
+    RHS
+    	RHS R1 6 R2 6
+    	RHS R3 6 R4 6
+    ENDATA
+   )";
+   SmpsCoreStructure core({}, filename);
+   REQUIRE(core.is_valid());
 
-//   REQUIRE(tree.root->get_parent() == nullptr);
-//   REQUIRE(tree.root->verify_children_probabilities());
-//   REQUIRE(tree.root->get_no_children() == 1);
-//   REQUIRE(tree.root->get_lp_modifications() == std::vector<LpEntry> {});
-//   REQUIRE(tree.root->get_node_probability() == 1.);
+   std::istringstream timedata("TIME NAME\n"
+                                       "PERIODS\n"
+                                 "C1 R1 PERIOD1\n"
+                                 "C3 R3 PERIOD2\n"
+                                 "C4 R4 PERIOD3\n"
+                             "ENDATA");
+   SmpsTimeStructure time(timedata);
+   REQUIRE(time.is_valid());
 
-//   {
-//     auto & parent = tree.root;
-//     auto & child = parent->get_child(0);
-//     REQUIRE(child->verify_children_probabilities());
-//     REQUIRE(child->get_no_children() == 2);
-//     REQUIRE(tree.root->get_lp_modifications() == std::vector<LpEntry> {});
-//     REQUIRE(tree.root->get_node_probability() == 1.);
-//   }
-//   {
-//     auto & parent = tree.root->get_child(0);
-//     auto & child = parent->get_child(0);
-//     REQUIRE(child->verify_children_probabilities());
-//     REQUIRE(child->get_no_children() == 1);
-//     REQUIRE(tree.root->get_lp_modifications() == std::vector<LpEntry> {
-//       {{"R1", "RHS", 50}, {"R2", "RHS", 40}},
-//     });
-//     REQUIRE(tree.root->get_node_probability() == 0.3);
-//   }
-//   {
-//     auto & parent = tree.root->get_child(0)->get_child(0);
-//     auto & child = parent->get_child(0);
-//     REQUIRE(child->verify_children_probabilities());
-//     REQUIRE(child->get_no_children() == 1);
-//     REQUIRE(tree.root->get_lp_modifications() == std::vector<LpEntry> { });
-//     REQUIRE(tree.root->get_node_probability() == 1.);
-//   }
-//   {
-//     auto & parent = tree.root->get_child(0)->get_child(0)->get_child(0);
-//     auto & child = parent->get_child(0);
-//     REQUIRE(child->verify_children_probabilities());
-//     REQUIRE(child->get_no_children() == 0);
-//     REQUIRE(tree.root->get_lp_modifications() == std::vector<LpEntry> {
-//       {{"R3", "RHS", 50}, {"R4", "RHS", 40}},
-//     });
-//     REQUIRE(tree.root->get_node_probability() == 1.);
-//   }
-//   {
-//     auto & parent = tree.root->get_child(0);
-//     auto & child = parent->get_child(1);
-//     REQUIRE(child->verify_children_probabilities());
-//     REQUIRE(child->get_no_children() == 1);
-//     REQUIRE(tree.root->get_lp_modifications() == std::vector<LpEntry> {
-//       {{"R1", "RHS", 40}, {"R2", "RHS", 50}},
-//     });
-//     REQUIRE(tree.root->get_node_probability() == 0.7);
-//   }
-//   {
-//     auto & parent = tree.root->get_child(0)->get_child(1);
-//     auto & child = parent->get_child(0);
-//     REQUIRE(child->verify_children_probabilities());
-//     REQUIRE(child->get_no_children() == 1);
-//     REQUIRE(tree.root->get_lp_modifications() == std::vector<LpEntry> { });
-//     REQUIRE(tree.root->get_node_probability() == 1.);
-//   }
-//   {
-//     auto & parent = tree.root->get_child(0)->get_child(1)->get_child(0);
-//     auto & child = parent->get_child(0);
-//     REQUIRE(child->verify_children_probabilities());
-//     REQUIRE(child->get_no_children() == 0);
-//     REQUIRE(tree.root->get_lp_modifications() == std::vector<LpEntry> {
-//       {{"R3", "RHS", 50}, {"R4", "RHS", 40}},
-//     });
-//     REQUIRE(tree.root->get_node_probability() == 1.);
-//   }
-// }
+   core.load_time_stages(time);
 
-TEST_CASE("test-scenario-structure-tree-without-fill", "[highs_smps]") {
-  std::istringstream data("SCENARIOS DISCRETE\n"
-                          "SC S01 ROOT 0.5 PERIOD2\n"
-                          "RHS R1 50\n"
-                          "RHS R2 40\n"
-                          "SC S02 ROOT 0.3 PERIOD2\n"
-                          "RHS R1 40\n"
-                          "RHS R2 50\n"
-                          "SC S03 S02 0.6 PERIOD3\n"
-                          "RHS R3 30\n"
-                          "SC S04 S03 0.3 PERIOD4\n"
-                          "RHS R4 25\n"
-                          "ENDATA");
-  ScenarioStructure smps(data);
-  REQUIRE(smps.is_valid());
-  auto tree = smps.constructTree();
+   std::istringstream data("SCENARIOS DISCRETE\n"
+                           "SC S01 ROOT 0.25 PERIOD1\n"
+                           "RHS R1 50\n"
+                           "RHS R2 40\n"
+                           "SC S02 ROOT 0.25 PERIOD1\n"
+                           "RHS R1 40\n"
+                           "RHS R2 50\n"
+                           "SC S03 S02 0.25 PERIOD2\n"
+                           "RHS R3 30\n"
+                           "SC S04 S03 0.25 PERIOD3\n"
+                           "RHS R4 25\n"
+                           "ENDATA");
+   ScenarioStructure smps(data, time, core);
+   REQUIRE(smps.is_valid());
+   auto tree = smps.constructTree();
 
-  REQUIRE(tree.root->get_parent() == nullptr);
-  REQUIRE(!tree.root->verify_children_probabilities());
-  REQUIRE(tree.root->get_no_children() == 2);
-  REQUIRE(tree.root->get_lp_modifications() == std::vector<LpEntry> {});
-  REQUIRE(tree.root->get_node_probability() == 1.);
+   REQUIRE(tree.root->get_parent() == nullptr);
+   REQUIRE(tree.root->verify_children_probabilities());
+   REQUIRE(tree.root->get_no_children() == 2);
+   REQUIRE(tree.root->get_lp_modifications() == std::vector<LpEntry> {});
+   REQUIRE(tree.root->get_node_probability() == 1.);
 
-  {
-    auto & child = tree.root->get_child(0);
-    REQUIRE(child->get_parent() == tree.root.get());
-    REQUIRE(child->get_no_children() == 0);
-    REQUIRE(child->get_node_probability() == 0.5);
-    REQUIRE(child->get_lp_modifications() == std::vector<LpEntry> {{"R1", "RHS", 50}, {"R2", "RHS", 40}});
-  }
-  {
-    auto & child = tree.root->get_child(1);
-    REQUIRE(child->get_parent() == tree.root.get());
-    REQUIRE(!child->verify_children_probabilities());
-    REQUIRE(child->get_no_children() == 1);
-    REQUIRE(child->get_node_probability() == 0.3);
-    REQUIRE(child->get_lp_modifications() == std::vector<LpEntry> {{"R1", "RHS", 40}, {"R2", "RHS", 50}});
-  }
-  {
-    auto & parent = tree.root->get_child(1);
-    auto & child = parent->get_child(0);
-    REQUIRE(child->get_parent() == parent.get());
-    REQUIRE(!child->verify_children_probabilities());
-    REQUIRE(child->get_no_children() == 1);
-    REQUIRE(child->get_node_probability() == 0.6);
-    REQUIRE(child->get_lp_modifications() == std::vector<LpEntry> {{"R3", "RHS", 30}});
-  }
-  {
-    auto & parent = tree.root->get_child(1)->get_child(0);
-    auto & child = parent->get_child(0);
-    REQUIRE(child->get_parent() == parent.get());
-    REQUIRE(!child->verify_children_probabilities());
-    REQUIRE(child->get_no_children() == 0);
-    REQUIRE(child->get_node_probability() == 0.3);
-    REQUIRE(child->get_lp_modifications() == std::vector<LpEntry> {{"R4", "RHS", 25}});
-  }
+   {
+     auto & child = tree.root->get_child(0);
+     REQUIRE(child->get_parent() == tree.root.get());
+     REQUIRE(child->verify_children_probabilities());
+     REQUIRE(child->get_no_children() == 1);
+     REQUIRE(child->get_node_probability() == 0.25);
+     REQUIRE(child->get_lp_modifications() == std::vector<LpEntry> {{"R1", "RHS", 50}, {"R2", "RHS", 40}});
+   }
+   {
+     auto & parent = tree.root->get_child(0);
+     auto & child = parent->get_child(0);
+     REQUIRE(child->get_parent() == parent.get());
+     REQUIRE(child->verify_children_probabilities());
+     REQUIRE(child->get_no_children() == 1);
+     REQUIRE(child->get_node_probability() == 1.);
+     REQUIRE(child->get_lp_modifications() == std::vector<LpEntry> {});
+   }
+   {
+     auto & parent = tree.root->get_child(0)->get_child(0);
+     auto & child = parent->get_child(0);
+     REQUIRE(child->get_parent() == parent.get());
+     REQUIRE(child->verify_children_probabilities());
+     REQUIRE(child->get_no_children() == 0);
+     REQUIRE(child->get_node_probability() == 1.);
+     REQUIRE(child->get_lp_modifications() == std::vector<LpEntry> {});
+   }
+   {
+     auto & child = tree.root->get_child(1);
+     REQUIRE(child->get_parent() == tree.root.get());
+     REQUIRE(child->verify_children_probabilities());
+     REQUIRE(child->get_no_children() == 2);
+     REQUIRE(child->get_node_probability() == 0.75);
+     REQUIRE(child->get_lp_modifications() == std::vector<LpEntry> {{"R1", "RHS", 40}, {"R2", "RHS", 50}});
+   }
+   {
+     auto & parent = tree.root->get_child(1);
+     auto & child = parent->get_child(0);
+     REQUIRE(child->get_parent() == parent.get());
+     REQUIRE(child->verify_children_probabilities());
+     REQUIRE(child->get_no_children() == 1);
+     REQUIRE(std::abs(child->get_node_probability() -  1./3.) < 1e-6);
+     REQUIRE(child->get_lp_modifications() == std::vector<LpEntry> {});
+   }
+   {
+     auto & parent = tree.root->get_child(1)->get_child(0);
+     auto & child = parent->get_child(0);
+     REQUIRE(child->get_parent() == parent.get());
+     REQUIRE(child->verify_children_probabilities());
+     REQUIRE(child->get_no_children() == 0);
+     REQUIRE(child->get_node_probability() == 1.);
+     REQUIRE(child->get_lp_modifications() == std::vector<LpEntry> {});
+   }
+   {
+     auto & parent = tree.root->get_child(1);
+     auto & child = parent->get_child(1);
+     REQUIRE(child->get_parent() == parent.get());
+     REQUIRE(child->verify_children_probabilities());
+     REQUIRE(child->get_no_children() == 2);
+     REQUIRE(std::abs(child->get_node_probability() - 2./3.) < 1e-6);
+     REQUIRE(child->get_lp_modifications() == std::vector<LpEntry> {{"R3", "RHS", 30}});
+   }
+   {
+     auto & parent = tree.root->get_child(1)->get_child(1);
+     auto & child = parent->get_child(0);
+     REQUIRE(child->get_parent() == parent.get());
+     REQUIRE(child->verify_children_probabilities());
+     REQUIRE(child->get_no_children() == 0);
+     REQUIRE(child->get_node_probability() == 0.5);
+     REQUIRE(child->get_lp_modifications() == std::vector<LpEntry> {});
+   }
+   {
+     auto & parent = tree.root->get_child(1)->get_child(1);
+     auto & child = parent->get_child(1);
+     REQUIRE(child->get_parent() == parent.get());
+     REQUIRE(child->verify_children_probabilities());
+     REQUIRE(child->get_no_children() == 0);
+     REQUIRE(child->get_node_probability() == 0.5);
+     REQUIRE(child->get_lp_modifications() == std::vector<LpEntry> {{"R4", "RHS", 25}});
+   }
+ }
+
+TEST_CASE("test-scenario-structure-tree-v2", "[highs_smps]") {
+   std::string filename = std::tmpnam(nullptr);
+   std::ofstream(filename) << R"(
+    NAME PROBLEM
+    ROWS
+    	N .COST
+    	E R1
+    	E R2
+    	E R3
+    	E R4
+    	E R5
+    	E R6
+    COLUMNS
+    	C1 R1 1 R2 2
+    	C1  .COST -1
+    	C2  R2 4
+    	C2 .COST -2
+    	C2 R3 4 R4 4
+    	C3 R3 4
+    	C4 R4 4
+    	C5 R5 5 R6 5
+    RHS
+    	RHS R1 6 R2 6
+    	RHS R3 6 R4 6
+    	RHS R5 6 R6 6
+    ENDATA
+   )";
+   SmpsCoreStructure core({}, filename);
+   REQUIRE(core.is_valid());
+
+   std::istringstream timedata("TIME NAME\n"
+                                       "PERIODS\n"
+                                 "C1 R1 PERIOD0\n"
+                                 "C2 R2 PERIOD1\n"
+                                 "C3 R3 PERIOD2\n"
+                                 "C4 R4 PERIOD3\n"
+                             "ENDATA");
+   SmpsTimeStructure time(timedata);
+   REQUIRE(time.is_valid());
+
+   core.load_time_stages(time);
+
+   std::istringstream data("SCENARIOS DISCRETE\n"
+                           "SC S01 ROOT 0.1 PERIOD0\n"
+                           "RHS R1 10\n"
+                           "RHS R2 10\n"
+                           "RHS R3 10\n"
+                           "RHS R4 10\n"
+                           "RHS R5 10\n"
+                           "RHS R6 10\n"
+                           "SC S02 S01 0.3 PERIOD2\n"
+                           "RHS R3 20\n"
+                           "RHS R4 20\n"
+                           "RHS R5 20\n"
+                           "SC S03 S02 0.45 PERIOD3\n"
+                           "RHS R4 30\n"
+                           "SC S04 S02 0.15 PERIOD3\n"
+                           "RHS R4 40\n"
+                           "RHS R5 40\n"
+                           "ENDATA");
+   ScenarioStructure smps(data, time, core);
+   REQUIRE(smps.is_valid());
+   auto tree = smps.constructTree();
+
+   REQUIRE(tree.root->get_parent() == nullptr);
+   REQUIRE(tree.root->verify_children_probabilities());
+   REQUIRE(tree.root->get_no_children() == 1);
+   REQUIRE(tree.root->get_lp_modifications() == std::vector<LpEntry> {});
+   REQUIRE(tree.root->get_node_probability() == 1.);
+
+   {
+     auto & child = tree.root->get_child(0);
+     REQUIRE(child->get_parent() == tree.root.get());
+     REQUIRE(child->verify_children_probabilities());
+     // REQUIRE(child->get_no_children() == 1);
+     REQUIRE(child->get_node_probability() == 1.);
+     auto mod = child->get_lp_modifications().at(0);
+     REQUIRE(child->get_lp_modifications() == std::vector<LpEntry> {{"R1", "RHS", 10}});
+   }
+   {
+     auto & parent = tree.root->get_child(0);
+     auto & child = parent->get_child(0);
+     REQUIRE(child->get_parent() == parent.get());
+     REQUIRE(child->verify_children_probabilities());
+     REQUIRE(child->get_no_children() == 1);
+     REQUIRE(child->get_node_probability() == 0.1);
+     REQUIRE(child->get_lp_modifications() == std::vector<LpEntry> {{"R2", "RHS", 10}});
+   }
+   {
+     auto & parent = tree.root->get_child(0)->get_child(0);
+     auto & child = parent->get_child(0);
+     REQUIRE(child->get_parent() == parent.get());
+     REQUIRE(child->verify_children_probabilities());
+     REQUIRE(child->get_no_children() == 1);
+     REQUIRE(child->get_node_probability() == 1.);
+     REQUIRE(child->get_lp_modifications() == std::vector<LpEntry> {{"R3", "RHS", 10}});
+   }
+   {
+     //wrong indexing
+     auto & parent = tree.root->get_child(0);
+     auto & child = parent->get_child(1);
+     REQUIRE(child->get_parent() == parent.get());
+     REQUIRE(child->verify_children_probabilities());
+     REQUIRE(child->get_no_children() == 3);
+     REQUIRE(child->get_node_probability() == 0.9);
+     REQUIRE(child->get_lp_modifications() == std::vector<LpEntry> {{"R3", "RHS", 20}});
+   }
+   {
+     //wrong indexing
+     auto & parent = tree.root->get_child(0)->get_child(1);
+     auto & child = parent->get_child(0);
+     REQUIRE(child->get_parent() == parent.get());
+     REQUIRE(child->verify_children_probabilities());
+     REQUIRE(child->get_no_children() == 0);
+     REQUIRE(child->get_node_probability() == 1./3.);
+     REQUIRE(child->get_lp_modifications() == std::vector<LpEntry>
+             {{"R4", "RHS", 20}, {"R5", "RHS", 20}, {"R6", "RHS", 10}});
+   }
+   {
+     //wrong indexing
+     auto & parent = tree.root->get_child(0)->get_child(1);
+     auto & child = parent->get_child(1);
+     REQUIRE(child->get_parent() == parent.get());
+     REQUIRE(child->verify_children_probabilities());
+     REQUIRE(child->get_no_children() == 0);
+     REQUIRE(child->get_node_probability() == 0.5);
+     //no pushdown
+     REQUIRE(child->get_lp_modifications() == std::vector<LpEntry>
+             {{"R4", "RHS", 30}, {"R5", "RHS", 20}, {"R6", "RHS", 10}});
+   }
+   {
+     //wrong indexing
+     auto & parent = tree.root->get_child(0)->get_child(1);
+     auto & child = parent->get_child(2);
+     REQUIRE(child->get_parent() == parent.get());
+     REQUIRE(child->verify_children_probabilities());
+     REQUIRE(child->get_no_children() == 0);
+     REQUIRE(child->get_node_probability() == 1./6.);
+     REQUIRE(child->get_lp_modifications() == std::vector<LpEntry>
+             {{"R4", "RHS", 40}, {"R5", "RHS", 40}, {"R6", "RHS", 10}});
+   }
 }
-//TODO can scenario root have data?
-// TODO scenario has to be fixed
-// TEST_CASE("test-scenario-structure-tree-with-fill", "[highs_smps]") {
-//   std::istringstream data("SCENARIOS DISCRETE\n"
-//                           "SC S01 ROOT 0.5 PERIOD2\n"
-//                           "RHS R1 50\n"
-//                           "RHS R2 40\n"
-//                           "SC S02 ROOT 0.3 PERIOD2\n"
-//                           "RHS R1 40\n"
-//                           "RHS R2 50\n"
-//                           "SC S03 S02 0.6 PERIOD3\n"
-//                           "RHS R3 30\n"
-//                           "SC S04 S03 0.3 PERIOD4\n"
-//                           "RHS R4 25\n"
-//                           "ENDATA");
-//   ScenarioStructure smps(data);
-//   REQUIRE(smps.is_valid());
-//   auto tree = smps.constructTree();
-  
-//   std::istringstream timedata("TIME NAME\n"
-//                                       "PERIODS\n"
-//                                 "C1 R1 PERIOD2\n"
-//                                 "C1 R3 PERIOD3\n"
-//                               "C3 R4 PERIOD4\n"
-//                             "ENDATA");
-//   SmpsTimeStructure time(timedata);
-//   REQUIRE(time.is_valid());
-//   tree.fix_tree(time);
-
-//   REQUIRE(tree.root->get_parent() == nullptr);
-//   REQUIRE(tree.root->verify_children_probabilities());
-//   REQUIRE(tree.root->get_no_children() == 3);
-//   REQUIRE(tree.root->get_lp_modifications() == std::vector<LpEntry> {});
-//   REQUIRE(tree.root->get_node_probability() == 1.);
-
-//   {
-//     auto & child = tree.root->get_child(0);
-//     REQUIRE(child->get_parent() == tree.root.get());
-//     REQUIRE(child->get_no_children() == 1);
-//     REQUIRE(child->get_node_probability() == 0.5);
-//     REQUIRE(child->get_lp_modifications() == std::vector<LpEntry> {{"R1", "RHS", 50}, {"R2", "RHS", 40}});
-//   }
-//   {
-//     auto & parent = tree.root->get_child(0);
-//     auto & child = parent->get_child(0);
-//     REQUIRE(child->get_parent() == parent.get());
-//     REQUIRE(child->get_no_children() == 1);
-//     REQUIRE(child->get_node_probability() == 1.);
-//     REQUIRE(child->get_lp_modifications() == std::vector<LpEntry> {});
-//   }
-//   {
-//     auto & parent = tree.root->get_child(0)->get_child(0);
-//     auto & child = parent->get_child(0);
-//     REQUIRE(child->get_parent() == parent.get());
-//     REQUIRE(child->get_no_children() == 0);
-//     REQUIRE(child->get_node_probability() == 1.);
-//     REQUIRE(child->get_lp_modifications() == std::vector<LpEntry> {});
-//   }
-//   {
-//     auto & child = tree.root->get_child(1);
-//     REQUIRE(child->get_parent() == tree.root.get());
-//     REQUIRE(child->verify_children_probabilities());
-//     REQUIRE(child->get_no_children() == 2);
-//     REQUIRE(child->get_node_probability() == 0.3);
-//     REQUIRE(child->get_lp_modifications() == std::vector<LpEntry> {{"R1", "RHS", 40}, {"R2", "RHS", 50}});
-//   }
-//   {
-//     auto & parent = tree.root->get_child(1);
-//     auto & child = parent->get_child(0);
-//     REQUIRE(child->get_parent() == parent.get());
-//     REQUIRE(child->verify_children_probabilities());
-//     REQUIRE(child->get_no_children() == 2);
-//     REQUIRE(child->get_node_probability() == 0.6);
-//     REQUIRE(child->get_lp_modifications() == std::vector<LpEntry> {{"R3", "RHS", 30}});
-//   }
-//   {
-//     auto & parent = tree.root->get_child(1)->get_child(0);
-//     auto & child = parent->get_child(0);
-//     REQUIRE(child->get_parent() == parent.get());
-//     REQUIRE(child->get_no_children() == 0);
-//     REQUIRE(child->get_node_probability() == 0.3);
-//     REQUIRE(child->get_lp_modifications() == std::vector<LpEntry> {{"R4", "RHS", 25}});
-//   }
-//   {
-//     auto & parent = tree.root->get_child(1)->get_child(0);
-//     auto & child = parent->get_child(1);
-//     REQUIRE(child->get_parent() == parent.get());
-//     REQUIRE(child->get_no_children() == 0);
-//     REQUIRE(child->get_node_probability() == 0.7);
-//     REQUIRE(child->get_lp_modifications() == std::vector<LpEntry> {});
-//   }
-//   {
-//     auto & parent = tree.root->get_child(1);
-//     auto & child = parent->get_child(1);
-//     REQUIRE(child->get_parent() == parent.get());
-//     REQUIRE(child->verify_children_probabilities());
-//     REQUIRE(child->get_no_children() == 1);
-//     REQUIRE(std::abs(child->get_node_probability() - 0.4) < 1e-6);
-//     REQUIRE(child->get_lp_modifications() == std::vector<LpEntry> {});
-//   }
-//   {
-//     auto & parent = tree.root->get_child(1)->get_child(1);
-//     auto & child = parent->get_child(0);
-//     REQUIRE(child->get_parent() == parent.get());
-//     REQUIRE(child->get_no_children() == 0);
-//     REQUIRE(child->get_node_probability() == 1);
-//     REQUIRE(child->get_lp_modifications() == std::vector<LpEntry> {});
-//   }
-//   {
-//     auto & child = tree.root->get_child(2);
-//     REQUIRE(child->get_parent() == tree.root.get());
-//     REQUIRE(child->get_no_children() == 1);
-//     REQUIRE(std::abs(child->get_node_probability()-0.2) < 1e-6 );
-//     REQUIRE(child->get_lp_modifications() == std::vector<LpEntry> {});
-//   }
-//   {
-//     auto & parent = tree.root->get_child(2);
-//     auto & child = parent->get_child(0);
-//     REQUIRE(child->get_parent() == parent.get());
-//     REQUIRE(child->get_no_children() == 1);
-//     REQUIRE(child->get_node_probability() == 1);
-//     REQUIRE(child->get_lp_modifications() == std::vector<LpEntry> {});
-//   }
-//   {
-//     auto & parent = tree.root->get_child(2)->get_child(0);
-//     auto & child = parent->get_child(0);
-//     REQUIRE(child->get_parent() == parent.get());
-//     REQUIRE(child->get_no_children() == 0);
-//     REQUIRE(child->get_node_probability() == 1);
-//     REQUIRE(child->get_lp_modifications() == std::vector<LpEntry> {});
-//   }
-// }
-//TODO scenario structure will have to be changed
-// TEST_CASE("test-scenario-structure-with-time-skips", "[highs_smps]") {
-//   std::istringstream data("SCENARIOS DISCRETE\n"
-//                           "SC S01 ROOT 0.5 PERIOD2\n"
-//                           "RHS R2 40\n"
-//                           "SC S02 ROOT 0.5 PERIOD4\n"
-//                           "RHS R2 50\n"
-//                           "ENDATA");
-//   ScenarioStructure smps(data);
-//   REQUIRE(smps.is_valid());
-//   auto tree = smps.constructTree();
-  
-//   std::istringstream timedata("TIME NAME\n"
-//                                       "PERIODS\n"
-//                                 "C0 R0 PERIOD1"
-//                                 "C1 R1 PERIOD2\n"
-//                                 "C1 R3 PERIOD3\n"
-//                               "C3 R4 PERIOD4\n"
-//                             "ENDATA");
-//   SmpsTimeStructure time(timedata);
-//   REQUIRE(time.is_valid());
-//   tree.fix_tree(time);
-
-//   REQUIRE(tree.root->get_parent() == nullptr);
-//   REQUIRE(tree.root->verify_children_probabilities());
-//   REQUIRE(tree.root->get_no_children() == 3);
-//   REQUIRE(tree.root->get_lp_modifications() == std::vector<LpEntry> {});
-//   REQUIRE(tree.root->get_node_probability() == 1.);
-
-//   {
-//     auto & child = tree.root->get_child(0);
-//     REQUIRE(child->get_parent() == tree.root.get());
-//     REQUIRE(child->get_no_children() == 1);
-//     REQUIRE(child->get_node_probability() == 0.5);
-//     REQUIRE(child->get_lp_modifications() == std::vector<LpEntry> {{"R1", "RHS", 50}, {"R2", "RHS", 40}});
-//   }
-//   {
-//     auto & parent = tree.root->get_child(0);
-//     auto & child = parent->get_child(0);
-//     REQUIRE(child->get_parent() == parent.get());
-//     REQUIRE(child->get_no_children() == 1);
-//     REQUIRE(child->get_node_probability() == 1.);
-//     REQUIRE(child->get_lp_modifications() == std::vector<LpEntry> {});
-//   }
-//   {
-//     auto & parent = tree.root->get_child(0)->get_child(0);
-//     auto & child = parent->get_child(0);
-//     REQUIRE(child->get_parent() == parent.get());
-//     REQUIRE(child->get_no_children() == 0);
-//     REQUIRE(child->get_node_probability() == 1.);
-//     REQUIRE(child->get_lp_modifications() == std::vector<LpEntry> {});
-//   }
-//   {
-//     auto & child = tree.root->get_child(1);
-//     REQUIRE(child->get_parent() == tree.root.get());
-//     REQUIRE(child->verify_children_probabilities());
-//     REQUIRE(child->get_no_children() == 2);
-//     REQUIRE(child->get_node_probability() == 0.3);
-//     REQUIRE(child->get_lp_modifications() == std::vector<LpEntry> {{"R1", "RHS", 40}, {"R2", "RHS", 50}});
-//   }
-//   {
-//     auto & parent = tree.root->get_child(1);
-//     auto & child = parent->get_child(0);
-//     REQUIRE(child->get_parent() == parent.get());
-//     REQUIRE(child->verify_children_probabilities());
-//     REQUIRE(child->get_no_children() == 2);
-//     REQUIRE(child->get_node_probability() == 0.6);
-//     REQUIRE(child->get_lp_modifications() == std::vector<LpEntry> {{"R3", "RHS", 30}});
-//   }
-//   {
-//     auto & parent = tree.root->get_child(1)->get_child(0);
-//     auto & child = parent->get_child(0);
-//     REQUIRE(child->get_parent() == parent.get());
-//     REQUIRE(child->get_no_children() == 0);
-//     REQUIRE(child->get_node_probability() == 0.3);
-//     REQUIRE(child->get_lp_modifications() == std::vector<LpEntry> {{"R4", "RHS", 25}});
-//   }
-//   {
-//     auto & parent = tree.root->get_child(1)->get_child(0);
-//     auto & child = parent->get_child(1);
-//     REQUIRE(child->get_parent() == parent.get());
-//     REQUIRE(child->get_no_children() == 0);
-//     REQUIRE(child->get_node_probability() == 0.7);
-//     REQUIRE(child->get_lp_modifications() == std::vector<LpEntry> {});
-//   }
-//   {
-//     auto & parent = tree.root->get_child(1);
-//     auto & child = parent->get_child(1);
-//     REQUIRE(child->get_parent() == parent.get());
-//     REQUIRE(child->verify_children_probabilities());
-//     REQUIRE(child->get_no_children() == 1);
-//     REQUIRE(std::abs(child->get_node_probability() - 0.4) < 1e-6);
-//     REQUIRE(child->get_lp_modifications() == std::vector<LpEntry> {});
-//   }
-//   {
-//     auto & parent = tree.root->get_child(1)->get_child(1);
-//     auto & child = parent->get_child(0);
-//     REQUIRE(child->get_parent() == parent.get());
-//     REQUIRE(child->get_no_children() == 0);
-//     REQUIRE(child->get_node_probability() == 1);
-//     REQUIRE(child->get_lp_modifications() == std::vector<LpEntry> {});
-//   }
-//   {
-//     auto & child = tree.root->get_child(2);
-//     REQUIRE(child->get_parent() == tree.root.get());
-//     REQUIRE(child->get_no_children() == 1);
-//     REQUIRE(std::abs(child->get_node_probability()-0.2) < 1e-6 );
-//     REQUIRE(child->get_lp_modifications() == std::vector<LpEntry> {});
-//   }
-//   {
-//     auto & parent = tree.root->get_child(2);
-//     auto & child = parent->get_child(0);
-//     REQUIRE(child->get_parent() == parent.get());
-//     REQUIRE(child->get_no_children() == 1);
-//     REQUIRE(child->get_node_probability() == 1);
-//     REQUIRE(child->get_lp_modifications() == std::vector<LpEntry> {});
-//   }
-//   {
-//     auto & parent = tree.root->get_child(2)->get_child(0);
-//     auto & child = parent->get_child(0);
-//     REQUIRE(child->get_parent() == parent.get());
-//     REQUIRE(child->get_no_children() == 0);
-//     REQUIRE(child->get_node_probability() == 1);
-//     REQUIRE(child->get_lp_modifications() == std::vector<LpEntry> {});
-//   }
-// }
 
 TEST_CASE("test-empty-sparse-vector", "[highs_smps]") {
   SparseVector vec {};
@@ -2151,20 +2066,6 @@ TEST_CASE("test-add-tree-entry", "[highs_smps]") {
   auto instance = std::string(HIGHS_DIR) + "/check/instances/simple";
   Highs highs;
   build_stochastic_problem(highs, instance);
-  // HighsOptions opt;
-  // SmpsCoreStructure core(opt, instance + ".cor");
-  // REQUIRE(core.is_valid());
-
-  // SmpsTimeStructure time(instance + ".tim");
-  // REQUIRE(time.is_valid());
-
-  // IndepStructure stoch(instance + ".sto");
-  // REQUIRE(stoch.is_valid());
-  // auto tree = stoch.constructTree();
-
-  // core.load_time_stages(time);
-  // Highs highs;
-  // add_tree_entries(core, tree, highs);
 
   REQUIRE(highs.getNumCol() == 9);
 
@@ -2241,7 +2142,6 @@ TEST_CASE("test-update-bounds", "[highs_smps]") {
 
   REQUIRE(update_ub(3, 0) == 0);
   REQUIRE(update_lb(3, 0) == 0);
-  // TODO what if both are +- inf or invalid?
 }
 
 

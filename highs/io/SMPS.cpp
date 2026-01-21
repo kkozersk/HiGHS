@@ -1,6 +1,5 @@
 #include "SMPS.h"
 #include <algorithm>
-#include <cstddef>
 #include <cstdio>
 #include <fstream>
 #include <iterator>
@@ -12,7 +11,7 @@
 #include <vector>
 #include "Filereader.h"
 #include "FilereaderMps.h"
-#include "catch.hpp"
+#include "HighsLp.h"
 #include "lp_data/HStruct.h"
 #include "model/HighsModel.h"
 #include "lp_data/HighsOptions.h"
@@ -68,15 +67,23 @@ int SmpsTimeStructure::get_stage_index(std::string const & stage) const {
   return std::distance(stage_names.begin(), it);
 }
 
+
+SmpsCoreStructure & SmpsCoreStructure::operator=(HighsLp const & lp) {
+  HighsLp::operator=(lp);
+  if (!col_hash_.name2index.size()) col_hash_.form(col_names_);
+  if (!row_hash_.name2index.size()) row_hash_.form(row_names_);
+  return *this;
+}
+
 SmpsCoreStructure::SmpsCoreStructure(HighsOptions const & options, std::string const & filepath) {
   FilereaderMps mps;
   HighsModel model;
   is_valid_ = mps.readModelFromFile(options, filepath, model) == FilereaderRetcode::kOk;
-  if (is_valid_) {
-    HighsLp::operator=(model.lp_);
-    if (!col_hash_.name2index.size()) col_hash_.form(col_names_);
-    if (!row_hash_.name2index.size()) row_hash_.form(row_names_);
-  }
+  if (is_valid_) *this = model.lp_;
+}
+
+SmpsCoreStructure::SmpsCoreStructure(HighsLp const & lp) {
+  *this=lp;
 }
 
 bool SmpsCoreStructure::load_time_stages(SmpsTimeStructure const & time_stage_data) {
@@ -136,9 +143,8 @@ double Node::sum_children_prob() const {
                 [](double sum, std::unique_ptr<Node> const & node){return sum + node->node_probability;});
 } 
 
-//TODO should it return true when zero children?
 bool Node::verify_children_probabilities() const {
-  return std::abs(sum_children_prob() - 1.) < 1e-6;
+  return is_leaf() || std::abs(sum_children_prob() - 1.) < 1e-6;
 }
 
 void Node::add_child(std::unique_ptr<Node> && child) {
@@ -146,7 +152,7 @@ void Node::add_child(std::unique_ptr<Node> && child) {
   children.push_back(std::move(child));
 }
 
-std::unique_ptr<SmpsStochasticStructure> read_stochastic_file(std::string const & filepath) {
+std::unique_ptr<SmpsStochasticStructure> read_stochastic_file(std::string const & filepath, SmpsCoreStructure const & core, SmpsTimeStructure const & time) {
   std::string header, problem_name, structure_type, distribution;
   std::ifstream(filepath) >> header >> problem_name >> structure_type >> distribution;
   if (distribution != "DISCRETE") return nullptr;
@@ -155,7 +161,7 @@ std::unique_ptr<SmpsStochasticStructure> read_stochastic_file(std::string const 
   if (structure_type == "BLOCK")
     return std::unique_ptr<SmpsStochasticStructure>(new BlockStructure(filepath));
   if (structure_type == "SCENARIO")
-    return std::unique_ptr<SmpsStochasticStructure>(new ScenarioStructure(filepath));
+    return std::unique_ptr<SmpsStochasticStructure>(new ScenarioStructure(filepath, time, core));
   return nullptr;
 }
 
@@ -236,7 +242,7 @@ bool IndepStructure::process_data(std::istream & input) {
   return is_proper_ending(tokens);
 };
 
-StochasticTree IndepStructure::constructTree(SmpsTimeStructure const & time, SmpsCoreStructure const & core) {
+StochasticTree IndepStructure::constructTree() {
   auto root = std::unique_ptr<Node>(new Node("root"));
   std::vector<Node*> current_level = {root.get()}, next_level;
   for (auto const & timestage_rvs : timestage_random_entries) {
@@ -249,7 +255,7 @@ StochasticTree IndepStructure::constructTree(SmpsTimeStructure const & time, Smp
     current_level = next_level;
     next_level.clear();
   }
-  return StochasticTree(std::move(root), time);
+  return StochasticTree(std::move(root));
 }
 
 RandomVector append_to_random_vector(RandomVariable const & rv, RandomVector const & rvec) {
@@ -359,7 +365,7 @@ bool BlockStructure::process_data(std::istream & input) {
   return is_proper_ending(tokens);
 }
 
-StochasticTree BlockStructure::constructTree(SmpsTimeStructure const & time, SmpsCoreStructure const & core) {
+StochasticTree BlockStructure::constructTree() {
   auto root = std::unique_ptr<Node>(new Node("root"));
   std::vector<Node*> current_level = {root.get()}, next_level;
   for (auto const & timestage_rvs : timestage_random_vectors) {
@@ -372,7 +378,7 @@ StochasticTree BlockStructure::constructTree(SmpsTimeStructure const & time, Smp
     current_level = next_level;
     next_level.clear();
   }
-  return StochasticTree(std::move(root), time);
+  return StochasticTree(std::move(root));
 }
 
 bool str_to_dbl(std::string const & str, double & val) {
@@ -441,7 +447,7 @@ bool ScenarioStructure::construct_parent_mapping() {
   return true;
 }
 
-StochasticTree ScenarioStructure::constructTree(SmpsTimeStructure const & time, SmpsCoreStructure const & core) {
+StochasticTree ScenarioStructure::constructTree() {
   auto root = std::unique_ptr<Node>(new Node("root"));
   std::map<std::pair<std::string, std::string>, Node *> scen_time2node {{{"ROOT", "ROOT"}, root.get()}};
   for (auto & scen : scenarios) {
@@ -458,7 +464,7 @@ StochasticTree ScenarioStructure::constructTree(SmpsTimeStructure const & time, 
       parent = child;
     }
   }
-  return root->rescale_tree_to_leaf_probability() ? StochasticTree(std::move(root), time) : nullptr;
+  return root->rescale_tree_to_leaf_probability() ? StochasticTree(std::move(root)) : nullptr;
 }
 
 bool Node::rescale_to_children_probability() {
@@ -532,30 +538,30 @@ std::string Node::get_next_timestage(std::vector<std::string> const & timestages
    return it == timestages_in_order.end() - 1 ? timestage : *(it + 1);
 }
 
-void Node::fill_missing_child() {
-  double missing_probability  = 1 - sum_children_prob();  
-  if (get_no_children() == 0 || missing_probability < 1e-6) return;
-  add_child(std::unique_ptr<Node>(new Node(children.at(0)->timestage, missing_probability)));
-}
+// void Node::fill_missing_child() {
+//   double missing_probability  = 1 - sum_children_prob();  
+//   if (get_no_children() == 0 || missing_probability < 1e-6) return;
+//   add_child(std::unique_ptr<Node>(new Node(children.at(0)->timestage, missing_probability)));
+// }
 
-void Node::fill_tree() {
-  fill_missing_child();
-  for (auto & child : children)  child->fill_tree();
-}
+// void Node::fill_tree() {
+//   fill_missing_child();
+//   for (auto & child : children)  child->fill_tree();
+// }
 
 //TODO use return values
-bool Node::fill_missing_timestages(std::vector<std::string> const & timestages_in_order) {
-   auto next_timestage = get_next_timestage(timestages_in_order);
-   if (next_timestage == "") return false;
-   if (next_timestage == timestage) return true;
-   if (is_leaf()) add_child(std::unique_ptr<Node>{new Node(next_timestage)});
-   for (auto & child : children) {
-      if (child->get_timestage() != next_timestage)
-        insert_intermediate_child(new Node(next_timestage), child);
-      if (!child->fill_missing_timestages(timestages_in_order)) return false;
-   }
-   return true;
-}
+// bool Node::fill_missing_timestages(std::vector<std::string> const & timestages_in_order) {
+//    auto next_timestage = get_next_timestage(timestages_in_order);
+//    if (next_timestage == "") return false;
+//    if (next_timestage == timestage) return true;
+//    if (is_leaf()) add_child(std::unique_ptr<Node>{new Node(next_timestage)});
+//    for (auto & child : children) {
+//       if (child->get_timestage() != next_timestage)
+//         insert_intermediate_child(new Node(next_timestage), child);
+//       if (!child->fill_missing_timestages(timestages_in_order)) return false;
+//    }
+//    return true;
+// }
 
 // TODO move semantics?
 void Node::insert_intermediate_child(Node * intermediate_child, std::unique_ptr<Node> & current_child, bool swap_probability) {
@@ -735,9 +741,9 @@ bool build_stochastic_problem(Highs & problem,
     SmpsTimeStructure time(time_filename);
     if (!time.is_valid()) return false;
 
-    auto stoch = read_stochastic_file(stoch_filename);
+    auto stoch = read_stochastic_file(stoch_filename, core, time);
     if (stoch == nullptr || !stoch->is_valid()) return false;
-    auto tree = stoch->constructTree(time, core);
+    auto tree = stoch->constructTree();
 
     if (!core.load_time_stages(time)) return false;
     //TODO some checking should be done here
