@@ -1099,10 +1099,12 @@ TEST_CASE("test-create-simple-scenario-structure", "[highs_smps]") {
       {{"R1","RHS",50}, {"R2", "RHS", 40}},
       0.5, "PERIOD2", "S01", "ROOT" };
   REQUIRE(smps.get_scenario(0) == scen1);
+  REQUIRE(smps.get_scenario("S01") == scen1);
   ScenarioModifications scen2 {
       {{"R1","RHS",40}, {"R2", "RHS", 50}},
       0.3, "PERIOD2", "S02", "ROOT" };
   REQUIRE(smps.get_scenario(1) == scen2);
+  REQUIRE(smps.get_scenario("S02") == scen2);
 }
 
 TEST_CASE("test-create-complex-scenario-structure", "[highs_smps]") {
@@ -1134,18 +1136,22 @@ TEST_CASE("test-create-complex-scenario-structure", "[highs_smps]") {
       {{"R1","RHS",50}, {"R2", "RHS", 40}},
       0.5, "PERIOD2", "S01", "ROOT" };
   REQUIRE(smps.get_scenario(0) == scen1);
+  REQUIRE(smps.get_scenario("S01") == scen1);
   ScenarioModifications scen2 {
       {{"R1","RHS",40}, {"R2", "RHS", 50}},
       0.3, "PERIOD2", "S02", "ROOT" };
   REQUIRE(smps.get_scenario(1) == scen2);
+  REQUIRE(smps.get_scenario("S02") == scen2);
   ScenarioModifications scen3 {
       {{"R3","RHS",30}},
       0.6, "PERIOD3", "S03", "S02" };
   REQUIRE(smps.get_scenario(2) == scen3);
+  REQUIRE(smps.get_scenario("S03") == scen3);
   ScenarioModifications scen4 {
       {{"R4","RHS",25}},
       0.3, "PERIOD4", "S04", "S03" };
   REQUIRE(smps.get_scenario(3) == scen4);
+  REQUIRE(smps.get_scenario("S04") == scen4);
 }
 
 TEST_CASE("test-create-scenario-structure-with-comments", "[highs_smps]") {
@@ -1184,18 +1190,22 @@ TEST_CASE("test-create-scenario-structure-with-comments", "[highs_smps]") {
       {{"R1","RHS",50}, {"R2", "RHS", 40}},
       0.5, "PERIOD2", "S01", "ROOT" };
   REQUIRE(smps.get_scenario(0) == scen1);
+  REQUIRE(smps.get_scenario("S01") == scen1);
   ScenarioModifications scen2 {
       {{"R1","RHS",40}, {"R2", "RHS", 50}},
       0.3, "PERIOD2", "S02", "ROOT" };
   REQUIRE(smps.get_scenario(1) == scen2);
+  REQUIRE(smps.get_scenario("S02") == scen2);
   ScenarioModifications scen3 {
       {{"R3","RHS",30}},
       0.6, "PERIOD3", "S03", "S02" };
   REQUIRE(smps.get_scenario(2) == scen3);
+  REQUIRE(smps.get_scenario("S03") == scen3);
   ScenarioModifications scen4 {
       {{"R4","RHS",25}},
       0.3, "PERIOD4", "S04", "S03" };
   REQUIRE(smps.get_scenario(3) == scen4);
+  REQUIRE(smps.get_scenario("S04") == scen4);
 }
 
 TEST_CASE("test-create-malformed-stochastic-structure", "[highs_smps]") {
