@@ -20,14 +20,6 @@ struct TimeStage {
   std::string stage_name;
 };
 
-
-// struct IndexStage {
-//   std::string starting_idx_name;
-//   std::string stage_name;
-//   bool operator==(IndexStage const & other) const { return other.starting_idx_name == starting_idx_name && other.stage_name == stage_name; }
-//   IndexStage(std::string const & starting_idx_name, std::string const & stage_name) : starting_idx_name(starting_idx_name), stage_name(stage_name) {}
-// };
-
 struct TimeStageEntry {
   std::string row_idx_name;
   std::string col_idx_name;
@@ -44,8 +36,6 @@ class SmpsTimeStructure {
     bool is_valid() const { return is_valid_; }
     std::string get_problem_name() const { return problem_name; }
     std::vector<std::string> get_stage_names() const { return stage_names; }
-    // std::vector<IndexStage> const & get_row_stages() const { return row_stages; }
-    // std::vector<IndexStage> const & get_col_stages() const { return col_stages; }
     std::vector<TimeStageEntry> const & get_entries() const { return timestage_entries; }
     int get_stage_index(std::string const & stage) const;
     int get_no_timestages() const { return timestage_entries.size(); }
@@ -53,8 +43,6 @@ class SmpsTimeStructure {
   private:
     void read_file(std::istream & input);
 
-    //TODO: delete
-    // std::vector<IndexStage> row_stages, col_stages;
     std::vector<TimeStageEntry> timestage_entries;
     std::vector<std::string> stage_names;
     bool is_valid_ = false;
@@ -106,8 +94,6 @@ struct LpIdxEntry : public LpEntry {
     { return LpEntry::operator==(other) && other.is_objective == is_objective && other.is_rhs == is_rhs && other.row_idx == row_idx && other.col_idx == col_idx; }
 };
 
-// std::vector<LpIdxEntry> annotate_lp_entries(std::vector<LpEntry> const & entries, SmpsCoreStructure const & core);
-
 class SmpsCoreStructure : public HighsLp {
   public:
     // TODO reverse?
@@ -118,8 +104,6 @@ class SmpsCoreStructure : public HighsLp {
     //TODO in constructor?
     bool load_time_stages(SmpsTimeStructure const & time_stage_data);
 
-    // std::vector<std::string> row_time_stage; // TODO is this needed?
-    // std::vector<std::string> col_time_stage;
     Timestage2Range stage_submatrix;
     LpIdxEntry annotate_lp_entry(LpEntry const &) const;
     std::vector<LpIdxEntry> annotate_lp_entries(std::vector<LpEntry> const & entries) const;
@@ -129,10 +113,6 @@ class SmpsCoreStructure : public HighsLp {
 
     bool is_valid_ = false;
     bool verify_stages(SmpsTimeStructure const & timestage_data, HighsNameHash const & row_hash, HighsNameHash const & col_hash) const;
-    // bool verify_time_stages(SmpsTimeStructure const & time_stage_data) const;
-    // bool verify_stages(std::vector<TimeStageEntry> const & idx_time_stages, HighsNameHash const & row_hash, HighsNameHash const & col_hash) const; 
-    // bool verify_stages(std::vector<IndexStage> const & idx_time_stages, HighsNameHash const & name_hash) const;
-    // std::vector<string> load_stages(std::vector<IndexStage> const & stage_idx_data, HighsNameHash const & name_hash, int num_entries);
     Timestage2Range load_stage_submatrices(std::vector<TimeStageEntry> const & timestage_indices, HighsNameHash const & row_name_hash,
                       HighsNameHash const & col_name_hash);
 };
@@ -158,39 +138,26 @@ class Node {
     std::unique_ptr<Node> & get_child(int index) { return children.at(index); }
     std::unique_ptr<Node> const & get_child(int index) const { return children.at(index); }
     int get_no_children() const { return children.size(); }
-    // std::vector<std::unique_ptr<Node>> const & get_children() { return children; }
     Node const * get_parent() const { return parent; };
     std::vector<LpEntry> get_lp_modifications() const { return lp_modifications; }
     double get_node_probability() const { return node_probability; }
-    // void fill_missing_child();
-    // void fill_tree();
     bool is_leaf() const { return children.empty(); }
     std::string get_timestage() const { return timestage; }
     SubMatrixRange get_in_problem_range() const { return in_problem_range; }
     void set_in_problem_range(SubMatrixRange const & range) {in_problem_range = range; }
-    // bool fill_missing_timestages(std::vector<std::string> const & timestages_in_order);
     bool rescale_to_children_probability();
     bool rescale_tree_to_leaf_probability();
 
     //TODO it should be in TimeStructure
     std::string get_next_timestage(std::vector<std::string> const & timestages_in_order) const;
 
-  // TimeStage timestage;
     double get_in_tree_probability() const;
 };
 
 struct StochasticTree {
   std::unique_ptr<Node> root;
   StochasticTree(std::unique_ptr<Node> && root) : root(std::move(root)) { }
-  // StochasticTree(std::unique_ptr<Node> && root, bool to_fix_tree=false) : root(std::move(root)) { if(to_fix_tree) fix_tree(); }
   StochasticTree(std::nullptr_t) {}
-  // void fill_tree() { root->fill_tree(); }
-  private:
-  // void fix_tree() {
-  //   root->fill_tree();
-    // TODO requires fixing
-    // root->fill_missing_timestages(time.get_stage_names());
-   // }
 };
 
 //TODO dual input on a single line
@@ -257,7 +224,6 @@ struct TimestageRandomVectors {
   RandomVector combine_vectors() const;
   bool operator==(TimestageRandomVectors const & other) const { return rvs == other.rvs && timestage == other.timestage; }
   TimestageRandomVectors(std::vector<RandomVector> const & rvs, std::string const & timestage) : rvs(rvs), timestage(timestage) {}
-  // bool fill_missing_entries();
 };
 
 
@@ -273,7 +239,6 @@ class IndepStructure : public SmpsStochasticStructure {
     virtual StochasticTree constructTree();
     int get_no_timestage_random_entries() const { return timestage_random_entries.size(); }
     TimestageRandomVariables const & get_timestage_random_entry(int index) { return timestage_random_entries.at(index); }
-    // std::vector<TimestageRandomVariables> const & get_modifications() { return modifications; };
 };
 
 class BlockStructure : public SmpsStochasticStructure {
@@ -369,12 +334,9 @@ struct SparseVector {
   void truncate(int num_nz);
   void set(unsigned index, double value);
   int num_nz() const { return nz_indices.size(); }
-  //TODO is this needed?
-  void shift_indices(unsigned shift_by);
 
   static SparseVector get_matrix_row(HighsSparseMatrix const & A, int row_idx);
   void translate_to_in_problem(IdxTranslator const & translator);
-  // double get(int index) const;
 };
 
 Timestage2Range create_stochastic_path_translation(Node const & node);

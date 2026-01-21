@@ -18,7 +18,6 @@
 
 void SmpsTimeStructure::read_file(std::istream & input) {
   std::string line;
-  // getline(input, line);
   if (!getline(input, line) || !process_header(line)) return;
   if (!getline(input, line) || !process_period_header(line)) return;
   while (getline(input, line) && !is_ending(line)) {
@@ -31,7 +30,6 @@ void SmpsTimeStructure::read_file(std::istream & input) {
 }
 
 bool SmpsTimeStructure::process_header(std::string const & line) {
-  // if (line.empty()) return false;
   std::string header;
   std::stringstream ss(line);
   ss >> header >> problem_name;
@@ -48,8 +46,6 @@ bool SmpsTimeStructure::process_period(std::string const & line) {
   std::stringstream ss(line);
   ss >> starting_column >> starting_row >> stage_name;
   if (starting_column.empty() || starting_row.empty() || stage_name.empty()) return false;
-  // col_stages.emplace_back(starting_column, stage_name);
-  // row_stages.emplace_back(starting_row, stage_name);
   timestage_entries.emplace_back(starting_row, starting_column, stage_name);
   return true;
 }
@@ -88,24 +84,9 @@ SmpsCoreStructure::SmpsCoreStructure(HighsLp const & lp) {
 
 bool SmpsCoreStructure::load_time_stages(SmpsTimeStructure const & time_stage_data) {
   if (!verify_stages(time_stage_data, row_hash_, col_hash_)) return false;
-  // col_time_stage = load_stages(time_stage_data.get_col_stages(), col_hash_, num_col_);
-  // row_time_stage = load_stages(time_stage_data.get_row_stages(), row_hash_, num_row_);
   stage_submatrix = load_stage_submatrices(time_stage_data.get_entries(), row_hash_, col_hash_);
   return true;
 }
-
-// std::vector<string> SmpsCoreStructure::load_stages(std::vector<IndexStage> const & stage_idx_data, HighsNameHash const & name_hash, int num_entries) {
-//   auto const & name2index = name_hash.name2index;
-//   std::vector<string> result(num_entries, stage_idx_data.back().stage_name);
-//   for (int i = 0; i < stage_idx_data.size() - 1; ++i) {
-//     auto const & time_stage = stage_idx_data.at(i);
-//     auto const & next_time_stage = stage_idx_data.at(i+1);
-//     auto stage_begin_idx = time_stage.starting_idx_name == objective_name_ ? 0 : name2index.at(time_stage.starting_idx_name);
-//     auto stage_end_idx = name2index.at(next_time_stage.starting_idx_name);
-//     std::fill(result.begin() + stage_begin_idx, result.begin() + stage_end_idx, time_stage.stage_name);
-//   }
-//   return result;
-// }
 
 Timestage2Range SmpsCoreStructure::load_stage_submatrices(std::vector<TimeStageEntry> const & timestage_indices, HighsNameHash const & row_name_hash,
                   HighsNameHash const & col_name_hash) {
@@ -538,31 +519,6 @@ std::string Node::get_next_timestage(std::vector<std::string> const & timestages
    return it == timestages_in_order.end() - 1 ? timestage : *(it + 1);
 }
 
-// void Node::fill_missing_child() {
-//   double missing_probability  = 1 - sum_children_prob();  
-//   if (get_no_children() == 0 || missing_probability < 1e-6) return;
-//   add_child(std::unique_ptr<Node>(new Node(children.at(0)->timestage, missing_probability)));
-// }
-
-// void Node::fill_tree() {
-//   fill_missing_child();
-//   for (auto & child : children)  child->fill_tree();
-// }
-
-//TODO use return values
-// bool Node::fill_missing_timestages(std::vector<std::string> const & timestages_in_order) {
-//    auto next_timestage = get_next_timestage(timestages_in_order);
-//    if (next_timestage == "") return false;
-//    if (next_timestage == timestage) return true;
-//    if (is_leaf()) add_child(std::unique_ptr<Node>{new Node(next_timestage)});
-//    for (auto & child : children) {
-//       if (child->get_timestage() != next_timestage)
-//         insert_intermediate_child(new Node(next_timestage), child);
-//       if (!child->fill_missing_timestages(timestages_in_order)) return false;
-//    }
-//    return true;
-// }
-
 // TODO move semantics?
 void Node::insert_intermediate_child(Node * intermediate_child, std::unique_ptr<Node> & current_child, bool swap_probability) {
   if (swap_probability) {
@@ -584,7 +540,6 @@ void add_node_entry(SmpsCoreStructure const & core, Node & node, Highs & result)
     node.set_in_problem_range(node_ranges.create_in_problem_range(result));
     node_ranges.expand_problem_by_range_vars(result, core.col_lower_, core.col_upper_);
     IdxTranslator translator {core.stage_submatrix, create_stochastic_path_translation(node)};
-    // auto timeperiod2range = create_stochastic_path_translation(node);
     for (int row = node_ranges.row_idx_begin; row < node_ranges.col_idx_end; ++row) {
       auto LB = core.row_lower_.at(row);
       auto UB = core.row_upper_.at(row);
@@ -628,9 +583,6 @@ LpIdxEntry SmpsCoreStructure::annotate_lp_entry(LpEntry const & entry) const {
 std::vector<LpIdxEntry> SmpsCoreStructure::annotate_lp_entries(std::vector<LpEntry> const & entries) const {
   std::vector<LpIdxEntry> result; result.reserve(entries.size());
   std::transform(entries.begin(), entries.end(), std::back_inserter(result), [this](LpEntry const & entry) { return annotate_lp_entry(entry); });
-  // for (int i = 0; i < entries.size(); ++i)
-    // result.push_back(annotate_lp_entry(entries.at(i)));
-  // std::transform(entries.begin(), entries.end(), result.begin(), [this](LpEntry const & entry) { return annotate_lp_entry(entry) ;});
   return result;
 }
 
@@ -651,24 +603,6 @@ void SparseVector::set(unsigned index, double value) {
   nz_values.insert(nz_values.begin() + idx, value);
 }
 
-// double SparseVector::get(int index) const {
-//   auto idx  = std::distance(nz_indices.begin(), std::find(nz_indices.begin(), nz_indices.end(), index));
-//   return idx < nz_indices.size() ? nz_values.at(idx) : 0;
-// }
-
-// double & SparseVector::operator[](int index) {
-//   auto idx  = std::distance(nz_indices.begin(), std::find(nz_indices.begin(), nz_indices.end(), index));
-//   if (idx < nz_indices.size())
-//     return nz_values.at(idx);
-//   else {
-//     auto idx = std::distance(nz_indices.begin(), std::lower_bound(nz_indices.begin(), nz_indices.end(), index));
-//     nz_indices.insert(nz_indices.begin() + idx, index);
-//     nz_values.insert(nz_values.begin() + idx, 0.);
-//     return *(nz_values.begin() + idx);
-//   }
-  
-// }
-
 double SparseVector::operator[](unsigned index) const {
   auto idx  = std::distance(nz_indices.begin(), std::find(nz_indices.begin(), nz_indices.end(), index));
   return idx < nz_indices.size() ? nz_values.at(idx) : 0;
@@ -685,10 +619,6 @@ bool SubMatrixRange::expand_problem_by_range_vars(
   //TODO integrality!
   auto status = problem.addVars(num_cols(),  col_lower.data() + col_idx_begin, col_upper.data() + col_idx_begin );
   return status ==  HighsStatus::kOk;
-}
-
-void SparseVector::shift_indices(unsigned shift_by) {
-  std::transform(nz_indices.begin(), nz_indices.end(), nz_indices.begin(), [shift_by](int idx) { return idx + shift_by; });
 }
 
 SparseVector SparseVector::get_matrix_row(HighsSparseMatrix const & A, int row_idx) {

@@ -1895,29 +1895,6 @@ TEST_CASE("test-truncate-sparse-vector", "[highs_smps]") {
   REQUIRE(vec.num_nz() == 0);
 }
 
-TEST_CASE("test-shift-sparse-vector", "[highs_smps]") {
-  SparseVector vec {{0, 2, 3}, {-2, 1.5, 4}};
-  vec.shift_indices(2);
-  REQUIRE(vec.num_nz() == 3);
-  REQUIRE(vec[0] == 0);
-  REQUIRE(vec[1] == 0);
-  REQUIRE(vec[2] == -2);
-  REQUIRE(vec[3] == 0);
-  REQUIRE(vec[4] == 1.5);
-  REQUIRE(vec[5] == 4);
-  REQUIRE(vec[6] == 0);
-
-  vec.shift_indices(0);
-  REQUIRE(vec.num_nz() == 3);
-  REQUIRE(vec[0] == 0);
-  REQUIRE(vec[1] == 0);
-  REQUIRE(vec[2] == -2);
-  REQUIRE(vec[3] == 0);
-  REQUIRE(vec[4] == 1.5);
-  REQUIRE(vec[5] == 4);
-  REQUIRE(vec[6] == 0);
-}
-
 TEST_CASE("test-sparse-vector-out-of-matrix", "[highs_smps]") {
     auto A = get_test_problem().a_matrix_;
     auto vec = SparseVector::get_matrix_row(A, 2);
