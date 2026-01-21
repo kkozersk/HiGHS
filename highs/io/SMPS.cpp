@@ -449,7 +449,7 @@ StochasticTree ScenarioStructure::constructTree() {
 }
 
 bool Node::rescale_to_children_probability() {
-  if (is_leaf()) return true;
+  if (is_leaf() && node_probability > 0) return true;
   auto child_prob = sum_children_prob();
   if (child_prob == 0) return false;
   node_probability = child_prob;
