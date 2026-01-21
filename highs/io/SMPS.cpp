@@ -509,19 +509,6 @@ RandomVector append_to_random_vector(RandomVector const & to_append, RandomVecto
   return result;
 }
 
-// TODO move semantics?
-void Node::insert_intermediate_child(Node * intermediate_child, std::unique_ptr<Node> & current_child, bool swap_probability) {
-  if (swap_probability) {
-    auto current_child_prob = current_child->node_probability;
-    current_child->node_probability = intermediate_child->node_probability;
-    intermediate_child->node_probability = current_child_prob; 
-  }
-  auto current_child_ptr = current_child.release();
-  intermediate_child->add_child(std::unique_ptr<Node> {current_child_ptr});
-  current_child.reset(intermediate_child);
-  current_child->parent = this;
-}
-
 //TODO BOUNDS!!!!!
 void add_node_entry(SmpsCoreStructure const & core, Node & node, Highs & result) {
     // TODO: redundant looping

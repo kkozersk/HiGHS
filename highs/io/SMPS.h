@@ -129,7 +129,6 @@ class Node {
 
   double sum_children_prob() const; 
 
-  void insert_intermediate_child(Node * intermediate_child, std::unique_ptr<Node> & current_child, bool swap_probability=true);
   public:
     Node(std::string timestage, double node_probability = 1., std::vector<LpEntry> const & lp_modifications={}):
         lp_modifications(lp_modifications), node_probability(node_probability), timestage(timestage) {}
