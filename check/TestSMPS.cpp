@@ -2189,3 +2189,79 @@ TEST_CASE("test-build-dummy-example", "[highs_smps]") {
          });
 
 }
+
+TEST_CASE("test-filter-mods", "[highs_smps]") {
+   std::string filename = std::tmpnam(nullptr);
+   std::ofstream(filename) << R"(
+    NAME PROBLEM
+    ROWS
+    	N .COST
+    	E R1
+    	E R2
+    	E R3
+    	E R4
+    COLUMNS
+    	C1 R1 1 R2 2
+    	C1  .COST -1
+    	C2  R2 4
+    	C2 .COST -2
+    	C2 R3 4 
+    	C3 R3 4
+    	C4 R4 0
+    RHS
+    	RHS R1 6 R2 6
+    	RHS R3 6 
+    ENDATA
+   )";
+   SmpsCoreStructure core({}, filename);
+   REQUIRE(core.is_valid());
+
+   std::istringstream timedata("TIME NAME\n"
+                                       "PERIODS\n"
+                                 "C1 R1 TIME1\n"
+                                 "C3 R2 TIME2\n"
+                                 "C4 R4 TIME3\n"
+                             "ENDATA");
+   SmpsTimeStructure time(timedata);
+   REQUIRE(time.is_valid());
+
+   core.load_time_stages(time);
+
+  ScenarioModifications scen({
+                               {"R1", "C1", 1},
+                               {"R1", "C2", 2},
+                               {"R2", "C1", 3},
+                               {"R3", "C3", 4},
+                               {"R4", "C4", 5},
+
+                               {".COST", "C1", 1},
+                               {".COST", "C2", 2},
+                               {".COST", "C3", 4},
+
+                               {"R1", "RHS", 1},
+                               {"R1", "RHS", 2},
+                               {"R2", "RHS", 3},
+                               {"R3", "RHS", 4},
+                             }, 1., "TIME1", "S1", "ROOT" );
+  REQUIRE(scen.filter_by_proper_timestage(core, "TIME1") == BlockLpEntry {
+                               {"R1", "C1", 1},
+                               {"R1", "C2", 2},
+                               {".COST", "C1", 1},
+                               {".COST", "C2", 2},
+                               {"R1", "RHS", 1},
+                               {"R1", "RHS", 2},
+            
+          });
+  REQUIRE(scen.filter_by_proper_timestage(core, "TIME2") == BlockLpEntry {
+                               {"R2", "C1", 3},
+                               {"R3", "C3", 4},
+                               {".COST", "C3", 4},
+                               {"R2", "RHS", 3},
+                               {"R3", "RHS", 4},
+            
+          });
+  REQUIRE(scen.filter_by_proper_timestage(core, "TIME3") == BlockLpEntry {
+                               {"R4", "C4", 5},
+            
+          });
+}
