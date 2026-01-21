@@ -1617,6 +1617,7 @@ TEST_CASE("test-scenario-structure-tree", "[highs_smps]") {
    REQUIRE(tree.root->get_no_children() == 2);
    REQUIRE(tree.root->get_lp_modifications() == std::vector<LpEntry> {});
    REQUIRE(tree.root->get_node_probability() == 1.);
+   REQUIRE(tree.root->get_in_tree_probability() == 1.);
 
    {
      auto & child = tree.root->get_child(0);
@@ -1625,6 +1626,7 @@ TEST_CASE("test-scenario-structure-tree", "[highs_smps]") {
      REQUIRE(child->get_no_children() == 1);
      REQUIRE(child->get_node_probability() == 0.25);
      REQUIRE(child->get_lp_modifications() == std::vector<LpEntry> {{"R1", "RHS", 50}, {"R2", "RHS", 40}});
+     REQUIRE(child->get_in_tree_probability() == 0.25);
    }
    {
      auto & parent = tree.root->get_child(0);
@@ -1634,6 +1636,7 @@ TEST_CASE("test-scenario-structure-tree", "[highs_smps]") {
      REQUIRE(child->get_no_children() == 1);
      REQUIRE(child->get_node_probability() == 1.);
      REQUIRE(child->get_lp_modifications() == std::vector<LpEntry> {});
+     REQUIRE(child->get_in_tree_probability() == 0.25);
    }
    {
      auto & parent = tree.root->get_child(0)->get_child(0);
@@ -1643,6 +1646,7 @@ TEST_CASE("test-scenario-structure-tree", "[highs_smps]") {
      REQUIRE(child->get_no_children() == 0);
      REQUIRE(child->get_node_probability() == 1.);
      REQUIRE(child->get_lp_modifications() == std::vector<LpEntry> {});
+     REQUIRE(child->get_in_tree_probability() == 0.25);
    }
    {
      auto & child = tree.root->get_child(1);
@@ -1651,6 +1655,7 @@ TEST_CASE("test-scenario-structure-tree", "[highs_smps]") {
      REQUIRE(child->get_no_children() == 2);
      REQUIRE(child->get_node_probability() == 0.75);
      REQUIRE(child->get_lp_modifications() == std::vector<LpEntry> {{"R1", "RHS", 40}, {"R2", "RHS", 50}});
+     REQUIRE(child->get_in_tree_probability() == 0.75);
    }
    {
      auto & parent = tree.root->get_child(1);
@@ -1660,6 +1665,7 @@ TEST_CASE("test-scenario-structure-tree", "[highs_smps]") {
      REQUIRE(child->get_no_children() == 1);
      REQUIRE(std::abs(child->get_node_probability() -  1./3.) < 1e-6);
      REQUIRE(child->get_lp_modifications() == std::vector<LpEntry> {});
+     REQUIRE(child->get_in_tree_probability() == 0.25);
    }
    {
      auto & parent = tree.root->get_child(1)->get_child(0);
@@ -1669,6 +1675,7 @@ TEST_CASE("test-scenario-structure-tree", "[highs_smps]") {
      REQUIRE(child->get_no_children() == 0);
      REQUIRE(child->get_node_probability() == 1.);
      REQUIRE(child->get_lp_modifications() == std::vector<LpEntry> {});
+     REQUIRE(child->get_in_tree_probability() == 0.25);
    }
    {
      auto & parent = tree.root->get_child(1);
@@ -1678,6 +1685,7 @@ TEST_CASE("test-scenario-structure-tree", "[highs_smps]") {
      REQUIRE(child->get_no_children() == 2);
      REQUIRE(std::abs(child->get_node_probability() - 2./3.) < 1e-6);
      REQUIRE(child->get_lp_modifications() == std::vector<LpEntry> {{"R3", "RHS", 30}});
+     REQUIRE(child->get_in_tree_probability() == 0.5);
    }
    {
      auto & parent = tree.root->get_child(1)->get_child(1);
@@ -1687,6 +1695,7 @@ TEST_CASE("test-scenario-structure-tree", "[highs_smps]") {
      REQUIRE(child->get_no_children() == 0);
      REQUIRE(child->get_node_probability() == 0.5);
      REQUIRE(child->get_lp_modifications() == std::vector<LpEntry> {});
+     REQUIRE(child->get_in_tree_probability() == 0.25);
    }
    {
      auto & parent = tree.root->get_child(1)->get_child(1);
@@ -1696,6 +1705,7 @@ TEST_CASE("test-scenario-structure-tree", "[highs_smps]") {
      REQUIRE(child->get_no_children() == 0);
      REQUIRE(child->get_node_probability() == 0.5);
      REQUIRE(child->get_lp_modifications() == std::vector<LpEntry> {{"R4", "RHS", 25}});
+     REQUIRE(child->get_in_tree_probability() == 0.25);
    }
  }
 
@@ -1768,6 +1778,7 @@ TEST_CASE("test-scenario-structure-tree-v2", "[highs_smps]") {
    REQUIRE(tree.root->get_no_children() == 1);
    REQUIRE(tree.root->get_lp_modifications() == std::vector<LpEntry> {});
    REQUIRE(tree.root->get_node_probability() == 1.);
+   REQUIRE(tree.root->get_in_tree_probability() == 1.);
 
    {
      auto & child = tree.root->get_child(0);
@@ -1777,6 +1788,7 @@ TEST_CASE("test-scenario-structure-tree-v2", "[highs_smps]") {
      REQUIRE(child->get_node_probability() == 1.);
      auto mod = child->get_lp_modifications().at(0);
      REQUIRE(child->get_lp_modifications() == std::vector<LpEntry> {{"R1", "RHS", 10}});
+     REQUIRE(child->get_in_tree_probability() == 1.);
    }
    {
      auto & parent = tree.root->get_child(0);
@@ -1786,6 +1798,7 @@ TEST_CASE("test-scenario-structure-tree-v2", "[highs_smps]") {
      REQUIRE(child->get_no_children() == 1);
      REQUIRE(child->get_node_probability() == 0.1);
      REQUIRE(child->get_lp_modifications() == std::vector<LpEntry> {{"R2", "RHS", 10}});
+     REQUIRE(child->get_in_tree_probability() == 0.1);
    }
    {
      auto & parent = tree.root->get_child(0)->get_child(0);
@@ -1795,6 +1808,7 @@ TEST_CASE("test-scenario-structure-tree-v2", "[highs_smps]") {
      REQUIRE(child->get_no_children() == 1);
      REQUIRE(child->get_node_probability() == 1.);
      REQUIRE(child->get_lp_modifications() == std::vector<LpEntry> {{"R3", "RHS", 10}});
+     REQUIRE(child->get_in_tree_probability() == 0.1);
    }
    {
      //wrong indexing
@@ -1805,6 +1819,7 @@ TEST_CASE("test-scenario-structure-tree-v2", "[highs_smps]") {
      REQUIRE(child->get_no_children() == 3);
      REQUIRE(child->get_node_probability() == 0.9);
      REQUIRE(child->get_lp_modifications() == std::vector<LpEntry> {{"R3", "RHS", 20}});
+     REQUIRE(child->get_in_tree_probability() == 0.9);
    }
    {
      //wrong indexing
@@ -1816,6 +1831,7 @@ TEST_CASE("test-scenario-structure-tree-v2", "[highs_smps]") {
      REQUIRE(child->get_node_probability() == 1./3.);
      REQUIRE(child->get_lp_modifications() == std::vector<LpEntry>
              {{"R4", "RHS", 20}, {"R5", "RHS", 20}, {"R6", "RHS", 10}});
+     REQUIRE(child->get_in_tree_probability() == 0.3);
    }
    {
      //wrong indexing
@@ -1828,6 +1844,7 @@ TEST_CASE("test-scenario-structure-tree-v2", "[highs_smps]") {
      //no pushdown
      REQUIRE(child->get_lp_modifications() == std::vector<LpEntry>
              {{"R4", "RHS", 30}, {"R5", "RHS", 20}, {"R6", "RHS", 10}});
+     REQUIRE(child->get_in_tree_probability() == 0.45);
    }
    {
      //wrong indexing
@@ -1839,6 +1856,7 @@ TEST_CASE("test-scenario-structure-tree-v2", "[highs_smps]") {
      REQUIRE(child->get_node_probability() == 1./6.);
      REQUIRE(child->get_lp_modifications() == std::vector<LpEntry>
              {{"R4", "RHS", 40}, {"R5", "RHS", 40}, {"R6", "RHS", 10}});
+     REQUIRE(child->get_in_tree_probability() == 0.15);
    }
 }
 
