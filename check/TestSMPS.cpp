@@ -2387,3 +2387,36 @@ TEST_CASE("test-rescale-to-leaves", "[highs_smps]") {
 
   }
 }
+
+TEST_CASE("test-create-stochastic-path-translation", "[highs_smps]") {
+  Node root("root");
+  root.set_in_problem_range({});
+  root.add_child(std::unique_ptr<Node>(new Node("t1")));
+  root.get_child(0)->set_in_problem_range({2, 3, 4, 5});
+  root.add_child(std::unique_ptr<Node>(new Node("t1")));
+  root.get_child(1)->set_in_problem_range({3, 4, 5, 6});
+  root.get_child(0)->add_child(std::unique_ptr<Node>(new Node("t2")));
+  root.get_child(0)->get_child(0)->set_in_problem_range({4, 5, 6, 7});
+  root.get_child(0)->add_child(std::unique_ptr<Node>(new Node("t2")));
+  root.get_child(0)->get_child(1)->set_in_problem_range({5, 6, 7, 8});
+  root.get_child(1)->add_child(std::unique_ptr<Node>(new Node("t2")));
+  root.get_child(1)->get_child(0)->set_in_problem_range({6, 7, 8, 9});
+
+  REQUIRE(create_stochastic_path_translation(root) == Timestage2Range {
+          {"root", {}},
+  });
+  REQUIRE(create_stochastic_path_translation(*root.get_child(0)) == Timestage2Range {
+          {"root", {}},
+          {"t1", {2, 3, 4, 5}},
+  });
+  REQUIRE(create_stochastic_path_translation(*root.get_child(0)->get_child(0)) == Timestage2Range {
+          {"root", {}},
+          {"t1", {2, 3, 4, 5}},
+          {"t2", {4, 5, 6, 7}},
+  });
+  REQUIRE(create_stochastic_path_translation(*root.get_child(1)->get_child(0)) == Timestage2Range {
+          {"root", {}},
+          {"t1", {3, 4, 5, 6}},
+          {"t2", {6, 7, 8, 9}},
+  });
+}
