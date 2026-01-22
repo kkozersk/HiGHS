@@ -432,9 +432,9 @@ StochasticTree ScenarioStructure::constructTree() {
   auto root = std::unique_ptr<Node>(new Node("root"));
   std::map<std::pair<std::string, std::string>, Node *> scen_time2node {{{"ROOT", "ROOT"}, root.get()}};
   for (auto & scen : scenarios) {
-    auto parent_timestage = scen.parent_scenario == "ROOT" ? "ROOT" : get_scenario(scen.parent_scenario).timestage;
+    auto branch_out_stage = scen.parent_scenario == "ROOT" ? "ROOT" : time.get_previous_stage(scen.timestage);
+    Node * parent = scen_time2node.at({scen.parent_scenario, branch_out_stage});
     if (scen.parent_scenario != "ROOT") scen += get_scenario(scen.parent_scenario);
-    Node * parent = scen_time2node.at({scen.parent_scenario, parent_timestage});
     for (int t = time.get_stage_index(scen.timestage); t < time.get_no_timestages(); ++t) {
       auto timestage = time.get_timestage(t);
       auto path_prob = t == time.get_no_timestages() - 1 ? scen.probability : 0;

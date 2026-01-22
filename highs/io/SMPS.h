@@ -40,6 +40,10 @@ class SmpsTimeStructure {
     int get_stage_index(std::string const & stage) const;
     int get_no_timestages() const { return timestage_entries.size(); }
     std::string get_timestage(int index) const { return stage_names.at(index); }
+    std::string get_previous_stage(std::string const & stage) const {
+      auto idx = get_stage_index(stage);
+      return (idx == 0 || idx >= get_no_timestages()) ? "" : get_timestage(idx - 1);
+    }
   private:
     void read_file(std::istream & input);
 
@@ -261,6 +265,7 @@ struct ScenarioModifications {
   std::string timestage;
   std::string scenario_name;
   std::string parent_scenario;
+  std::string parent_timestage_entry;
   ScenarioModifications(BlockLpEntry const & lp_modifications, double probability, std::string const & timestage,
       std::string const & scenario_name, std::string const & parent_scenario) : lp_modifications(lp_modifications), probability(probability),
       timestage(timestage), scenario_name(scenario_name), parent_scenario(parent_scenario) {}
