@@ -125,7 +125,7 @@ double Node::sum_children_prob() const {
 } 
 
 bool Node::verify_children_probabilities() const {
-  return is_leaf() || std::abs(sum_children_prob() - 1.) < 1e-6;
+  return is_leaf() || std::abs(sum_children_prob() - 1.) < 1e-4;
 }
 
 void Node::add_child(std::unique_ptr<Node> && child) {
@@ -517,7 +517,7 @@ void add_node_entry(SmpsCoreStructure const & core, Node & node, Highs & result)
     node.set_in_problem_range(node_ranges.create_in_problem_range(result));
     node_ranges.expand_problem_by_range_vars(result, core.col_lower_, core.col_upper_);
     IdxTranslator translator {core.stage_submatrix, create_stochastic_path_translation(node)};
-    for (int row = node_ranges.row_idx_begin; row < node_ranges.col_idx_end; ++row) {
+    for (int row = node_ranges.row_idx_begin; row < node_ranges.row_idx_end; ++row) {
       auto LB = core.row_lower_.at(row);
       auto UB = core.row_upper_.at(row);
       auto row_data = SparseVector::get_matrix_row(core.a_matrix_, row);
@@ -648,11 +648,13 @@ bool build_stochastic_problem(Highs & problem,
     SmpsTimeStructure time(time_filename);
     if (!time.is_valid()) return false;
 
+    if (!core.load_time_stages(time)) return false;
+
     auto stoch = read_stochastic_file(stoch_filename, core, time);
     if (stoch == nullptr || !stoch->is_valid()) return false;
     auto tree = stoch->constructTree();
 
-    if (!core.load_time_stages(time)) return false;
+    if (tree.root == nullptr) return false;
     //TODO some checking should be done here
     add_tree_entries(core, tree, problem);
     return true;

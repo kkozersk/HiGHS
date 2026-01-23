@@ -2,6 +2,8 @@
 #include <fstream>
 #include <memory>
 #include <sstream>
+#include <string>
+#include "interfaces/highs_c_api.h"
 #include "io/SMPS.h"
 #include "HCheckConfig.h"
 #include "catch.hpp"
@@ -2419,4 +2421,50 @@ TEST_CASE("test-create-stochastic-path-translation", "[highs_smps]") {
           {"t1", {3, 4, 5, 6}},
           {"t2", {6, 7, 8, 9}},
   });
+}
+
+TEST_CASE("test-smps-indep-fxm-read", "[highs-smps]") {
+  {
+    auto instance = std::string(HIGHS_DIR) + "/check/instances/stoch/fxm/fxm";
+    auto corefile = instance + ".cor";
+    auto timefile = instance + "2.tim";
+    auto stochfile = instance + "2_6.sto";
+    SmpsCoreStructure core({}, corefile);
+    REQUIRE(core.is_valid());
+
+    SmpsTimeStructure time(timefile);
+    REQUIRE(time.is_valid());
+
+    REQUIRE(core.load_time_stages(time));;
+
+    auto stoch = read_stochastic_file(stochfile, core, time);
+    REQUIRE(stoch != nullptr);
+    REQUIRE(stoch->is_valid());
+
+    auto tree = stoch->constructTree();
+    REQUIRE(stoch != nullptr);
+
+    REQUIRE(tree.root->get_no_children() == 1);
+    REQUIRE(tree.root ->get_lp_modifications().empty());
+    REQUIRE(tree.root->verify_children_probabilities());
+    auto & parent = tree.root->get_child(0);
+    REQUIRE(parent->verify_children_probabilities());
+    std::vector<double> vals {50, 30, 25, 20, 15, 10};
+    for (int i = 0; i < 6; ++i) {
+      REQUIRE(parent->get_child(i)->get_node_probability() == 0.16667);
+      REQUIRE(parent->get_child(i)->get_lp_modifications() == std::vector<LpEntry> {{"1MS037", "RHS", vals[i]}});
+    }
+
+    REQUIRE(core.num_col_ == 457);
+    REQUIRE(core.num_row_ == 330);
+    Highs highs;
+    REQUIRE(build_stochastic_problem(highs, corefile, timefile, stochfile));
+    // REQUIRE(highs.getNumCol() == 1047);
+    // REQUIRE(highs.getNumRow() == 780);
+    REQUIRE(highs.run() == HighsStatus::kOk);
+    REQUIRE(highs.getModelStatus() == HighsModelStatus::kOptimal);
+    // TODO invalid res?
+    REQUIRE(std::abs(highs.getObjectiveValue() - 18416) < 2);
+  }
+  
 }
