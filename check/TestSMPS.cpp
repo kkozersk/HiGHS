@@ -144,7 +144,7 @@ TEST_CASE("test-read-valid-time-file", "[highs_smps]") {
   REQUIRE(smps.get_stage_index("T2") == 1);
   REQUIRE(smps.get_stage_index("T3") == 2);
 
-  auto path = std::string(HIGHS_DIR) + "/check/instances/fxm2.tim";
+  auto path = std::string(HIGHS_DIR) + "/check/instances/stoch/fxm2.tim";
   smps = SmpsTimeStructure(path);
   REQUIRE(smps.is_valid());
   REQUIRE(smps.get_entries() == std::vector<TimeStageEntry> {{".COSTA", "1D1IK","TIME1"}, {"1DT019", "SCCOL1", "TIME2"}});
@@ -156,7 +156,7 @@ TEST_CASE("test-read-valid-time-file", "[highs_smps]") {
 }
 
 TEST_CASE("test-load-core-from-file", "[highs_smps]") {
-  auto path = std::string(HIGHS_DIR) + "/check/instances/fxm.cor";
+  auto path = std::string(HIGHS_DIR) + "/check/instances/stoch/fxm.cor";
   HighsOptions opt;
   SmpsCoreStructure smps(opt, path);
   REQUIRE(smps.is_valid());
@@ -167,7 +167,7 @@ TEST_CASE("test-load-core-from-file", "[highs_smps]") {
 }
 
 TEST_CASE("test-load-malformed-core", "[highs_smps]") {
-  auto path = std::string(HIGHS_DIR) + "/check/instances/afiro_malf.cor";
+  auto path = std::string(HIGHS_DIR) + "/check/instances/stoch/afiro_malf.cor";
   HighsOptions opt;
   SmpsCoreStructure smps(opt, path);
   REQUIRE(!smps.is_valid());
@@ -178,7 +178,7 @@ TEST_CASE("test-load-malformed-core", "[highs_smps]") {
 }
 
 TEST_CASE("test-assign-time-to-core", "[highs_smps]") {
-  auto path = std::string(HIGHS_DIR) + "/check/instances/fxm";
+  auto path = std::string(HIGHS_DIR) + "/check/instances/stoch/fxm";
   HighsOptions opt;
   SmpsCoreStructure smps_core(opt, path + ".cor");
   REQUIRE(smps_core.is_valid());
@@ -194,17 +194,17 @@ TEST_CASE("test-assign-time-to-core", "[highs_smps]") {
 
 TEST_CASE("test-assign-invalid-time-to-core", "[highs_smps]") {
   HighsOptions opt;
-  SmpsCoreStructure smps_core(opt, std::string(HIGHS_DIR) + "/check/instances/afiro.cor");
+  SmpsCoreStructure smps_core(opt, std::string(HIGHS_DIR) + "/check/instances/stoch/afiro.cor");
   REQUIRE(smps_core.is_valid());
-  SmpsTimeStructure smps_time(std::string(HIGHS_DIR)+ "/check/instances/fxm2.tim");
+  SmpsTimeStructure smps_time(std::string(HIGHS_DIR)+ "/check/instances/stoch/fxm2.tim");
   REQUIRE(smps_time.is_valid());
   REQUIRE(!smps_core.load_time_stages(smps_time));
 
-  smps_core = SmpsCoreStructure(opt, std::string(HIGHS_DIR) + "/check/instances/afiro_malf.cor");
+  smps_core = SmpsCoreStructure(opt, std::string(HIGHS_DIR) + "/check/instances/stoch/afiro_malf.cor");
   REQUIRE(!smps_core.is_valid());
   REQUIRE(!smps_core.load_time_stages(smps_time));
 
-  smps_core = SmpsCoreStructure(opt, std::string(HIGHS_DIR) + "/check/instances/afiro.cor");
+  smps_core = SmpsCoreStructure(opt, std::string(HIGHS_DIR) + "/check/instances/stoch/afiro.cor");
   REQUIRE(smps_core.is_valid());
   std::istringstream missing_end("TIME NAME\n"
                                       "PERIODS\n"
@@ -1079,7 +1079,7 @@ TEST_CASE("test-create-simple-scenario-structure", "[highs_smps]") {
                              "ENDATA");
    SmpsTimeStructure time(timedata);
    REQUIRE(time.is_valid());
-   auto path = std::string(HIGHS_DIR) + "/check/instances/simple.cor";
+   auto path = std::string(HIGHS_DIR) + "/check/instances/stoch/simple.cor";
    SmpsCoreStructure core({}, path);
    REQUIRE(core.is_valid());
 
@@ -1114,7 +1114,7 @@ TEST_CASE("test-create-complex-scenario-structure", "[highs_smps]") {
                              "ENDATA");
    SmpsTimeStructure time(timedata);
    REQUIRE(time.is_valid());
-   auto path = std::string(HIGHS_DIR) + "/check/instances/simple.cor";
+   auto path = std::string(HIGHS_DIR) + "/check/instances/stoch/simple.cor";
    SmpsCoreStructure core({}, path);
    REQUIRE(core.is_valid());
   std::istringstream data("SCENARIOS DISCRETE\n"
@@ -1161,7 +1161,7 @@ TEST_CASE("test-create-scenario-structure-with-comments", "[highs_smps]") {
                              "ENDATA");
    SmpsTimeStructure time(timedata);
    REQUIRE(time.is_valid());
-   auto path = std::string(HIGHS_DIR) + "/check/instances/simple.cor";
+   auto path = std::string(HIGHS_DIR) + "/check/instances/stoch/simple.cor";
    SmpsCoreStructure core({}, path);
    REQUIRE(core.is_valid());
   std::istringstream data("SCENARIOS DISCRETE\n"
@@ -1216,7 +1216,7 @@ TEST_CASE("test-create-malformed-stochastic-structure", "[highs_smps]") {
    SmpsTimeStructure time(timedata);
    REQUIRE(time.is_valid());
    REQUIRE(time.is_valid());
-   auto path = std::string(HIGHS_DIR) + "/check/instances/simple.cor";
+   auto path = std::string(HIGHS_DIR) + "/check/instances/stoch/simple.cor";
    SmpsCoreStructure core({}, path);
    REQUIRE(core.is_valid());
   std::istringstream malformed_scenario_header("SCENARIOS DISCRETE\n"
@@ -1930,7 +1930,7 @@ TEST_CASE("test-sparse-vector-out-of-matrix", "[highs_smps]") {
 }
 
 TEST_CASE("test-annotate-lp-entry", "[highs_smps]") {
-  auto path = std::string(HIGHS_DIR) + "/check/instances/simple.cor";
+  auto path = std::string(HIGHS_DIR) + "/check/instances/stoch/simple.cor";
   HighsOptions opt;
   SmpsCoreStructure smps(opt, path);
   REQUIRE(smps.is_valid());
@@ -1944,13 +1944,13 @@ TEST_CASE("test-annotate-lp-entry", "[highs_smps]") {
 }
 
 TEST_CASE("test-stage-submatrix", "[highs_smps]") {
-  auto path = std::string(HIGHS_DIR) + "/check/instances/simple.cor";
+  auto path = std::string(HIGHS_DIR) + "/check/instances/stoch/simple.cor";
   HighsOptions opt;
   SmpsCoreStructure smps(opt, path);
   REQUIRE(smps.is_valid());
 
   
-  auto time_path = std::string(HIGHS_DIR) + "/check/instances/simple.tim";
+  auto time_path = std::string(HIGHS_DIR) + "/check/instances/stoch/simple.tim";
   SmpsTimeStructure time(time_path);
   REQUIRE(time.is_valid());
   REQUIRE(time.get_stage_names() == std::vector<std::string> {"TIME1", "TIME2"});
@@ -2004,7 +2004,7 @@ TEST_CASE("test-expand-problem-by-range", "[highs_smps]") {
 
 //TODO verify bounds
 TEST_CASE("test-add-node-entry", "[highs_smps]") {
-  auto instance = std::string(HIGHS_DIR) + "/check/instances/simple";
+  auto instance = std::string(HIGHS_DIR) + "/check/instances/stoch/simple";
   HighsOptions opt;
   SmpsCoreStructure core(opt, instance + ".cor");
   REQUIRE(core.is_valid());
@@ -2032,7 +2032,7 @@ TEST_CASE("test-add-node-entry", "[highs_smps]") {
 }
 
 TEST_CASE("test-add-node-tree-entry", "[highs_smps]") {
-  auto instance = std::string(HIGHS_DIR) + "/check/instances/simple";
+  auto instance = std::string(HIGHS_DIR) + "/check/instances/stoch/simple";
   HighsOptions opt;
   SmpsCoreStructure core(opt, instance + ".cor");
   REQUIRE(core.is_valid());
@@ -2063,7 +2063,7 @@ TEST_CASE("test-add-node-tree-entry", "[highs_smps]") {
 }
 
 TEST_CASE("test-add-tree-entry", "[highs_smps]") {
-  auto instance = std::string(HIGHS_DIR) + "/check/instances/simple";
+  auto instance = std::string(HIGHS_DIR) + "/check/instances/stoch/simple";
   Highs highs;
   build_stochastic_problem(highs, instance);
 
@@ -2147,7 +2147,7 @@ TEST_CASE("test-update-bounds", "[highs_smps]") {
 
 TEST_CASE("test-build-dummy-example", "[highs_smps]") {
   Highs highs;
-  auto path = std::string(HIGHS_DIR) + "/check/instances/less_simple";
+  auto path = std::string(HIGHS_DIR) + "/check/instances/stoch/less_simple";
   auto res = build_stochastic_problem(highs, path);
   REQUIRE(res);
 
