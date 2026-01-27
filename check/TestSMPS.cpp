@@ -2429,6 +2429,7 @@ TEST_CASE("test-smps-indep-fxm-read", "[highs-smps]") {
     auto corefile = instance + ".cor";
     auto timefile = instance + "2.tim";
     auto stochfile = instance + "2_6.sto";
+    // auto stochfile = instance + "_trial.sto";
     SmpsCoreStructure core({}, corefile);
     REQUIRE(core.is_valid());
 
@@ -2452,6 +2453,57 @@ TEST_CASE("test-smps-indep-fxm-read", "[highs-smps]") {
     std::vector<double> vals {50, 30, 25, 20, 15, 10};
     for (int i = 0; i < 6; ++i) {
       REQUIRE(parent->get_child(i)->get_node_probability() == 0.16667);
+      // REQUIRE(parent->get_child(i)->get_node_probability() == 0.166666667);
+      REQUIRE(parent->get_child(i)->get_lp_modifications() == std::vector<LpEntry> {{"1MS037", "RHS", vals[i]}});
+    }
+
+    REQUIRE(core.num_col_ == 457);
+    REQUIRE(core.num_row_ == 330);
+    Highs highs;
+    REQUIRE(build_stochastic_problem(highs, corefile, timefile, stochfile));
+    // REQUIRE(highs.getNumCol() == 1047);
+    // REQUIRE(highs.getNumRow() == 780);
+    REQUIRE(highs.run() == HighsStatus::kOk);
+    REQUIRE(highs.getModelStatus() == HighsModelStatus::kOptimal);
+    // TODO invalid res?
+    REQUIRE(std::abs(highs.getObjectiveValue() - 18416) < 2);
+    // REQUIRE(highs.getObjectiveValue()  == 0);
+  }
+  {
+    auto instance = std::string(HIGHS_DIR) + "/check/instances/stoch/fxm/fxm";
+    auto corefile = instance + ".cor";
+    auto timefile = instance + "2.tim";
+    auto stochfile = instance + "2_16.sto";
+    SmpsCoreStructure core({}, corefile);
+    REQUIRE(core.is_valid());
+
+    SmpsTimeStructure time(timefile);
+    REQUIRE(time.is_valid());
+
+    REQUIRE(core.load_time_stages(time));;
+
+    auto stoch = read_stochastic_file(stochfile, core, time);
+    REQUIRE(stoch != nullptr);
+    REQUIRE(stoch->is_valid());
+
+    auto tree = stoch->constructTree();
+    REQUIRE(stoch != nullptr);
+
+    REQUIRE(tree.root->get_no_children() == 1);
+    REQUIRE(tree.root ->get_lp_modifications().empty());
+    REQUIRE(tree.root->verify_children_probabilities());
+    auto & parent = tree.root->get_child(0);
+    REQUIRE(parent->verify_children_probabilities());
+    std::vector<double> vals {
+        10., 13.3333, 16.6667,
+        20., 23.3333, 26.6667,
+        30., 33.3333, 36.6667,
+        40., 43.3333, 46.6667,
+        50., 53.3333, 56.6667,
+        60.
+          };
+    for (int i = 0; i < 16; ++i) {
+      REQUIRE(parent->get_child(i)->get_node_probability() == 0.0625);
       REQUIRE(parent->get_child(i)->get_lp_modifications() == std::vector<LpEntry> {{"1MS037", "RHS", vals[i]}});
     }
 
@@ -2467,4 +2519,120 @@ TEST_CASE("test-smps-indep-fxm-read", "[highs-smps]") {
     REQUIRE(std::abs(highs.getObjectiveValue() - 18416) < 2);
   }
   
+  {
+    auto instance = std::string(HIGHS_DIR) + "/check/instances/stoch/fxm/fxm";
+    auto corefile = instance + ".cor";
+    auto timefile = instance + "3.tim";
+    auto stochfile = instance + "3_6.sto";
+    Highs highs;
+    REQUIRE(build_stochastic_problem(highs, corefile, timefile, stochfile));
+    // TODO verify
+    // REQUIRE(highs.getNumCol() == 1047);
+    // REQUIRE(highs.getNumRow() == 780);
+    REQUIRE(highs.run() == HighsStatus::kOk);
+    REQUIRE(highs.getModelStatus() == HighsModelStatus::kOptimal);
+    // TODO invalid res?
+    REQUIRE(std::abs(highs.getObjectiveValue() - 18616) < 2);
+    // REQUIRE(highs.getObjectiveValue() == 0);
+  }
+  {
+    auto instance = std::string(HIGHS_DIR) + "/check/instances/stoch/fxm/fxm";
+    auto corefile = instance + ".cor";
+    auto timefile = instance + "3.tim";
+    auto stochfile = instance + "3_16.sto";
+    SmpsCoreStructure core({}, corefile);
+    REQUIRE(core.is_valid());
+
+    SmpsTimeStructure time(timefile);
+    REQUIRE(time.is_valid());
+
+    REQUIRE(core.load_time_stages(time));;
+
+    auto stoch = read_stochastic_file(stochfile, core, time);
+    REQUIRE(stoch != nullptr);
+    REQUIRE(stoch->is_valid());
+
+    auto tree = stoch->constructTree();
+    REQUIRE(stoch != nullptr);
+
+    REQUIRE(core.num_col_ == 457);
+    REQUIRE(core.num_row_ == 330);
+    Highs highs;
+    REQUIRE(build_stochastic_problem(highs, corefile, timefile, stochfile));
+    // REQUIRE(highs.getNumCol() == 1047);
+    // REQUIRE(highs.getNumRow() == 780);
+    REQUIRE(highs.run() == HighsStatus::kOk);
+    REQUIRE(highs.getModelStatus() == HighsModelStatus::kOptimal);
+    // TODO invalid res?
+    // REQUIRE(std::vector<double> {(double) highs.getNumCol(), (double) highs.getNumRow(), highs.getObjectiveValue()} == std::vector<double> {});
+    REQUIRE(std::abs(highs.getObjectiveValue() - 18438) < 2);
+    // REQUIRE(highs.getObjectiveValue() == 0);
+  }
+  // TOO Long
+  // {
+  //   auto instance = std::string(HIGHS_DIR) + "/check/instances/stoch/fxm/fxm";
+  //   auto corefile = instance + ".cor";
+  //   auto timefile = instance + "4.tim";
+  //   auto stochfile = instance + "4_6.sto";
+  //   SmpsCoreStructure core({}, corefile);
+  //   REQUIRE(core.is_valid());
+
+  //   SmpsTimeStructure time(timefile);
+  //   REQUIRE(time.is_valid());
+
+  //   REQUIRE(core.load_time_stages(time));;
+
+  //   auto stoch = read_stochastic_file(stochfile, core, time);
+  //   REQUIRE(stoch != nullptr);
+  //   REQUIRE(stoch->is_valid());
+
+  //   auto tree = stoch->constructTree();
+  //   REQUIRE(stoch != nullptr);
+
+  //   REQUIRE(core.num_col_ == 457);
+  //   REQUIRE(core.num_row_ == 330);
+  //   Highs highs;
+  //   REQUIRE(build_stochastic_problem(highs, corefile, timefile, stochfile));
+  //   // REQUIRE(highs.getNumCol() == 1047);
+  //   // REQUIRE(highs.getNumRow() == 780);
+  //   REQUIRE(highs.run() == HighsStatus::kOk);
+  //   REQUIRE(highs.getModelStatus() == HighsModelStatus::kOptimal);
+  //   // TODO invalid res?
+  //   // REQUIRE(std::vector<double> {(double) highs.getNumCol(), (double) highs.getNumRow(), highs.getObjectiveValue()} == std::vector<double> {});
+  //   REQUIRE(std::abs(highs.getObjectiveValue() - 18616) < 2);
+  //   // REQUIRE(highs.getObjectiveValue() == 0);
+  // }
+  // {
+  //   auto instance = std::string(HIGHS_DIR) + "/check/instances/stoch/fxm/fxm";
+  //   auto corefile = instance + ".cor";
+  //   auto timefile = instance + "4.tim";
+  //   auto stochfile = instance + "4_16.sto";
+  //   SmpsCoreStructure core({}, corefile);
+  //   REQUIRE(core.is_valid());
+
+  //   SmpsTimeStructure time(timefile);
+  //   REQUIRE(time.is_valid());
+
+  //   REQUIRE(core.load_time_stages(time));;
+
+  //   auto stoch = read_stochastic_file(stochfile, core, time);
+  //   REQUIRE(stoch != nullptr);
+  //   REQUIRE(stoch->is_valid());
+
+  //   auto tree = stoch->constructTree();
+  //   REQUIRE(stoch != nullptr);
+
+  //   REQUIRE(core.num_col_ == 457);
+  //   REQUIRE(core.num_row_ == 330);
+  //   Highs highs;
+  //   REQUIRE(build_stochastic_problem(highs, corefile, timefile, stochfile));
+  //   // REQUIRE(highs.getNumCol() == 1047);
+  //   // REQUIRE(highs.getNumRow() == 780);
+  //   REQUIRE(highs.run() == HighsStatus::kOk);
+  //   REQUIRE(highs.getModelStatus() == HighsModelStatus::kOptimal);
+  //   // TODO invalid res?
+  //   // REQUIRE(std::vector<double> {(double) highs.getNumCol(), (double) highs.getNumRow(), highs.getObjectiveValue()} == std::vector<double> {});
+  //   REQUIRE(std::abs(highs.getObjectiveValue() - 18438) < 2);
+  //   // REQUIRE(highs.getObjectiveValue() == 0);
+  // }
 }
