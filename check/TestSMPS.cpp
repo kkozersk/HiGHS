@@ -2636,3 +2636,227 @@ TEST_CASE("test-smps-indep-fxm-read", "[highs-smps]") {
   //   // REQUIRE(highs.getObjectiveValue() == 0);
   // }
 }
+
+TEST_CASE("test-smps-block-pltexp-read", "[highs-smps]") {
+  {
+    auto instance = std::string(HIGHS_DIR) + "/check/instances/stoch/pltexp/pltexpA2";
+    auto corefile = instance + ".cor";
+    auto timefile = instance + ".tim";
+    auto stochfile = instance + "_6.sto";
+    // auto stochfile = instance + "_trial.sto";
+    SmpsCoreStructure core({}, corefile);
+    REQUIRE(core.is_valid());
+
+    SmpsTimeStructure time(timefile);
+    REQUIRE(time.is_valid());
+
+    REQUIRE(core.load_time_stages(time));;
+
+    auto stoch = read_stochastic_file(stochfile, core, time);
+    REQUIRE(stoch != nullptr);
+    REQUIRE(stoch->is_valid());
+
+    auto tree = stoch->constructTree();
+    REQUIRE(stoch != nullptr);
+
+    REQUIRE(tree.root->get_no_children() == 1);
+    REQUIRE(tree.root ->get_lp_modifications().empty());
+    REQUIRE(tree.root->verify_children_probabilities());
+    auto & parent = tree.root->get_child(0);
+    REQUIRE(parent->verify_children_probabilities());
+    std::vector<std::vector<LpEntry>> entries {
+      {
+        {"R0004402", "RHS",      539.0680},
+        {"R0004502", "RHS",      577.8198},
+        {"R0004602", "RHS",       98.3903},
+        {"R0004702", "RHS",      280.2422},
+        {"R0004802", "RHS",      133.1513},
+        {"R0004902", "RHS",      153.2117},
+        {"R0005002", "RHS",      228.5285},
+      },
+      {
+          {"R0004402", "RHS",      512.7359},
+          {"R0004502", "RHS",      685.5873},
+          {"R0004602", "RHS",      112.1316},
+          {"R0004702", "RHS",      362.8676},
+          {"R0004802", "RHS",      167.8749},
+          {"R0004902", "RHS",      155.2219},
+          {"R0005002", "RHS",      203.4330},
+      },
+      {
+          {"R0004402", "RHS",      322.9200},
+          {"R0004502", "RHS",      441.3969},
+          {"R0004602", "RHS",       77.3411},
+          {"R0004702", "RHS",      247.1264},
+          {"R0004802", "RHS",      117.5107},
+          {"R0004902", "RHS",       81.0717},
+          {"R0005002", "RHS",      193.9533},
+      },
+      {
+          {"R0004402", "RHS",      365.5361},
+          {"R0004502", "RHS",      456.5793},
+          {"R0004602", "RHS",       79.0916},
+          {"R0004702", "RHS",      253.1020},
+          {"R0004802", "RHS",      122.4985},
+          {"R0004902", "RHS",      100.5571},
+          {"R0005002", "RHS",      184.1332},
+      },
+      {
+          {"R0004402", "RHS",      727.1323},
+          {"R0004502", "RHS",      770.2501},
+          {"R0004602", "RHS",      163.7689},
+          {"R0004702", "RHS",      472.9690},
+          {"R0004802", "RHS",      255.5678},
+          {"R0004902", "RHS",      169.2105},
+          {"R0005002", "RHS",      379.6440},
+      },
+      {
+          {"R0004402", "RHS",      589.3846},
+          {"R0004502", "RHS",      853.9025},
+          {"R0004602", "RHS",      152.0297},
+          {"R0004702", "RHS",      456.7444},
+          {"R0004802", "RHS",      224.0521},
+          {"R0004902", "RHS",      209.8287},
+          {"R0005002", "RHS",      338.3513},
+      },
+    };
+    std::vector<double> vals {50, 30, 25, 20, 15, 10};
+    std::vector<double> probs {0.4273, 0.1727, 0.159, 0.041, 0.0791, 0.1209};
+    for (int i = 0; i < 6; ++i) {
+      REQUIRE(parent->get_child(i)->get_node_probability() == probs.at(i));
+      REQUIRE(parent->get_child(i)->get_lp_modifications() == entries.at(i));
+    }
+
+    REQUIRE(core.num_col_ == 460);
+    REQUIRE(core.num_row_ == 166);
+    Highs highs;
+    REQUIRE(build_stochastic_problem(highs, corefile, timefile, stochfile));
+    // REQUIRE(highs.getNumCol() == 1856);
+    REQUIRE(highs.getNumRow() == 686);
+    REQUIRE(highs.run() == HighsStatus::kOk);
+    REQUIRE(highs.getModelStatus() == HighsModelStatus::kOptimal);
+    REQUIRE(std::abs(highs.getObjectiveValue() - (-9.479354)) < 1e-6);
+  }
+  {
+    auto instance = std::string(HIGHS_DIR) + "/check/instances/stoch/pltexp/pltexpA2";
+    auto corefile = instance + ".cor";
+    auto timefile = instance + ".tim";
+    auto stochfile = instance + "_16.sto";
+    // auto stochfile = instance + "_trial.sto";
+    SmpsCoreStructure core({}, corefile);
+    REQUIRE(core.is_valid());
+
+    SmpsTimeStructure time(timefile);
+    REQUIRE(time.is_valid());
+
+    REQUIRE(core.load_time_stages(time));;
+
+    auto stoch = read_stochastic_file(stochfile, core, time);
+    REQUIRE(stoch != nullptr);
+    REQUIRE(stoch->is_valid());
+
+    auto tree = stoch->constructTree();
+    REQUIRE(stoch != nullptr);
+    REQUIRE(core.num_col_ == 460);
+    REQUIRE(core.num_row_ == 166);
+    Highs highs;
+    REQUIRE(build_stochastic_problem(highs, corefile, timefile, stochfile));
+    // REQUIRE(highs.getNumCol() == 4636);
+    REQUIRE(highs.getNumRow() == 1726);
+    REQUIRE(highs.run() == HighsStatus::kOk);
+    REQUIRE(highs.getModelStatus() == HighsModelStatus::kOptimal);
+    REQUIRE(std::abs(highs.getObjectiveValue() - (-9.663308)) < 1e-6);
+  }
+  {
+    auto instance = std::string(HIGHS_DIR) + "/check/instances/stoch/pltexp/pltexpA3";
+    auto corefile = instance + ".cor";
+    auto timefile = instance + ".tim";
+    auto stochfile = instance + "_6.sto";
+    // auto stochfile = instance + "_trial.sto";
+    SmpsCoreStructure core({}, corefile);
+    REQUIRE(core.is_valid());
+
+    SmpsTimeStructure time(timefile);
+    REQUIRE(time.is_valid());
+
+    REQUIRE(core.load_time_stages(time));;
+
+    auto stoch = read_stochastic_file(stochfile, core, time);
+    REQUIRE(stoch != nullptr);
+    REQUIRE(stoch->is_valid());
+
+    auto tree = stoch->constructTree();
+    REQUIRE(stoch != nullptr);
+    REQUIRE(core.num_col_ == 732);
+    REQUIRE(core.num_row_ == 270);
+    Highs highs;
+    REQUIRE(build_stochastic_problem(highs, corefile, timefile, stochfile));
+    // REQUIRE(highs.getNumCol() == 11864);
+    REQUIRE(highs.getNumRow() == 4430);
+    REQUIRE(highs.run() == HighsStatus::kOk);
+    REQUIRE(highs.getModelStatus() == HighsModelStatus::kOptimal);
+    REQUIRE(std::abs(highs.getObjectiveValue() - (-13.969368)) < 1e-6);
+  }
+  {
+    auto instance = std::string(HIGHS_DIR) + "/check/instances/stoch/pltexp/pltexpA3";
+    auto corefile = instance + ".cor";
+    auto timefile = instance + ".tim";
+    auto stochfile = instance + "_16.sto";
+    // auto stochfile = instance + "_trial.sto";
+    SmpsCoreStructure core({}, corefile);
+    REQUIRE(core.is_valid());
+
+    SmpsTimeStructure time(timefile);
+    REQUIRE(time.is_valid());
+
+    REQUIRE(core.load_time_stages(time));;
+
+    auto stoch = read_stochastic_file(stochfile, core, time);
+    REQUIRE(stoch != nullptr);
+    REQUIRE(stoch->is_valid());
+
+    auto tree = stoch->constructTree();
+    REQUIRE(stoch != nullptr);
+    REQUIRE(core.num_col_ == 732);
+    REQUIRE(core.num_row_ == 270);
+    Highs highs;
+    REQUIRE(build_stochastic_problem(highs, corefile, timefile, stochfile));
+    // REQUIRE(highs.getNumCol() == 75804);
+    REQUIRE(highs.getNumRow() == 28350);
+    REQUIRE(highs.run() == HighsStatus::kOk);
+    REQUIRE(highs.getModelStatus() == HighsModelStatus::kOptimal);
+    REQUIRE(std::abs(highs.getObjectiveValue() - (-14.267458)) < 1e-6);
+  }
+}
+// TEST_CASE("test-smps-scen-sgpf5y-read", "[highs-smps]") {
+//   {
+//     auto instance = std::string(HIGHS_DIR) + "/check/instances/stoch/sg/sgpf5y3";
+//     auto corefile = instance + ".cor";
+//     auto timefile = instance + ".tim";
+//     auto stochfile = instance + ".sce";
+//     // auto stochfile = instance + "_trial.sto";
+//     SmpsCoreStructure core({}, corefile);
+//     REQUIRE(core.is_valid());
+
+//     SmpsTimeStructure time(timefile);
+//     REQUIRE(time.is_valid());
+
+//     REQUIRE(core.load_time_stages(time));;
+
+//     auto stoch = read_stochastic_file(stochfile, core, time);
+//     REQUIRE(stoch != nullptr);
+//     REQUIRE(stoch->is_valid());
+
+//     auto tree = stoch->constructTree();
+//     REQUIRE(stoch != nullptr);
+//     REQUIRE(core.num_col_ == 732);
+//     REQUIRE(core.num_row_ == 270);
+//     Highs highs;
+//     REQUIRE(build_stochastic_problem(highs, corefile, timefile, stochfile));
+//     // REQUIRE(highs.getNumCol() == 75804);
+//     REQUIRE(highs.getNumRow() == 28350);
+//     REQUIRE(highs.run() == HighsStatus::kOk);
+//     REQUIRE(highs.getModelStatus() == HighsModelStatus::kOptimal);
+//     REQUIRE(std::abs(highs.getObjectiveValue() - (-14.267458)) < 1e-6);
+//   }
+// }

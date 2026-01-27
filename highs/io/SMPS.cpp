@@ -50,12 +50,17 @@ bool SmpsTimeStructure::process_period(std::string const & line) {
   return true;
 }
 
+//TODO rework to use get tokens
 bool SmpsTimeStructure::is_ending(std::string const & line) const {
-  return line.empty() || line == "ENDATA";
+  std::string temp;
+  std::stringstream(line) >> temp;
+  return line.empty() || temp == "ENDATA";
 }
 
 bool SmpsTimeStructure::process_ending(std::string const & line) {
-  return line == "ENDATA";
+  std::string temp;
+  std::stringstream(line) >> temp;
+  return temp == "ENDATA";
 }
 
 int SmpsTimeStructure::get_stage_index(std::string const & stage) const {
@@ -139,7 +144,7 @@ std::unique_ptr<SmpsStochasticStructure> read_stochastic_file(std::string const 
   if (distribution != "DISCRETE") return nullptr;
   if (structure_type == "INDEP")
     return std::unique_ptr<SmpsStochasticStructure>(new IndepStructure(filepath));
-  if (structure_type == "BLOCK")
+  if (structure_type == "BLOCKS")
     return std::unique_ptr<SmpsStochasticStructure>(new BlockStructure(filepath));
   if (structure_type == "SCENARIO")
     return std::unique_ptr<SmpsStochasticStructure>(new ScenarioStructure(filepath, time, core));
