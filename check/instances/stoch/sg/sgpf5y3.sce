@@ -58,7 +58,7 @@ SCENARIOS     DISCRETE
     P2001y00  MINI      0.003472448 
     M2001y00  MINI      -0.003373706 
     X2001000  MINI      -0.004957761 
-    RHS       R00125           412.0
+    RHS       R00125           40000
     RHS       R00126           412.0
     RHS       R00188           413.0
     RHS       R00189           413.0

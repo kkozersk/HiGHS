@@ -1085,7 +1085,8 @@ TEST_CASE("test-create-simple-scenario-structure", "[highs_smps]") {
    SmpsCoreStructure core({}, path);
    REQUIRE(core.is_valid());
 
-  std::istringstream data("SCENARIOS DISCRETE\n"
+  std::istringstream data(
+                          "STOCH NAME\nSCENARIOS DISCRETE\n"
                           "SC S01 ROOT 0.5 PERIOD2\n"
                           "RHS R1 50\n"
                           "RHS R2 40\n"
@@ -1119,7 +1120,8 @@ TEST_CASE("test-create-complex-scenario-structure", "[highs_smps]") {
    auto path = std::string(HIGHS_DIR) + "/check/instances/stoch/simple.cor";
    SmpsCoreStructure core({}, path);
    REQUIRE(core.is_valid());
-  std::istringstream data("SCENARIOS DISCRETE\n"
+  std::istringstream data(
+                          "STOCH NAME\nSCENARIOS DISCRETE\n"
                           "SC S01 ROOT 0.5 PERIOD2\n"
                           "RHS R1 50\n"
                           "RHS R2 40\n"
@@ -1166,7 +1168,7 @@ TEST_CASE("test-create-scenario-structure-with-comments", "[highs_smps]") {
    auto path = std::string(HIGHS_DIR) + "/check/instances/stoch/simple.cor";
    SmpsCoreStructure core({}, path);
    REQUIRE(core.is_valid());
-  std::istringstream data("SCENARIOS DISCRETE\n"
+  std::istringstream data("STOCH NAME\nSCENARIOS DISCRETE\n"
                           "*\n"
                           "*\n"
                           "*\n"
@@ -1221,7 +1223,8 @@ TEST_CASE("test-create-malformed-stochastic-structure", "[highs_smps]") {
    auto path = std::string(HIGHS_DIR) + "/check/instances/stoch/simple.cor";
    SmpsCoreStructure core({}, path);
    REQUIRE(core.is_valid());
-  std::istringstream malformed_scenario_header("SCENARIOS DISCRETE\n"
+  std::istringstream malformed_scenario_header(
+                                               "STOCH NAME\nSCENARIOS DISCRETE\n"
                           "SC S01 ROOT 0.5 PERIOD2\n"
                           "RHS R1 50\n"
                           "RHS R2 40\n"
@@ -1236,7 +1239,8 @@ TEST_CASE("test-create-malformed-stochastic-structure", "[highs_smps]") {
   ScenarioStructure smps(malformed_scenario_header, time, core);
   REQUIRE(!smps.is_valid());
   {
-    std::istringstream malformed_scenario_header2("SCENARIOS DISCRETE\n"
+    std::istringstream malformed_scenario_header2(
+                                                  "STOCH NAME\nSCENARIOS DISCRETE\n"
                             "SC S01 ROOT 0.5 PERIOD2\n"
                             "RHS R1 50\n"
                             "RHS R2 40\n"
@@ -1252,7 +1256,7 @@ TEST_CASE("test-create-malformed-stochastic-structure", "[highs_smps]") {
     REQUIRE(!smps.is_valid());
   }
   {
-    std::istringstream malformed_scenario_entry("SCENARIOS DISCRETE\n"
+    std::istringstream malformed_scenario_entry("STOCH NAME\nSCENARIOS DISCRETE\n"
                             "SC S01 ROOT 0.5 PERIOD2\n"
                             "RHS R1 50\n"
                             "RHS R2 40\n"
@@ -1268,7 +1272,7 @@ TEST_CASE("test-create-malformed-stochastic-structure", "[highs_smps]") {
     REQUIRE(!smps.is_valid());
   }
   {
-    std::istringstream malformed_scenario_entry2("SCENARIOS DISCRETE\n"
+    std::istringstream malformed_scenario_entry2("STOCH NAME\nSCENARIOS DISCRETE\n"
                             "SC S01 ROOT 0.5 PERIOD2\n"
                             "RHS R1 50\n"
                             "RHS R2 40\n"
@@ -1284,7 +1288,7 @@ TEST_CASE("test-create-malformed-stochastic-structure", "[highs_smps]") {
     REQUIRE(!smps.is_valid());
   }
   {
-    std::istringstream empty_scenario("SCENARIOS DISCRETE\n"
+    std::istringstream empty_scenario("STOCH NAME\nSCENARIOS DISCRETE\n"
                             "SC S01 ROOT 0.5 PERIOD2\n"
                             "RHS R1 50\n"
                             "RHS R2 40\n"
@@ -1298,7 +1302,7 @@ TEST_CASE("test-create-malformed-stochastic-structure", "[highs_smps]") {
     REQUIRE(!smps.is_valid());
   }
   {
-    std::istringstream missing_end("SCENARIOS DISCRETE\n"
+    std::istringstream missing_end("STOCH NAME\nSCENARIOS DISCRETE\n"
                             "SC S01 ROOT 0.5 PERIOD2\n"
                             "RHS R1 50\n"
                             "RHS R2 40\n"
@@ -1314,7 +1318,7 @@ TEST_CASE("test-create-malformed-stochastic-structure", "[highs_smps]") {
     REQUIRE(!smps.is_valid());
   }
   {
-    std::istringstream malformed_end("SCENARIOS DISCRETE\n"
+    std::istringstream malformed_end("STOCH NAME\nSCENARIOS DISCRETE\n"
                             "SC S01 ROOT 0.5 PERIOD2\n"
                             "RHS R1 50\n"
                             "RHS R2 40\n"
@@ -1330,7 +1334,7 @@ TEST_CASE("test-create-malformed-stochastic-structure", "[highs_smps]") {
     REQUIRE(!smps.is_valid());
   }
   {
-    std::istringstream nonnumeric("SCENARIOS DISCRETE\n"
+    std::istringstream nonnumeric("STOCH NAME\nSCENARIOS DISCRETE\n"
                             "SC S01 ROOT 0.5 PERIOD2\n"
                             "RHS R1 50\n"
                             "RHS R2 40\n"
@@ -1346,7 +1350,7 @@ TEST_CASE("test-create-malformed-stochastic-structure", "[highs_smps]") {
     REQUIRE(!smps.is_valid());
   }
   {
-    std::istringstream nonumeric2("SCENARIOS DISCRETE\n"
+    std::istringstream nonumeric2("STOCH NAME\nSCENARIOS DISCRETE\n"
                             "SC S01 ROOT 0.5 PERIOD2\n"
                             "RHS R1 50\n"
                             "RHS R2 RHS\n"
@@ -1362,7 +1366,7 @@ TEST_CASE("test-create-malformed-stochastic-structure", "[highs_smps]") {
     REQUIRE(!smps.is_valid());
   }
   {
-    std::istringstream invalid_probability("SCENARIOS DISCRETE\n"
+    std::istringstream invalid_probability("STOCH NAME\nSCENARIOS DISCRETE\n"
                             "SC S01 ROOT -0.5 PERIOD2\n"
                             "RHS R1 50\n"
                             "RHS R2 40\n"
@@ -1378,7 +1382,7 @@ TEST_CASE("test-create-malformed-stochastic-structure", "[highs_smps]") {
     REQUIRE(!smps.is_valid());
   }
   {
-    std::istringstream invalid_probability2("SCENARIOS DISCRETE\n"
+    std::istringstream invalid_probability2("STOCH NAME\nSCENARIOS DISCRETE\n"
                             "SC S01 ROOT 0.5 PERIOD2\n"
                             "RHS R1 50\n"
                             "RHS R2 40\n"
@@ -1394,7 +1398,7 @@ TEST_CASE("test-create-malformed-stochastic-structure", "[highs_smps]") {
     REQUIRE(!smps.is_valid());
   }
   {
-    std::istringstream malformed_header("STOCH NAME\n"
+    std::istringstream malformed_header(
                                         "SCENARIOS DISCRETE\n"
                             "SC S01 ROOT 0.5 PERIOD2\n"
                             "RHS R1 50\n"
@@ -1445,7 +1449,7 @@ TEST_CASE("test-create-malformed-stochastic-structure", "[highs_smps]") {
   }
   {
     std::istringstream end_comments(
-                            "SCENARIOS DISCRETE\n"
+                            "STOCH NAME\nSCENARIOS DISCRETE\n"
                             "SC S01 ROOT 0.5 PERIOD2\n"
                             "RHS R1 50\n"
                             "RHS R2 40\n"
@@ -1608,7 +1612,7 @@ TEST_CASE("test-scenario-structure-tree", "[highs_smps]") {
 
    core.load_time_stages(time);
 
-   std::istringstream data("SCENARIOS DISCRETE\n"
+   std::istringstream data("STOCH NAME\nSCENARIOS DISCRETE\n"
                            "SC S01 ROOT 0.25 PERIOD1\n"
                            "RHS R1 50\n"
                            "RHS R2 40\n"
@@ -1763,7 +1767,7 @@ TEST_CASE("test-scenario-structure-tree-v2", "[highs_smps]") {
 
    core.load_time_stages(time);
 
-   std::istringstream data("SCENARIOS DISCRETE\n"
+   std::istringstream data("STOCH NAME\nSCENARIOS DISCRETE\n"
                            "SC S01 ROOT 0.1 PERIOD0\n"
                            "RHS R1 10\n"
                            "RHS R2 10\n"
@@ -2828,35 +2832,58 @@ TEST_CASE("test-smps-block-pltexp-read", "[highs-smps]") {
     REQUIRE(std::abs(highs.getObjectiveValue() - (-14.267458)) < 1e-6);
   }
 }
-// TEST_CASE("test-smps-scen-sgpf5y-read", "[highs-smps]") {
-//   {
-//     auto instance = std::string(HIGHS_DIR) + "/check/instances/stoch/sg/sgpf5y3";
-//     auto corefile = instance + ".cor";
-//     auto timefile = instance + ".tim";
-//     auto stochfile = instance + ".sce";
-//     // auto stochfile = instance + "_trial.sto";
-//     SmpsCoreStructure core({}, corefile);
-//     REQUIRE(core.is_valid());
 
-//     SmpsTimeStructure time(timefile);
-//     REQUIRE(time.is_valid());
+TEST_CASE("test-smps-scen-sgpf5y-read", "[highs-smps]") {
+  {
+    auto instance = std::string(HIGHS_DIR) + "/check/instances/stoch/sg/sgpf5y3";
+    auto corefile = instance + ".cor";
+    auto timefile = instance + ".tim";
+    auto stochfile = instance + ".sce";
+    SmpsCoreStructure core({}, corefile);
+    REQUIRE(core.is_valid());
 
-//     REQUIRE(core.load_time_stages(time));;
+    SmpsTimeStructure time(timefile);
+    REQUIRE(time.is_valid());
 
-//     auto stoch = read_stochastic_file(stochfile, core, time);
-//     REQUIRE(stoch != nullptr);
-//     REQUIRE(stoch->is_valid());
+    REQUIRE(core.load_time_stages(time));;
 
-//     auto tree = stoch->constructTree();
-//     REQUIRE(stoch != nullptr);
-//     REQUIRE(core.num_col_ == 732);
-//     REQUIRE(core.num_row_ == 270);
-//     Highs highs;
-//     REQUIRE(build_stochastic_problem(highs, corefile, timefile, stochfile));
-//     // REQUIRE(highs.getNumCol() == 75804);
-//     REQUIRE(highs.getNumRow() == 28350);
-//     REQUIRE(highs.run() == HighsStatus::kOk);
-//     REQUIRE(highs.getModelStatus() == HighsModelStatus::kOptimal);
-//     REQUIRE(std::abs(highs.getObjectiveValue() - (-14.267458)) < 1e-6);
-//   }
-// }
+    auto stoch = read_stochastic_file(stochfile, core, time);
+    REQUIRE(stoch != nullptr);
+    REQUIRE(stoch->is_valid());
+
+    auto tree = stoch->constructTree();
+    Highs highs;
+    REQUIRE(build_stochastic_problem(highs, corefile, timefile, stochfile));
+    // REQUIRE(highs.getNumCol() == 75804);
+    // REQUIRE(highs.getNumRow() == 1952);
+    REQUIRE(highs.run() == HighsStatus::kOk);
+    REQUIRE(highs.getModelStatus() == HighsModelStatus::kOptimal);
+    REQUIRE(std::abs(highs.getObjectiveValue() - (-3027.706)) < 1);
+  }
+  {
+    auto instance = std::string(HIGHS_DIR) + "/check/instances/stoch/sg/sgpf5y4";
+    auto corefile = instance + ".cor";
+    auto timefile = instance + ".tim";
+    auto stochfile = instance + ".sce";
+    SmpsCoreStructure core({}, corefile);
+    REQUIRE(core.is_valid());
+
+    SmpsTimeStructure time(timefile);
+    REQUIRE(time.is_valid());
+
+    REQUIRE(core.load_time_stages(time));;
+
+    auto stoch = read_stochastic_file(stochfile, core, time);
+    REQUIRE(stoch != nullptr);
+    REQUIRE(stoch->is_valid());
+
+    auto tree = stoch->constructTree();
+    Highs highs;
+    REQUIRE(build_stochastic_problem(highs, corefile, timefile, stochfile));
+    // REQUIRE(highs.getNumCol() == 75804);
+    // REQUIRE(highs.getNumRow() == 1952);
+    REQUIRE(highs.run() == HighsStatus::kOk);
+    REQUIRE(highs.getModelStatus() == HighsModelStatus::kOptimal);
+    REQUIRE(std::abs(highs.getObjectiveValue() - (-4031.391)) < 1e-1);
+  }
+}

@@ -146,7 +146,7 @@ std::unique_ptr<SmpsStochasticStructure> read_stochastic_file(std::string const 
     return std::unique_ptr<SmpsStochasticStructure>(new IndepStructure(filepath));
   if (structure_type == "BLOCKS")
     return std::unique_ptr<SmpsStochasticStructure>(new BlockStructure(filepath));
-  if (structure_type == "SCENARIO")
+  if (structure_type == "SCENARIOS")
     return std::unique_ptr<SmpsStochasticStructure>(new ScenarioStructure(filepath, time, core));
   return nullptr;
 }
@@ -417,8 +417,9 @@ bool ScenarioStructure::process_data(std::istream & input) {
 }
 
 bool ScenarioStructure::read_from_file(std::istream & input) {
-    std::string structure_type, distribution;
-    return  process_structure(read_tokens(input), structure_type, distribution) &&
+    std::string structure_type, distribution, header, problem_name;
+    return  process_header(read_tokens(input), header, problem_name) &&
+            process_structure(read_tokens(input), structure_type, distribution) &&
             structure_type == "SCENARIOS" && distribution == "DISCRETE"
             && process_data(input) && !scenarios.empty();
 }
