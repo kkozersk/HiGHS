@@ -271,14 +271,14 @@ double benders(HighsLp & base_problem, std::string const & master_name_pattern, 
   return benders(base_problem, master_variables, starting_point, eps);
 }
 
-double benders(HighsLp & base_problem, std::set<HighsInt> const & master_variables, std::vector<double> const & starting_point, double eps) { 
+double benders(HighsLp & base_problem, std::set<HighsInt> const & master_variables, std::vector<double> const & starting_point, double eps, int max_iter) { 
   BendersProblems problems; decompose_problem(problems, base_problem, master_variables);
   BendersIterationInfo info;
   auto master_values = starting_point;
   int iter = 0;
   double UBD = kHighsInf, LBD = -kHighsInf;
   bool any_objective_cuts = false;
-  while (UBD - LBD > eps && !info.was_error && ++iter < 1e2) {
+  while (UBD - LBD > eps && !info.was_error && ++iter < max_iter) {
     info = solve_subproblem(problems.subproblem, info, master_variables, master_values);
     if (info.was_subproblem_feasible) {
       double solution_cost = calculate_solution_cost(problems.master, problems.subproblem, master_variables, master_values);
@@ -296,7 +296,9 @@ double benders(HighsLp & base_problem, std::set<HighsInt> const & master_variabl
     }
     info = solve_master(problems.master, info);
     master_values = problems.master.getSolution().col_value;
-    LBD = problems.master.getObjectiveValue();
+    //TODO all check
+    if (any_objective_cuts)
+      LBD = problems.master.getObjectiveValue();
   }
   return UBD;
 }
