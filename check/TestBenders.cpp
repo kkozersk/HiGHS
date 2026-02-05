@@ -786,6 +786,8 @@ TEST_CASE("test-benders-solve-block-smps", "[highs-benders]") {
   std::vector<double> starting_point (master_vars.size(), 0);
   auto res = benders(lp, master_vars, starting_point);
   REQUIRE(res == obj);
+  res = benders2(lp, master_vars, starting_point, 1e-3);
+  REQUIRE(std::abs(res - obj) < 1e-3);
 }
 
 TEST_CASE("test-benders-solve-scen-smps", "[highs-benders]") {
@@ -804,5 +806,7 @@ TEST_CASE("test-benders-solve-scen-smps", "[highs-benders]") {
   std::vector<double> starting_point (master_vars.size(), 0);
   // starting_point = highs.getSolution().col_value;
   auto res = benders(lp, master_vars, starting_point, 1e-3);
+  REQUIRE(std::abs(res - obj) < 1e-3);
+  res = benders2(lp, master_vars, starting_point, 1e-3);
   REQUIRE(std::abs(res - obj) < 1e-3);
 }

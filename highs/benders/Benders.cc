@@ -14,8 +14,7 @@ HighsInt find_row_index(std::vector<HighsInt> const & csr_starts, HighsInt index
 }
 
 RowDivision divide_rows(std::vector<HighsInt> const & csr_index, std::vector<HighsInt> const & csr_starts, std::set<HighsInt> const & master_variables) {
-  //TODO replace by find
-  auto is_master = [&master_variables](HighsInt index){ return master_variables.count(index) > 0; };
+  auto is_master = [&master_variables](HighsInt index){ return master_variables.find(index) != master_variables.end(); };
   std::set<HighsInt> master_rows, subproblem_rows, mixed_rows;
   for (std::vector<HighsInt>::size_type i = 0; i < csr_index.size(); ++i)
     (is_master(csr_index[i]) ? master_rows : subproblem_rows).insert(find_row_index(csr_starts, i));
@@ -296,12 +295,13 @@ double benders(HighsLp & base_problem, std::set<HighsInt> const & master_variabl
     }
     info = solve_master(problems.master, info);
     master_values = problems.master.getSolution().col_value;
-    //TODO all check
     if (any_objective_cuts)
       LBD = problems.master.getObjectiveValue();
   }
   return UBD;
 }
+
+inline bool all(std::vector<bool> const & v) { return std::all_of(v.begin(), v.end(), [](bool x) { return x; }); }
 
 double multi_benders(HighsLp & base_problem, std::set<HighsInt> const & master_variables,
                      std::vector<std::set<HighsInt>> const & subproblems_variables,
@@ -314,6 +314,7 @@ double multi_benders(HighsLp & base_problem, std::set<HighsInt> const & master_v
   double UBD = kHighsInf, LBD = -kHighsInf;
   int no_subproblems = subproblems_variables.size();
   std::vector<bool> any_objective_cuts(no_subproblems, false);
+  bool all_objective_cuts = false;
   while (UBD - LBD > eps && !info.was_error && ++iter < 1e4) {
     double subproblem_costs = 0;
     bool all_feasible = true;
@@ -341,7 +342,8 @@ double multi_benders(HighsLp & base_problem, std::set<HighsInt> const & master_v
     }
     info = solve_master(problems.master, info);
     master_values = problems.master.getSolution().col_value;
-    LBD = problems.master.getObjectiveValue();
+    if((all_objective_cuts = all_objective_cuts || all(any_objective_cuts)))
+      LBD = problems.master.getObjectiveValue();
   }
   return UBD;
 }
