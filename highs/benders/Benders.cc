@@ -8,13 +8,13 @@
 #include "lp_data/HighsStatus.h"
 #include "lp_data/HighsLpUtils.h"
 
-
 HighsInt find_row_index(std::vector<HighsInt> const & csr_starts, HighsInt index) {
   auto pointer = std::upper_bound(csr_starts.begin(), csr_starts.end(), index);
   return std::distance(csr_starts.begin(), pointer) - 1;
 }
 
 RowDivision divide_rows(std::vector<HighsInt> const & csr_index, std::vector<HighsInt> const & csr_starts, std::set<HighsInt> const & master_variables) {
+  //TODO replace by find
   auto is_master = [&master_variables](HighsInt index){ return master_variables.count(index) > 0; };
   std::set<HighsInt> master_rows, subproblem_rows, mixed_rows;
   for (std::vector<HighsInt>::size_type i = 0; i < csr_index.size(); ++i)
@@ -123,12 +123,14 @@ std::set<HighsInt> index_set_union(std::set<HighsInt> const & a, std::set<HighsI
 void decompose_problem(MultiBendersProblems & problems, HighsLp & base_problem, std::set<HighsInt> const & master_variables, std::vector<std::set<HighsInt>> const & subproblems_variables) {
   auto row_division = divide_rows(base_problem.a_matrix_, master_variables);
   create_master_problem(problems.master, base_problem, master_variables, row_division.other_rows, subproblems_variables.size());
+  problems.master.setOptionValue("presolve", kHighsOffString);
   problems.subproblems = std::vector<Highs> (subproblems_variables.size());
   for (std::vector<HighsInt>::size_type i = 0; i < subproblems_variables.size(); ++i) {
     std::set<HighsInt> const & subproblem_variables = subproblems_variables.at(i);
     auto master_and_subproblem_vars = index_set_union(subproblem_variables, master_variables);
     row_division = divide_rows(base_problem.a_matrix_, master_and_subproblem_vars);
     create_subproblem(problems.subproblems.at(i), base_problem, master_variables, row_division.other_rows, subproblem_variables);
+    problems.subproblems.at(i).setOptionValue("presolve", kHighsOffString);
   }
 }
 
@@ -310,7 +312,7 @@ double multi_benders(HighsLp & base_problem, std::set<HighsInt> const & master_v
   double UBD = kHighsInf, LBD = -kHighsInf;
   int no_subproblems = subproblems_variables.size();
   std::vector<bool> any_objective_cuts(no_subproblems, false);
-  while (UBD - LBD > eps && !info.was_error && ++iter < 1e2) {
+  while (UBD - LBD > eps && !info.was_error && ++iter < 1e4) {
     double subproblem_costs = 0;
     bool all_feasible = true;
     for (int i = 0; i < no_subproblems; ++i) {

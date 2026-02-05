@@ -1,9 +1,11 @@
 #include "benders/Benders.h"
 #include "HCheckConfig.h"
+#include "io/SMPS.h"
 #include "io/FilereaderLp.h"
 #include "Highs.h"
 #include "catch.hpp"
 #include <cmath>
+#include <numeric>
 #include <set>
 #include <vector>
 
@@ -766,4 +768,22 @@ TEST_CASE("test-solve-multi-simple-system-", "[highs-benders]") {
   auto res = multi_benders(lp, {0}, {{1,2}, {3}}, {2, 0});
   REQUIRE(res == expected);
   REQUIRE(std::abs(res - expected) < 1e-3);
+}
+
+TEST_CASE("test-benders-solve-block-smps", "[highs-benders]") {
+  auto instance = std::string(HIGHS_DIR) + "/check/instances/stoch/pltexp/pltexpA2";
+  auto corefile = instance + ".cor";
+  auto timefile = instance + ".tim";
+  auto stochfile = instance + "_6.sto";
+  Highs highs;
+  REQUIRE(build_stochastic_problem(highs, corefile, timefile, stochfile));
+  highs.run();
+  auto obj = highs.getObjectiveValue();
+  auto lp = highs.getModel().lp_;
+  lp.ensureRowwise();
+  std::set<int> master_vars;
+  for (int i = 0; i < 188; ++i) master_vars.emplace(i);
+  std::vector<double> starting_point (master_vars.size(), 0);
+  auto res = benders(lp, master_vars, starting_point);
+  REQUIRE(res == obj);
 }
