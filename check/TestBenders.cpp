@@ -790,6 +790,28 @@ TEST_CASE("test-benders-solve-block-smps", "[highs-benders]") {
   REQUIRE(std::abs(res - obj) < 1e-3);
 }
 
+TEST_CASE("test-multi-benders-solve-block-smps", "[highs-benders]") {
+  auto instance = std::string(HIGHS_DIR) + "/check/instances/stoch/pltexp/pltexpA2";
+  auto corefile = instance + ".cor";
+  auto timefile = instance + ".tim";
+  auto stochfile = instance + "_6.sto";
+  Highs highs;
+  REQUIRE(build_stochastic_problem(highs, corefile, timefile, stochfile));
+  highs.run();
+  auto obj = highs.getObjectiveValue();
+  auto lp = highs.getModel().lp_;
+  lp.ensureRowwise();
+  std::set<int> master_vars;
+  for (int i = 0; i < 188; ++i) master_vars.emplace(i);
+  std::vector<double> starting_point (master_vars.size(), 0);
+  std::vector<std::set<HighsInt>> subproblem_variables(6);
+  for (int i = 0; i < 6; ++i)
+    for (int j = 0; j < 460 - 188; ++j)
+      subproblem_variables.at(i).emplace(188 + i * (460 - 188) + j);
+  auto res = multi_benders(lp, master_vars, subproblem_variables, starting_point);
+  REQUIRE(res == obj);
+}
+
 TEST_CASE("test-benders-solve-scen-smps", "[highs-benders]") {
   auto instance = std::string(HIGHS_DIR) + "/check/instances/stoch/sg/sgpf5y3";
   auto corefile = instance + ".cor";
@@ -809,4 +831,29 @@ TEST_CASE("test-benders-solve-scen-smps", "[highs-benders]") {
   REQUIRE(std::abs(res - obj) < 1e-3);
   res = benders2(lp, master_vars, starting_point, 1e-3);
   REQUIRE(std::abs(res - obj) < 1e-3);
+}
+
+TEST_CASE("test-multi-benders-solve-scen-smps", "[highs-benders]") {
+  //TODO problem with iter = 1
+  auto instance = std::string(HIGHS_DIR) + "/check/instances/stoch/sg/sgpf5y3";
+  auto corefile = instance + ".cor";
+  auto timefile = instance + ".tim";
+  auto stochfile = instance + ".sce";
+  Highs highs;
+  REQUIRE(build_stochastic_problem(highs, corefile, timefile, stochfile));
+  highs.run();
+  auto obj = highs.getObjectiveValue();
+  auto lp = highs.getModel().lp_;
+  auto num_per_sub = 79 + 5 * 79;
+  REQUIRE(lp.num_col_ == 139 + 5 * num_per_sub);
+  lp.ensureRowwise();
+  std::set<int> master_vars;
+  for (int i = 0; i < 139; ++i) master_vars.emplace(i);
+  std::vector<double> starting_point (master_vars.size(), 0);
+  std::vector<std::set<HighsInt>> subproblem_variables(5);
+  for (int i = 0; i < 5; ++i)
+    for (int j = 0; j < num_per_sub; ++j)
+      subproblem_variables.at(i).emplace(139 + i * num_per_sub + j);
+  auto res = multi_benders(lp, master_vars, subproblem_variables, starting_point, 1e-3);
+  REQUIRE(res == obj);
 }

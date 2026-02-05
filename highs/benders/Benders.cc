@@ -305,7 +305,7 @@ inline bool all(std::vector<bool> const & v) { return std::all_of(v.begin(), v.e
 
 double multi_benders(HighsLp & base_problem, std::set<HighsInt> const & master_variables,
                      std::vector<std::set<HighsInt>> const & subproblems_variables,
-                     std::vector<double> const & starting_point, double eps) { 
+                     std::vector<double> const & starting_point, double eps, int max_iter) { 
   MultiBendersProblems problems;
   decompose_problem(problems, base_problem, master_variables, subproblems_variables);
   BendersIterationInfo info;
@@ -315,7 +315,7 @@ double multi_benders(HighsLp & base_problem, std::set<HighsInt> const & master_v
   int no_subproblems = subproblems_variables.size();
   std::vector<bool> any_objective_cuts(no_subproblems, false);
   bool all_objective_cuts = false;
-  while (UBD - LBD > eps && !info.was_error && ++iter < 1e4) {
+  while (UBD - LBD > eps && !info.was_error && ++iter < max_iter) {
     double subproblem_costs = 0;
     bool all_feasible = true;
     for (int i = 0; i < no_subproblems; ++i) {
