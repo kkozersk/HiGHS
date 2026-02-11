@@ -105,8 +105,8 @@ void create_feasibility_subproblem(Highs & feas_subproblem, HighsLp const & base
 void decompose_problem(BendersProblems & problems, HighsLp const & base_problem, std::set<HighsInt> const & master_variables, RowDivision const & row_division) {
   create_master_problem(problems.master, base_problem, master_variables, row_division.other_rows);
   create_subproblem(problems.subproblem, base_problem, master_variables);
-  problems.master.setOptionValue("presolve", kHighsOffString);
-  problems.subproblem.setOptionValue("presolve", kHighsOffString);
+  // problems.master.setOptionValue("presolve", kHighsOffString);
+  // problems.subproblem.setOptionValue("presolve", kHighsOffString);
   create_feasibility_subproblem(problems.feas_subproblem, base_problem, master_variables, row_division.mixed_rows);
 }
 
@@ -135,7 +135,7 @@ void decompose_problem(MultiBendersProblems & problems, HighsLp & base_problem, 
   auto row_division = divide_rows(base_problem.a_matrix_, master_variables);
   auto master_mixed_rows = row_division.mixed_rows;
   create_master_problem(problems.master, base_problem, master_variables, row_division.other_rows, subproblems_variables.size());
-  problems.master.setOptionValue("presolve", kHighsOffString);
+  // problems.master.setOptionValue("presolve", kHighsOffString);
   problems.subproblems = std::vector<Highs> (subproblems_variables.size());
   problems.feas_subproblems = std::vector<Highs> (subproblems_variables.size());
   for (std::vector<HighsInt>::size_type i = 0; i < subproblems_variables.size(); ++i) {
@@ -143,12 +143,12 @@ void decompose_problem(MultiBendersProblems & problems, HighsLp & base_problem, 
     auto master_and_subproblem_vars = index_set_union(subproblem_variables, master_variables);
     row_division = divide_rows(base_problem.a_matrix_, master_and_subproblem_vars);
     create_subproblem(problems.subproblems.at(i), base_problem, master_variables, row_division.other_rows, subproblem_variables);
-    problems.subproblems.at(i).setOptionValue("presolve", kHighsOffString);
+    // problems.subproblems.at(i).setOptionValue("presolve", kHighsOffString);
     
     auto sub_and_master_rows = row_division.inset_only_rows;
     auto sub_mixed_rows = index_set_intersection(master_mixed_rows, sub_and_master_rows);
     create_feasibility_subproblem(problems.feas_subproblems.at(i), base_problem, master_variables, sub_mixed_rows);
-    problems.feas_subproblems.at(i).setOptionValue("presolve", kHighsOffString);
+    // problems.feas_subproblems.at(i).setOptionValue("presolve", kHighsOffString);
   }
 }
 
