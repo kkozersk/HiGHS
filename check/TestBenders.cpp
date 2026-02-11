@@ -792,25 +792,25 @@ TEST_CASE("test-benders-solve-indep-smps", "[highs-benders]") {
 }
 
 TEST_CASE("test-multi-benders-solve-indep-smps", "[highs-benders]") {
-  // auto instance = std::string(HIGHS_DIR) + "/check/instances/stoch/pltexp/pltexpA2";
-  // auto corefile = instance + ".cor";
-  // auto timefile = instance + ".tim";
-  // auto stochfile = instance + "_6.sto";
-  // Highs highs;
-  // REQUIRE(build_stochastic_problem(highs, corefile, timefile, stochfile));
-  // highs.run();
-  // auto obj = highs.getObjectiveValue();
-  // auto lp = highs.getModel().lp_;
-  // lp.ensureRowwise();
-  // std::set<int> master_vars;
-  // for (int i = 0; i < 114; ++i) master_vars.emplace(i);
-  // std::vector<double> starting_point (master_vars.size(), 0);
-  // std::vector<std::set<HighsInt>> subproblem_variables(6);
-  // for (int i = 0; i < 6; ++i)
-  //   for (int j = 0; j < 457 - 114; ++j)
-  //     subproblem_variables.at(i).emplace(114 + i * (457 - 114) + j);
-  // auto res = multi_benders(lp, master_vars, subproblem_variables, starting_point);
-  // REQUIRE(std::abs(res - obj) < 1e-3);
+  auto instance = std::string(HIGHS_DIR) + "/check/instances/stoch/fxm/fxm";
+  auto corefile = instance + ".cor";
+  auto timefile = instance + "2.tim";
+  auto stochfile = instance + "2_6.sto";
+  Highs highs;
+  REQUIRE(build_stochastic_problem(highs, corefile, timefile, stochfile));
+  highs.run();
+  auto obj = highs.getObjectiveValue();
+  auto lp = highs.getModel().lp_;
+  lp.ensureRowwise();
+  std::set<int> master_vars;
+  for (int i = 0; i < 114; ++i) master_vars.emplace(i);
+  std::vector<double> starting_point (master_vars.size(), 0);
+  std::vector<std::set<HighsInt>> subproblem_variables(6);
+  for (int i = 0; i < 6; ++i)
+    for (int j = 0; j < 457 - 114; ++j)
+      subproblem_variables.at(i).emplace(114 + i * (457 - 114) + j);
+  auto res = multi_benders(lp, master_vars, subproblem_variables, starting_point, 1e-3, 1e2);
+  REQUIRE(std::abs(res - obj) < 1e-3);
 }
 
 TEST_CASE("test-benders-solve-block-smps", "[highs-benders]") {
@@ -877,7 +877,6 @@ TEST_CASE("test-benders-solve-scen-smps", "[highs-benders]") {
 }
 
 TEST_CASE("test-multi-benders-solve-scen-smps", "[highs-benders]") {
-  //TODO problem with iter = 1
   auto instance = std::string(HIGHS_DIR) + "/check/instances/stoch/sg/sgpf5y3";
   auto corefile = instance + ".cor";
   auto timefile = instance + ".tim";
