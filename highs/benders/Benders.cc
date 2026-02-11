@@ -301,7 +301,7 @@ double benders(HighsLp & base_problem, std::set<HighsInt> const & master_variabl
   //   info = solve_master(problems.master, info);
   //   master_values = problems.master.getSolution().col_value;
   // }
-  while (UBD - LBD > eps && !info.was_error && ++iter < max_iter) {
+  while (UBD - LBD > eps && !info.was_error && iter++ < max_iter) {
     info = solve_subproblem(problems.subproblem, info, master_variables, master_values);
     if (info.was_subproblem_feasible) {
       double solution_cost = calculate_solution_cost(problems.master, problems.subproblem, master_variables, master_values);
@@ -350,7 +350,7 @@ double multi_benders(HighsLp & base_problem, std::set<HighsInt> const & master_v
   //   master_values = problems.master.getSolution().col_value;
   //   problems.master.passModel(old_lp);
   // }
-  while (UBD - LBD > eps && !info.was_error && ++iter < max_iter) {
+  while (UBD - LBD > eps && !info.was_error && iter++ < max_iter) {
     double subproblem_costs = 0;
     bool all_feasible = true;
     for (int i = 0; i < no_subproblems; ++i) {

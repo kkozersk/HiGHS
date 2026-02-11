@@ -787,8 +787,8 @@ TEST_CASE("test-benders-solve-indep-smps", "[highs-benders]") {
   std::vector<double> starting_point (master_vars.size(), 0);
   auto res = benders(lp, master_vars, starting_point, 1e-3, 1e2);
   REQUIRE(std::abs(res - obj) < 1e-3);
-  // res = benders2(lp, master_vars, starting_point, 1e-2);
-  // REQUIRE(std::abs(res - obj) < 1e-3);
+  res = benders2(lp, master_vars, starting_point);
+  REQUIRE(std::abs(res - obj) < 1e-3);
 }
 
 TEST_CASE("test-multi-benders-solve-indep-smps", "[highs-benders]") {
@@ -803,14 +803,14 @@ TEST_CASE("test-multi-benders-solve-indep-smps", "[highs-benders]") {
   // auto lp = highs.getModel().lp_;
   // lp.ensureRowwise();
   // std::set<int> master_vars;
-  // for (int i = 0; i < 188; ++i) master_vars.emplace(i);
+  // for (int i = 0; i < 114; ++i) master_vars.emplace(i);
   // std::vector<double> starting_point (master_vars.size(), 0);
   // std::vector<std::set<HighsInt>> subproblem_variables(6);
   // for (int i = 0; i < 6; ++i)
-  //   for (int j = 0; j < 460 - 188; ++j)
-  //     subproblem_variables.at(i).emplace(188 + i * (460 - 188) + j);
+  //   for (int j = 0; j < 457 - 114; ++j)
+  //     subproblem_variables.at(i).emplace(114 + i * (457 - 114) + j);
   // auto res = multi_benders(lp, master_vars, subproblem_variables, starting_point);
-  // REQUIRE(res == obj);
+  // REQUIRE(std::abs(res - obj) < 1e-3);
 }
 
 TEST_CASE("test-benders-solve-block-smps", "[highs-benders]") {
