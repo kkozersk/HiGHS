@@ -5,6 +5,7 @@
 #include <numeric>
 #include <vector>
 #include <regex>
+#include "HConst.h"
 #include "lp_data/HighsStatus.h"
 #include "lp_data/HighsLpUtils.h"
 
@@ -30,7 +31,7 @@ RowDivision divide_rows(HighsSparseMatrix & constraint_matrix, std::set<HighsInt
 
 void fix_variable(Highs & problem, HighsInt variable_index, double value) {
   // TODO verify extra low bounds
-  // if (std::abs(value) < 1e-8) value = 0.;
+  if (std::abs(value) < 1e-8) value = 0.;
   problem.changeColBounds(variable_index, value, value);
 }
 
@@ -253,6 +254,12 @@ CutData solve_feasibility_subproblem(Highs & subproblem, std::set<HighsInt> cons
   return {master_multipliers, dual_objective};
 }
 
+BendersIterationInfo solve_feasibility_subproblem(Highs & subproblem, BendersIterationInfo info, std::set<HighsInt> const & master_variables, std::vector<double> const & master_values) {
+  fix_master_variables(subproblem, master_variables, master_values);
+  info.was_error = info.was_error || subproblem.run() == HighsStatus::kError ;//|| subproblem.getModelStatus() != HighsModelStatus::kOptimal;
+  return info;
+}
+
 BendersIterationInfo solve_subproblem(Highs & subproblem, BendersIterationInfo info, std::set<HighsInt> const & master_variables, std::vector<double> const & master_values) {
   fix_master_variables(subproblem, master_variables, master_values);
   info.was_error = info.was_error || subproblem.run() == HighsStatus::kError;
@@ -314,11 +321,12 @@ double benders(HighsLp & base_problem, std::set<HighsInt> const & master_variabl
       }
     }
     else {
-      info = solve_subproblem(problems.feas_subproblem, info, master_variables, master_values);
+      info = solve_feasibility_subproblem(problems.feas_subproblem, info, master_variables, master_values);
       add_cut(problems.master, problems.feas_subproblem, master_variables, master_values, CutType::Feasibility);
       // auto cut = solve_feasibility_subproblem(problems.subproblem, master_variables);
       // add_cut(problems.master, cut, master_variables, master_values, CutType::Feasibility);
     }
+    // if (info.was_error) break;
     info = solve_master(problems.master, info);
     master_values = problems.master.getSolution().col_value;
     if (any_objective_cuts)
@@ -367,12 +375,13 @@ double multi_benders(HighsLp & base_problem, std::set<HighsInt> const & master_v
       else {
         all_feasible = false;
         auto & feas_subproblem = problems.feas_subproblems.at(i);
-        info = solve_subproblem(feas_subproblem, info, master_variables, master_values);
+        info = solve_feasibility_subproblem(feas_subproblem, info, master_variables, master_values);
         add_cut(problems.master, feas_subproblem, master_variables, master_values, CutType::Feasibility, i);
         // auto cut = solve_feasibility_subproblem(subproblem, master_variables);
         // add_cut(problems.master, cut, master_variables, master_values, CutType::Feasibility, i);
       }
     }
+    // if (info.was_error) break;
     if (all_feasible) {
         double solution_cost = calculate_solution_cost(problems.master, subproblem_costs, master_variables, master_values);
         UBD = std::min(UBD, solution_cost);

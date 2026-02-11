@@ -77,6 +77,7 @@ void add_cut(Highs & master, Highs const & subproblem, std::set<HighsInt> const 
 // BendersIterationInfo solve_feasibility_subproblem(Highs & feas_subproblem); 
 std::set<HighsInt> discover_master_variables(std::vector<std::string> const & variable_names, std::regex const & master_name_pattern);
 std::set<HighsInt> discover_master_variables(std::vector<std::string> const & variable_names, std::string const & master_name_pattern);
+BendersIterationInfo solve_feasibility_subproblem(Highs & subproblem, BendersIterationInfo info, std::set<HighsInt> const & master_variables, std::vector<double> const & master_values);
 BendersIterationInfo solve_subproblem(Highs & subproblem, BendersIterationInfo info, std::set<HighsInt> const & master_variables, std::vector<double> const & master_values);
 BendersIterationInfo solve_master(Highs & master, BendersIterationInfo info);
 double calculate_solution_cost(Highs const & master, double subproblem_cost, std::set<HighsInt> const & master_variables, std::vector<double> const & master_values);
@@ -90,5 +91,6 @@ std::vector<double> get_dual_costs(HighsLp const & lp);
 std::vector<double> calculate_negated_reduced_costs(HighsSparseMatrix const & A, std::vector<double> const & dual);
 CutData solve_feasibility_subproblem(Highs & subproblem, std::set<HighsInt> const & master_variables);
 std::set<HighsInt> index_set_union(std::set<HighsInt> const & a, std::set<HighsInt> const & b);
+std::set<HighsInt> index_set_intersection(std::set<HighsInt> const & a, std::set<HighsInt> const & b);
 void decompose_problem(MultiBendersProblems & problems, HighsLp & base_problem, std::set<HighsInt> const & master_variables, std::vector<std::set<HighsInt>> const & subproblems_variables);
 void create_subproblem(Highs & subproblem, HighsLp const & base_problem, std::set<HighsInt> const & master_variables, std::set<HighsInt> const & other_rows, std::set<HighsInt> const & subproblem_variables); 
