@@ -24,6 +24,7 @@ struct BendersProblems {
 struct MultiBendersProblems {
   Highs master;
   std::vector<Highs> subproblems;
+  std::vector<Highs> feas_subproblems;
 };
 
 struct NonZeroVector {

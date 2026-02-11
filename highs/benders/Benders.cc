@@ -123,17 +123,32 @@ std::set<HighsInt> index_set_union(std::set<HighsInt> const & a, std::set<HighsI
   return a_union_b;
 }
 
+std::set<HighsInt> index_set_intersection(std::set<HighsInt> const & a, std::set<HighsInt> const & b) {
+  auto avec = set_to_vector(a);
+  auto bvec = set_to_vector(b);
+  std::set<HighsInt> a_union_b;
+  std::set_intersection(avec.begin(), avec.end(), bvec.begin(), bvec.end(), std::inserter(a_union_b, a_union_b.begin()));
+  return a_union_b;
+}
+
 void decompose_problem(MultiBendersProblems & problems, HighsLp & base_problem, std::set<HighsInt> const & master_variables, std::vector<std::set<HighsInt>> const & subproblems_variables) {
   auto row_division = divide_rows(base_problem.a_matrix_, master_variables);
+  auto master_mixed_rows = row_division.mixed_rows;
   create_master_problem(problems.master, base_problem, master_variables, row_division.other_rows, subproblems_variables.size());
   problems.master.setOptionValue("presolve", kHighsOffString);
   problems.subproblems = std::vector<Highs> (subproblems_variables.size());
+  problems.feas_subproblems = std::vector<Highs> (subproblems_variables.size());
   for (std::vector<HighsInt>::size_type i = 0; i < subproblems_variables.size(); ++i) {
     std::set<HighsInt> const & subproblem_variables = subproblems_variables.at(i);
     auto master_and_subproblem_vars = index_set_union(subproblem_variables, master_variables);
     row_division = divide_rows(base_problem.a_matrix_, master_and_subproblem_vars);
     create_subproblem(problems.subproblems.at(i), base_problem, master_variables, row_division.other_rows, subproblem_variables);
     problems.subproblems.at(i).setOptionValue("presolve", kHighsOffString);
+    
+    auto sub_and_master_rows = row_division.inset_only_rows;
+    auto sub_mixed_rows = index_set_intersection(master_mixed_rows, sub_and_master_rows);
+    create_feasibility_subproblem(problems.feas_subproblems.at(i), base_problem, master_variables, sub_mixed_rows);
+    problems.feas_subproblems.at(i).setOptionValue("presolve", kHighsOffString);
   }
 }
 
@@ -326,6 +341,15 @@ double multi_benders(HighsLp & base_problem, std::set<HighsInt> const & master_v
   int no_subproblems = subproblems_variables.size();
   std::vector<bool> any_objective_cuts(no_subproblems, false);
   bool all_objective_cuts = false;
+  // if (std::all_of(starting_point.begin(), starting_point.end(),[](double v){return v == 0.;})) {
+  //   auto old_lp = problems.master.getLp();
+  //   auto temp_lp = problems.master.getLp();
+  //   temp_lp.col_cost_ = std::vector<double>(temp_lp.num_col_, 0);
+  //   problems.master.passModel(temp_lp);
+  //   info = solve_master(problems.master, info);
+  //   master_values = problems.master.getSolution().col_value;
+  //   problems.master.passModel(old_lp);
+  // }
   while (UBD - LBD > eps && !info.was_error && ++iter < max_iter) {
     double subproblem_costs = 0;
     bool all_feasible = true;
@@ -342,8 +366,11 @@ double multi_benders(HighsLp & base_problem, std::set<HighsInt> const & master_v
       }
       else {
         all_feasible = false;
-        auto cut = solve_feasibility_subproblem(subproblem, master_variables);
-        add_cut(problems.master, cut, master_variables, master_values, CutType::Feasibility, i);
+        auto & feas_subproblem = problems.feas_subproblems.at(i);
+        info = solve_subproblem(feas_subproblem, info, master_variables, master_values);
+        add_cut(problems.master, feas_subproblem, master_variables, master_values, CutType::Feasibility, i);
+        // auto cut = solve_feasibility_subproblem(subproblem, master_variables);
+        // add_cut(problems.master, cut, master_variables, master_values, CutType::Feasibility, i);
       }
     }
     if (all_feasible) {

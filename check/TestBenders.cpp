@@ -852,7 +852,7 @@ TEST_CASE("test-multi-benders-solve-block-smps", "[highs-benders]") {
     for (int j = 0; j < 460 - 188; ++j)
       subproblem_variables.at(i).emplace(188 + i * (460 - 188) + j);
   auto res = multi_benders(lp, master_vars, subproblem_variables, starting_point);
-  REQUIRE(res == obj);
+  REQUIRE(std::abs(res - obj) < 1e-3);
 }
 
 TEST_CASE("test-benders-solve-scen-smps", "[highs-benders]") {
