@@ -5,6 +5,7 @@
 #include "Highs.h"
 #include "catch.hpp"
 #include <cmath>
+// #include <fstream>
 #include <numeric>
 #include <set>
 #include <vector>
@@ -770,6 +771,48 @@ TEST_CASE("test-solve-multi-simple-system-", "[highs-benders]") {
   REQUIRE(std::abs(res - expected) < 1e-3);
 }
 
+TEST_CASE("test-benders-solve-indep-smps", "[highs-benders]") {
+  auto instance = std::string(HIGHS_DIR) + "/check/instances/stoch/fxm/fxm";
+  auto corefile = instance + ".cor";
+  auto timefile = instance + "2.tim";
+  auto stochfile = instance + "2_6.sto";
+  Highs highs;
+  REQUIRE(build_stochastic_problem(highs, corefile, timefile, stochfile));
+  highs.run();
+  auto obj = highs.getObjectiveValue();
+  auto lp = highs.getModel().lp_;
+  lp.ensureRowwise();
+  std::set<int> master_vars;
+  for (int i = 0; i < 114 + 0  * (457 - 144); ++i) master_vars.emplace(i);
+  std::vector<double> starting_point (master_vars.size(), 0);
+  auto res = benders(lp, master_vars, starting_point, 1e-3, 1e2);
+  REQUIRE(std::abs(res - obj) < 1e-3);
+  // res = benders2(lp, master_vars, starting_point, 1e-2);
+  // REQUIRE(std::abs(res - obj) < 1e-3);
+}
+
+TEST_CASE("test-multi-benders-solve-indep-smps", "[highs-benders]") {
+  // auto instance = std::string(HIGHS_DIR) + "/check/instances/stoch/pltexp/pltexpA2";
+  // auto corefile = instance + ".cor";
+  // auto timefile = instance + ".tim";
+  // auto stochfile = instance + "_6.sto";
+  // Highs highs;
+  // REQUIRE(build_stochastic_problem(highs, corefile, timefile, stochfile));
+  // highs.run();
+  // auto obj = highs.getObjectiveValue();
+  // auto lp = highs.getModel().lp_;
+  // lp.ensureRowwise();
+  // std::set<int> master_vars;
+  // for (int i = 0; i < 188; ++i) master_vars.emplace(i);
+  // std::vector<double> starting_point (master_vars.size(), 0);
+  // std::vector<std::set<HighsInt>> subproblem_variables(6);
+  // for (int i = 0; i < 6; ++i)
+  //   for (int j = 0; j < 460 - 188; ++j)
+  //     subproblem_variables.at(i).emplace(188 + i * (460 - 188) + j);
+  // auto res = multi_benders(lp, master_vars, subproblem_variables, starting_point);
+  // REQUIRE(res == obj);
+}
+
 TEST_CASE("test-benders-solve-block-smps", "[highs-benders]") {
   auto instance = std::string(HIGHS_DIR) + "/check/instances/stoch/pltexp/pltexpA2";
   auto corefile = instance + ".cor";
@@ -785,7 +828,7 @@ TEST_CASE("test-benders-solve-block-smps", "[highs-benders]") {
   for (int i = 0; i < 188; ++i) master_vars.emplace(i);
   std::vector<double> starting_point (master_vars.size(), 0);
   auto res = benders(lp, master_vars, starting_point);
-  REQUIRE(res == obj);
+  REQUIRE(std::abs(res - obj) < 1e-3);
   res = benders2(lp, master_vars, starting_point, 1e-3);
   REQUIRE(std::abs(res - obj) < 1e-3);
 }

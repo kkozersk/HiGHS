@@ -29,6 +29,8 @@ RowDivision divide_rows(HighsSparseMatrix & constraint_matrix, std::set<HighsInt
 }
 
 void fix_variable(Highs & problem, HighsInt variable_index, double value) {
+  // TODO verify extra low bounds
+  // if (std::abs(value) < 1e-8) value = 0.;
   problem.changeColBounds(variable_index, value, value);
 }
 
@@ -103,7 +105,9 @@ void create_feasibility_subproblem(Highs & feas_subproblem, HighsLp const & base
 void decompose_problem(BendersProblems & problems, HighsLp const & base_problem, std::set<HighsInt> const & master_variables, RowDivision const & row_division) {
   create_master_problem(problems.master, base_problem, master_variables, row_division.other_rows);
   create_subproblem(problems.subproblem, base_problem, master_variables);
-  // create_feasibility_subproblem(problems.feas_subproblem, base_problem, master_variables, row_division.mixed_rows);
+  problems.master.setOptionValue("presolve", kHighsOffString);
+  problems.subproblem.setOptionValue("presolve", kHighsOffString);
+  create_feasibility_subproblem(problems.feas_subproblem, base_problem, master_variables, row_division.mixed_rows);
 }
 
 void decompose_problem(BendersProblems & problems, HighsLp & base_problem, std::set<HighsInt> const & master_variables) {
@@ -277,6 +281,11 @@ double benders(HighsLp & base_problem, std::set<HighsInt> const & master_variabl
   int iter = 0;
   double UBD = kHighsInf, LBD = -kHighsInf;
   bool any_objective_cuts = false;
+  // TODO verify starting from a master feasible, if no point is passed
+  // if (std::all_of(starting_point.begin(), starting_point.end(),[](double v){return v == 0.;})) {
+  //   info = solve_master(problems.master, info);
+  //   master_values = problems.master.getSolution().col_value;
+  // }
   while (UBD - LBD > eps && !info.was_error && ++iter < max_iter) {
     info = solve_subproblem(problems.subproblem, info, master_variables, master_values);
     if (info.was_subproblem_feasible) {
@@ -290,8 +299,10 @@ double benders(HighsLp & base_problem, std::set<HighsInt> const & master_variabl
       }
     }
     else {
-      auto cut = solve_feasibility_subproblem(problems.subproblem, master_variables);
-      add_cut(problems.master, cut, master_variables, master_values, CutType::Feasibility);
+      info = solve_subproblem(problems.feas_subproblem, info, master_variables, master_values);
+      add_cut(problems.master, problems.feas_subproblem, master_variables, master_values, CutType::Feasibility);
+      // auto cut = solve_feasibility_subproblem(problems.subproblem, master_variables);
+      // add_cut(problems.master, cut, master_variables, master_values, CutType::Feasibility);
     }
     info = solve_master(problems.master, info);
     master_values = problems.master.getSolution().col_value;
