@@ -50,6 +50,12 @@ struct CutData {
   double dual_objective;
 };
 
+struct  BendersRet {
+  double result;
+  int iter;
+  bool operator==(BendersRet const & ret) const { return result == ret.result && iter == ret.iter; }
+};
+
 HighsInt find_row_index(std::vector<HighsInt> const & csr_starts, HighsInt index);
 RowDivision divide_rows(std::vector<HighsInt> const & csr_index, std::vector<HighsInt> const & csr_starts, std::set<HighsInt> const & master_variables); 
 RowDivision divide_rows(HighsSparseMatrix & constraint_matrix, std::set<HighsInt> const & master_variables);
@@ -82,11 +88,11 @@ BendersIterationInfo solve_subproblem(Highs & subproblem, BendersIterationInfo i
 BendersIterationInfo solve_master(Highs & master, BendersIterationInfo info);
 double calculate_solution_cost(Highs const & master, double subproblem_cost, std::set<HighsInt> const & master_variables, std::vector<double> const & master_values);
 double calculate_solution_cost(Highs const & master, Highs const & subproblem, std::set<HighsInt> const & master_variables, std::vector<double> const & master_values);
-double benders(HighsLp & base_problem, std::set<HighsInt> const & master_variables, std::vector<double> const & starting_point, double eps=1e-3, int max_iter=1e2);
-double benders(HighsLp & base_problem, std::string const & master_name_pattern, std::vector<double> const & starting_point, double eps=1e-3);
-double multi_benders(HighsLp & base_problem, std::set<HighsInt> const & master_variables, std::vector<std::set<HighsInt>> const & subproblem_variables, std::vector<double> const & starting_point, double eps=1e-3, int max_iter=1e2);  
-double benders2(HighsLp & base_problem, std::set<HighsInt> const & master_variables, std::vector<double> const & starting_point, double eps=1e-3);
-double benders2(HighsLp & base_problem, std::string const & master_name_pattern, std::vector<double> const & starting_point, double eps=1e-3);
+BendersRet benders(HighsLp & base_problem, std::set<HighsInt> const & master_variables, std::vector<double> const & starting_point, double eps=1e-3, int max_iter=1e2);
+BendersRet benders(HighsLp & base_problem, std::string const & master_name_pattern, std::vector<double> const & starting_point, double eps=1e-3);
+BendersRet multi_benders(HighsLp & base_problem, std::set<HighsInt> const & master_variables, std::vector<std::set<HighsInt>> const & subproblem_variables, std::vector<double> const & starting_point, double eps=1e-3, int max_iter=1e2);  
+BendersRet benders2(HighsLp & base_problem, std::set<HighsInt> const & master_variables, std::vector<double> const & starting_point, double eps=1e-3);
+BendersRet benders2(HighsLp & base_problem, std::string const & master_name_pattern, std::vector<double> const & starting_point, double eps=1e-3);
 std::vector<double> get_dual_costs(HighsLp const & lp);
 std::vector<double> calculate_negated_reduced_costs(HighsSparseMatrix const & A, std::vector<double> const & dual);
 CutData solve_feasibility_subproblem(Highs & subproblem, std::set<HighsInt> const & master_variables);

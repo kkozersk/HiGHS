@@ -291,12 +291,12 @@ double calculate_solution_cost(Highs const & master, Highs const & subproblem, s
   return calculate_solution_cost(master, subproblem.getObjectiveValue(), master_variables, master_values);
 }
 
-double benders(HighsLp & base_problem, std::string const & master_name_pattern, std::vector<double> const & starting_point, double eps) { 
+BendersRet benders(HighsLp & base_problem, std::string const & master_name_pattern, std::vector<double> const & starting_point, double eps) { 
   auto master_variables = discover_master_variables(base_problem.col_names_, master_name_pattern);
   return benders(base_problem, master_variables, starting_point, eps);
 }
 
-double benders(HighsLp & base_problem, std::set<HighsInt> const & master_variables, std::vector<double> const & starting_point, double eps, int max_iter) { 
+BendersRet benders(HighsLp & base_problem, std::set<HighsInt> const & master_variables, std::vector<double> const & starting_point, double eps, int max_iter) { 
   BendersProblems problems; decompose_problem(problems, base_problem, master_variables);
   BendersIterationInfo info;
   auto master_values = starting_point;
@@ -332,12 +332,12 @@ double benders(HighsLp & base_problem, std::set<HighsInt> const & master_variabl
     if (any_objective_cuts)
       LBD = problems.master.getObjectiveValue();
   }
-  return UBD;
+  return {UBD, iter};
 }
 
 inline bool all(std::vector<bool> const & v) { return std::all_of(v.begin(), v.end(), [](bool x) { return x; }); }
 
-double multi_benders(HighsLp & base_problem, std::set<HighsInt> const & master_variables,
+BendersRet multi_benders(HighsLp & base_problem, std::set<HighsInt> const & master_variables,
                      std::vector<std::set<HighsInt>> const & subproblems_variables,
                      std::vector<double> const & starting_point, double eps, int max_iter) { 
   MultiBendersProblems problems;
@@ -392,15 +392,15 @@ double multi_benders(HighsLp & base_problem, std::set<HighsInt> const & master_v
     if((all_objective_cuts = all_objective_cuts || all(any_objective_cuts)))
       LBD = problems.master.getObjectiveValue();
   }
-  return UBD;
+  return {UBD, iter};
 }
 
-double benders2(HighsLp & base_problem, std::set<HighsInt> const & master_variables, std::vector<double> const & starting_point, double eps) {
+BendersRet benders2(HighsLp & base_problem, std::set<HighsInt> const & master_variables, std::vector<double> const & starting_point, double eps) {
   auto subproblem_variables = sequence_complement(master_variables, base_problem.num_col_);
   return multi_benders(base_problem, master_variables, {subproblem_variables}, starting_point, eps);
 } 
 
-double benders2(HighsLp & base_problem, std::string const & master_name_pattern, std::vector<double> const & starting_point, double eps) { 
+BendersRet benders2(HighsLp & base_problem, std::string const & master_name_pattern, std::vector<double> const & starting_point, double eps) { 
   auto master_variables = discover_master_variables(base_problem.col_names_, master_name_pattern);
   return benders2(base_problem, master_variables, starting_point, eps);
 }

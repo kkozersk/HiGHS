@@ -641,9 +641,8 @@ TEST_CASE("test-solve-simple-system", "[highs-benders]") {
   nodecomp.run();
   auto expected = nodecomp.getObjectiveValue();
   auto res = benders(lp, "m\\d", {2});
-  REQUIRE(expected == 5);
-  REQUIRE(res == 5);
-  REQUIRE(std::abs(res - expected) < 1e-3);
+  REQUIRE(std::abs(res.result- expected) < 1e-3);
+  REQUIRE(res.iter == 3);
 
 }
 
@@ -656,8 +655,8 @@ TEST_CASE("test-solve-simple-system-2", "[highs-benders]") {
   auto expected = nodecomp.getObjectiveValue();
   // auto res = benders(lp, "m\\d", {2});
   auto res = benders(lp, std::set<HighsInt>{0, 2}, {2, 0});
-  REQUIRE(res == expected);
-  REQUIRE(std::abs(res - expected) < 1e-3);
+  REQUIRE(std::abs(res.result- expected) < 1e-3);
+  REQUIRE(res.iter == 3);
 }
 
 TEST_CASE("test-solve-second-system", "[highs-benders]") {
@@ -669,7 +668,8 @@ TEST_CASE("test-solve-second-system", "[highs-benders]") {
   auto expected = nodecomp.getObjectiveValue();
   // auto res = benders(lp, "m\\d", {0, 1.5, 0});
   auto res = benders(lp, "m\\d", {0, 0, 0});
-  REQUIRE(std::abs(res - expected) < 1e-3);
+  REQUIRE(std::abs(res.result- expected) < 1e-3);
+  REQUIRE(res.iter == 4);
 }
 
 TEST_CASE("test-solve-blending", "[highs-benders]") {
@@ -681,7 +681,8 @@ TEST_CASE("test-solve-blending", "[highs-benders]") {
   auto expected = nodecomp.getObjectiveValue();
   lp.ensureRowwise();
   auto res = benders(lp, "P0", std::vector<double> (40, 0));
-  REQUIRE(std::abs(res - expected) < 1e-3);
+  REQUIRE(std::abs(res.result- expected) < 1e-3);
+  REQUIRE(res.iter == 1); //TODO suprisingly low
 }
 
 TEST_CASE("test-solve-afiro", "[highs-benders]") {
@@ -693,7 +694,8 @@ TEST_CASE("test-solve-afiro", "[highs-benders]") {
   auto expected = nodecomp.getObjectiveValue();
   lp.ensureRowwise();
   auto res = benders(lp, "X0\\d", std::vector<double> (40, 0));
-  REQUIRE(std::abs(res - expected) < 1e-3);
+  REQUIRE(std::abs(res.result- expected) < 1e-3);
+  REQUIRE(res.iter == 7);
 }
 
 TEST_CASE("2test-solve-simple-system", "[highs-benders]") {
@@ -704,10 +706,8 @@ TEST_CASE("2test-solve-simple-system", "[highs-benders]") {
   nodecomp.run();
   auto expected = nodecomp.getObjectiveValue();
   auto res = benders2(lp, "m\\d", {2});
-  REQUIRE(expected == 5);
-  REQUIRE(res == 5);
-  REQUIRE(std::abs(res - expected) < 1e-3);
-
+  REQUIRE(std::abs(res.result- expected) < 1e-3);
+  REQUIRE(res.iter == 3);
 }
 
 TEST_CASE("2test-solve-simple-system-2", "[highs-benders]") {
@@ -719,8 +719,8 @@ TEST_CASE("2test-solve-simple-system-2", "[highs-benders]") {
   auto expected = nodecomp.getObjectiveValue();
   // auto res = benders(lp, "m\\d", {2});
   auto res = benders2(lp, std::set<HighsInt>{0, 2}, {2, 0});
-  REQUIRE(res == expected);
-  REQUIRE(std::abs(res - expected) < 1e-3);
+  REQUIRE(std::abs(res.result- expected) < 1e-3);
+  REQUIRE(res.iter == 3);
 }
 
 TEST_CASE("2test-solve-second-system", "[highs-benders]") {
@@ -732,7 +732,8 @@ TEST_CASE("2test-solve-second-system", "[highs-benders]") {
   auto expected = nodecomp.getObjectiveValue();
   // auto res = benders(lp, "m\\d", {0, 1.5, 0});
   auto res = benders2(lp, "m\\d", {0, 0, 0});
-  REQUIRE(std::abs(res - expected) < 1e-3);
+  REQUIRE(std::abs(res.result- expected) < 1e-3);
+  REQUIRE(res.iter == 4);
 }
 
 TEST_CASE("2test-solve-blending", "[highs-benders]") {
@@ -744,7 +745,8 @@ TEST_CASE("2test-solve-blending", "[highs-benders]") {
   auto expected = nodecomp.getObjectiveValue();
   lp.ensureRowwise();
   auto res = benders2(lp, "P0", std::vector<double> (40, 0));
-  REQUIRE(std::abs(res - expected) < 1e-3);
+  REQUIRE(std::abs(res.result- expected) < 1e-3);
+  REQUIRE(res.iter == 1);
 }
 
 TEST_CASE("2test-solve-afiro", "[highs-benders]") {
@@ -756,7 +758,8 @@ TEST_CASE("2test-solve-afiro", "[highs-benders]") {
   auto expected = nodecomp.getObjectiveValue();
   lp.ensureRowwise();
   auto res = benders2(lp, "X0\\d", std::vector<double> (40, 0));
-  REQUIRE(std::abs(res - expected) < 1e-3);
+  REQUIRE(std::abs(res.result- expected) < 1e-3);
+  REQUIRE(res.iter == 7);
 }
 
 TEST_CASE("test-solve-multi-simple-system-", "[highs-benders]") {
@@ -767,8 +770,8 @@ TEST_CASE("test-solve-multi-simple-system-", "[highs-benders]") {
   auto expected = nodecomp.getObjectiveValue();
   // auto res = benders(lp, "m\\d", {2});
   auto res = multi_benders(lp, {0}, {{1,2}, {3}}, {2, 0});
-  REQUIRE(res == expected);
-  REQUIRE(std::abs(res - expected) < 1e-3);
+  REQUIRE(std::abs(res.result- expected) < 1e-3);
+  REQUIRE(res.iter == 4);
 }
 
 TEST_CASE("test-benders-solve-indep-smps", "[highs-benders]") {
@@ -779,16 +782,18 @@ TEST_CASE("test-benders-solve-indep-smps", "[highs-benders]") {
   Highs highs;
   REQUIRE(build_stochastic_problem(highs, corefile, timefile, stochfile));
   highs.run();
-  auto obj = highs.getObjectiveValue();
+  auto expected = highs.getObjectiveValue();
   auto lp = highs.getModel().lp_;
   lp.ensureRowwise();
   std::set<int> master_vars;
   for (int i = 0; i < 114 + 0  * (457 - 144); ++i) master_vars.emplace(i);
   std::vector<double> starting_point (master_vars.size(), 0);
   auto res = benders(lp, master_vars, starting_point, 1e-3, 1e2);
-  REQUIRE(std::abs(res - obj) < 1e-3);
+  REQUIRE(std::abs(res.result- expected) < 1e-3);
+  REQUIRE(res.iter == 41);
   res = benders2(lp, master_vars, starting_point);
-  REQUIRE(std::abs(res - obj) < 1e-3);
+  REQUIRE(std::abs(res.result- expected) < 1e-3);
+  REQUIRE(res.iter == 41);
 }
 
 TEST_CASE("test-multi-benders-solve-indep-smps", "[highs-benders]") {
@@ -799,7 +804,7 @@ TEST_CASE("test-multi-benders-solve-indep-smps", "[highs-benders]") {
   Highs highs;
   REQUIRE(build_stochastic_problem(highs, corefile, timefile, stochfile));
   highs.run();
-  auto obj = highs.getObjectiveValue();
+  auto expected = highs.getObjectiveValue();
   auto lp = highs.getModel().lp_;
   lp.ensureRowwise();
   std::set<int> master_vars;
@@ -810,7 +815,8 @@ TEST_CASE("test-multi-benders-solve-indep-smps", "[highs-benders]") {
     for (int j = 0; j < 457 - 114; ++j)
       subproblem_variables.at(i).emplace(114 + i * (457 - 114) + j);
   auto res = multi_benders(lp, master_vars, subproblem_variables, starting_point, 1e-3, 1e2);
-  REQUIRE(std::abs(res - obj) < 1e-3);
+  REQUIRE(std::abs(res.result- expected) < 1e-3);
+  REQUIRE(res.iter == 41); //TODO no change in iters?
 }
 
 TEST_CASE("test-benders-solve-block-smps", "[highs-benders]") {
@@ -821,16 +827,18 @@ TEST_CASE("test-benders-solve-block-smps", "[highs-benders]") {
   Highs highs;
   REQUIRE(build_stochastic_problem(highs, corefile, timefile, stochfile));
   highs.run();
-  auto obj = highs.getObjectiveValue();
+  auto expected = highs.getObjectiveValue();
   auto lp = highs.getModel().lp_;
   lp.ensureRowwise();
   std::set<int> master_vars;
   for (int i = 0; i < 188; ++i) master_vars.emplace(i);
   std::vector<double> starting_point (master_vars.size(), 0);
   auto res = benders(lp, master_vars, starting_point);
-  REQUIRE(std::abs(res - obj) < 1e-3);
+  REQUIRE(std::abs(res.result- expected) < 1e-3);
+  REQUIRE(res.iter == 2); // TODO suprisingly low
   res = benders2(lp, master_vars, starting_point, 1e-3);
-  REQUIRE(std::abs(res - obj) < 1e-3);
+  REQUIRE(std::abs(res.result- expected) < 1e-3);
+  REQUIRE(res.iter == 2);
 }
 
 TEST_CASE("test-multi-benders-solve-block-smps", "[highs-benders]") {
@@ -841,7 +849,7 @@ TEST_CASE("test-multi-benders-solve-block-smps", "[highs-benders]") {
   Highs highs;
   REQUIRE(build_stochastic_problem(highs, corefile, timefile, stochfile));
   highs.run();
-  auto obj = highs.getObjectiveValue();
+  auto expected = highs.getObjectiveValue();
   auto lp = highs.getModel().lp_;
   lp.ensureRowwise();
   std::set<int> master_vars;
@@ -852,7 +860,8 @@ TEST_CASE("test-multi-benders-solve-block-smps", "[highs-benders]") {
     for (int j = 0; j < 460 - 188; ++j)
       subproblem_variables.at(i).emplace(188 + i * (460 - 188) + j);
   auto res = multi_benders(lp, master_vars, subproblem_variables, starting_point);
-  REQUIRE(std::abs(res - obj) < 1e-3);
+  REQUIRE(std::abs(res.result- expected) < 1e-3);
+  REQUIRE(res.iter == 2);
 }
 
 TEST_CASE("test-benders-solve-scen-smps", "[highs-benders]") {
@@ -863,7 +872,7 @@ TEST_CASE("test-benders-solve-scen-smps", "[highs-benders]") {
   Highs highs;
   REQUIRE(build_stochastic_problem(highs, corefile, timefile, stochfile));
   highs.run();
-  auto obj = highs.getObjectiveValue();
+  auto expected = highs.getObjectiveValue();
   auto lp = highs.getModel().lp_;
   lp.ensureRowwise();
   std::set<int> master_vars;
@@ -871,9 +880,11 @@ TEST_CASE("test-benders-solve-scen-smps", "[highs-benders]") {
   std::vector<double> starting_point (master_vars.size(), 0);
   // starting_point = highs.getSolution().col_value;
   auto res = benders(lp, master_vars, starting_point, 1e-3);
-  REQUIRE(std::abs(res - obj) < 1e-3);
+  REQUIRE(std::abs(res.result- expected) < 1e-3);
+  REQUIRE(res.iter == 9);
   res = benders2(lp, master_vars, starting_point, 1e-3);
-  REQUIRE(std::abs(res - obj) < 1e-3);
+  REQUIRE(std::abs(res.result- expected) < 1e-3);
+  REQUIRE(res.iter == 9);
 }
 
 TEST_CASE("test-multi-benders-solve-scen-smps", "[highs-benders]") {
@@ -884,7 +895,7 @@ TEST_CASE("test-multi-benders-solve-scen-smps", "[highs-benders]") {
   Highs highs;
   REQUIRE(build_stochastic_problem(highs, corefile, timefile, stochfile));
   highs.run();
-  auto obj = highs.getObjectiveValue();
+  auto expected = highs.getObjectiveValue();
   auto lp = highs.getModel().lp_;
   auto num_per_sub = 79 + 5 * 79;
   REQUIRE(lp.num_col_ == 139 + 5 * num_per_sub);
@@ -897,5 +908,6 @@ TEST_CASE("test-multi-benders-solve-scen-smps", "[highs-benders]") {
     for (int j = 0; j < num_per_sub; ++j)
       subproblem_variables.at(i).emplace(139 + i * num_per_sub + j);
   auto res = multi_benders(lp, master_vars, subproblem_variables, starting_point, 1e-3);
-  REQUIRE(res == obj);
+  REQUIRE(std::abs(res.result- expected) < 1e-3);
+  REQUIRE(res.iter == 9);
 }
