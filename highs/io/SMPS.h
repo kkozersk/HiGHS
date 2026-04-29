@@ -158,6 +158,7 @@ struct StochasticTree {
   std::unique_ptr<Node> root;
   StochasticTree(std::unique_ptr<Node> && root) : root(std::move(root)) { }
   StochasticTree(std::nullptr_t) {}
+  StochasticTree() {}
 };
 
 //TODO dual input on a single line
@@ -307,6 +308,11 @@ RandomVector append_to_random_vector(RandomVariable const & rv, RandomVector con
 RandomVector append_to_random_vector(RandomVector const & to_append, RandomVector const & rvec);
 bool str_to_dbl(std::string const & str, double & val);
 
+std::pair<SmpsCoreStructure, StochasticTree> build_stochastic_tree(
+                              std::string const & core_filename,
+                              std::string const & time_filename,
+                              std::string const & stoch_filename,
+                              HighsOptions const & highs_mps_options = HighsOptions());
 bool build_stochastic_problem(Highs & problem,
                               std::string const & core_filename,
                               std::string const & time_filename,
@@ -344,3 +350,4 @@ Timestage2Range create_stochastic_path_translation(Node const & node);
 
 inline double update_ub(double old_ub, double new_rhs) { return old_ub == kHighsInf ? kHighsInf : new_rhs; };
 inline double update_lb(double old_lb, double new_rhs) { return old_lb == -kHighsInf ? -kHighsInf : new_rhs; };
+HighsLp modify_problem(SmpsCoreStructure const & core, Node & node);

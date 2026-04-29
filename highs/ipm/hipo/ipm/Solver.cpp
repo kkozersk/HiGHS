@@ -7,7 +7,10 @@
 #include "hipo/ipm/Parameters.h"
 #include "ipm/hipo/auxiliary/Log.h"
 #include "parallel/HighsParallel.h"
-
+int optim_count =  0;
+int recentring_count = 0;
+double primal_feasibility = 0;
+double dual_feasibility = 0;
 namespace hipo {
 
 Int Solver::load(const Int num_var, const Int num_con, const double* obj,
@@ -117,13 +120,13 @@ void Solver::terminate() {
   info_.max_col_density = model_.maxColDensity();
 }
 
-bool Solver::prepareIter() {
+bool Solver::prepareIter(bool recentring) {
   // Prepare next iteration.
   // Return true if Ipm main loop should be stopped
 
   if (checkIterate()) return true;
   if (checkBadIter()) return true;
-  if (checkTermination()) return true;
+  if (!recentring && checkTermination()) return true;
   if (checkInterrupt()) return true;
 
   ++iter_;
@@ -158,13 +161,13 @@ bool Solver::predictor(bool use_specialized_sigma) {
   return false;
 }
 
-bool Solver::correctors() {
+bool Solver::correctors(bool use_specialized_sigma) {
   // Compute multiple centrality correctors.
   // Return true if an error occurred.
 
   if (checkInterrupt()) return true;
 
-  sigmaCorrectors();
+  sigmaCorrectors(use_specialized_sigma);
   if (centralityCorrectors()) return true;
 
   return false;
@@ -172,12 +175,27 @@ bool Solver::correctors() {
 
 void Solver::recentring() {
   sigma_ = 1;
+  optim_count = iter_;
+  auto it = iter_;
+  auto st = info_.status;
   double frozen_mu = options_.frozen_mu > 0 ? options_.frozen_mu : it_->computeMu();
   for (Int i = 0; i < options_.max_recentring_iter; ++i) {
     it_->mu = frozen_mu;
-    if (isWellCentered() || prepareIter() || predictor(false)) break;
-    makeStep();
+    // if (isWellCentered() || prepareIter(true) || predictor(false)) break;
+    bool a = isWellCentered();
+    bool b = prepareIter(true);
+    bool c = predictor(false);
+    // bool d = correctors(false);
+    if (a || b || c) break;
+    makeStep(true);
   }
+  recentring_count = iter_ - it;
+  primal_feasibility =  it_->pinf;
+  dual_feasibility = it_->dinf;
+  // auto recentring_st = iter_ - it;
+  // std::ofstream("/tmp/steps_stats", std::ios::app)<< recentring_st << std::endl;
+  iter_ = it;
+  info_.status = st;
 }
 
 inline bool is_between(double num, double lb, double ub) { return lb <= num && num <= ub; }
@@ -235,7 +253,7 @@ bool Solver::prepareIpx() {
 
 void Solver::refineWithIpx() {
   if (checkInterrupt()) return;
-
+  //TODO Error here
   if (statusNeedsRefinement() && options_.refine_with_ipx) {
     logH_.print("\nRestarting with IPX\n");
   } else if (statusAllowsCrossover() && crossoverIsOn()) {
@@ -453,7 +471,7 @@ void Solver::stepsToBoundary(double& alpha_primal, double& alpha_dual,
   alpha_dual = std::min(alpha_dual, 1.0);
 }
 
-void Solver::stepSizes() {
+void Solver::stepSizes(bool recentring) {
   // Compute primal and dual stepsizes.
   std::vector<double>& xl = it_->xl;
   std::vector<double>& xu = it_->xu;
@@ -478,6 +496,7 @@ void Solver::stepSizes() {
   double max_p = std::min(alpha_xl, alpha_xu);
   double max_d = std::min(alpha_zl, alpha_zu);
 
+  
   // compute mu with current stepsizes
   double mu_full = 0.0;
   Int num_finite = 0;
@@ -537,10 +556,23 @@ void Solver::stepSizes() {
 
   assert(alpha_primal_ > 0 && alpha_primal_ < 1 && alpha_dual_ > 0 &&
          alpha_dual_ < 1);
+
+  auto old_p = alpha_primal_;
+  auto old_d = alpha_dual_;
+  // return;
+  if (recentring) {
+    alpha_primal_ = 0.3 * max_p;
+    alpha_dual_ = 0.3 * max_d;
+    auto new_p = alpha_primal_;
+    auto new_d = alpha_dual_;
+    assert(alpha_primal_ > 0 && alpha_primal_ < 1 && alpha_dual_ > 0 &&
+          alpha_dual_ < 1);
+    // return;
+  }
 }
 
-void Solver::makeStep() {
-  stepSizes();
+void Solver::makeStep(bool recentring) {
+  stepSizes(recentring);
 
   // keep track of iterations with small stepsizes
   if (std::min(alpha_primal_, alpha_dual_) < 0.05)
@@ -784,8 +816,11 @@ void Solver::sigmaAffine(bool use_specialized_sigma) {
   it_->data.back().sigma_aff = sigma_;
 }
 
-void Solver::sigmaCorrectors() {
-  if ((alpha_primal_ > 0.5 && alpha_dual_ > 0.5) || iter_ == 1) {
+void Solver::sigmaCorrectors(bool use_specialized_sigma) {
+  if (!use_specialized_sigma) {
+    sigma_ = 1.;
+  }
+  else if ((alpha_primal_ > 0.5 && alpha_dual_ > 0.5) || iter_ == 1) {
     sigma_ = 0.01;
   } else if (alpha_primal_ > 0.2 && alpha_dual_ > 0.2) {
     sigma_ = 0.1;
@@ -1054,7 +1089,8 @@ bool Solver::checkTermination() {
   bool feasible = it_->pinf < options_.feasibility_tol &&
                   it_->dinf < options_.feasibility_tol;
   bool optimal = it_->pdgap < options_.optimality_tol;
-
+  double xd = it_->pdgap;
+  double mu = it_->mu;
   bool terminate = false;
 
   if (feasible && optimal) {
@@ -1616,7 +1652,43 @@ bool Solver::stopped() const { return statusIsStopped(); }
 bool Solver::failed() const { return statusIsFailed(); }
 
 bool isWellCentered(double mu, double gamma, Model const & model, VecRef xl, VecRef zl, VecRef xu, VecRef zu) {
+  std::vector<double> xz,x, z,theta;
+  for (Int i = 0; i < model.n(); ++i) {
+    if(model.hasLb(i) && model.hasUb(i) && std::abs(model.lb(i) - model.ub(i)) < 1e-6) {
+      auto lb = model.lb(i);
+      auto ub = model.ub(i);
+      // continue;
+    };
+    if (model.hasLb(i)) {
+      xz.push_back(xl[i] * zl[i]);
+      x.push_back(xl[i]);
+      z.push_back(zl[i]);
+      theta.push_back(xl[i]/zl[i]);
+    }
+    if (model.hasUb(i)) {
+      xz.push_back(xu[i] * zu[i]);
+      x.push_back(xu[i]);
+      z.push_back(zu[i]);
+      theta.push_back(xu[i]/zu[i]);
+    }
+  }
+  auto a = *std::min_element(xz.begin(), xz.end());
+  auto b = *std::max_element(xz.begin(), xz.end());
+  auto gamma1 = a / mu;
+  auto gamma2 = mu / b;
+  auto max_gamma = std::min(gamma1, gamma2);
+
+  auto xmin = *std::min_element(x.begin(), x.end());
+  auto xmax = *std::max_element(x.begin(), x.end());
+  auto zmin = *std::min_element(z.begin(), z.end());
+  auto zmax = *std::max_element(z.begin(), z.end());
+  auto thetamin = *std::min_element(theta.begin(), theta.end());
+  auto thetamax = *std::max_element(theta.begin(), theta.end());
+  auto scale = thetamax/thetamin;
+
   double xz_lb = mu * gamma, xz_ub = mu / gamma;
+  
+  if (max_gamma >= gamma) return true;
   for (Int i = 0; i < model.n(); ++i) {
     if(model.hasLb(i) && model.lb(i) == model.ub(i))
       continue;

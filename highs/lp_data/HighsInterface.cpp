@@ -2826,6 +2826,7 @@ HighsStatus Highs::lpKktCheck(const HighsLp& lp, const std::string& message) {
                      info.max_relative_dual_residual_error,
                      dual_residual_tolerance);
     }
+    auto xd = info.primal_dual_objective_error;
     if (info.primal_dual_objective_error > optimality_tolerance) {
       primal_dual_objective_tolerance_relative_violation =
           info.primal_dual_objective_error / optimality_tolerance;

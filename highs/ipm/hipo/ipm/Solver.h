@@ -22,6 +22,10 @@
 #include "util/HighsSparseMatrix.h"
 #include "util/HighsTimer.h"
 
+extern int recentring_count;
+extern int optim_count;
+extern double primal_feasibility;
+extern double dual_feasibility;
 namespace hipo {
 
 class Solver {
@@ -129,9 +133,9 @@ class Solver {
   void runIpm();
   bool initialise();
   void terminate();
-  bool prepareIter();
+  bool prepareIter(bool recentring=false);
   bool predictor(bool use_specialized_sigma=true);
-  bool correctors();
+  bool correctors(bool use_specialized_sigma=true);
   void recentring();
 
   // ===================================================================================
@@ -229,12 +233,12 @@ class Solver {
   // produces a complementarity product not too far from the mu that would be
   // obtained using the steps to the boundary.
   // ===================================================================================
-  void stepSizes();
+  void stepSizes(bool recentring=false);
 
   // ===================================================================================
   // Make the step in the Newton direction with appropriate stepsizes.
   // ===================================================================================
-  void makeStep();
+  void makeStep(bool recentring=false);
 
   // ===================================================================================
   // Compute the Mehrotra starting point.
@@ -264,7 +268,7 @@ class Solver {
   //
   // ===================================================================================
   void sigmaAffine(bool use_specialized_sigma);
-  void sigmaCorrectors();
+  void sigmaCorrectors(bool use_specialized_sigma);
 
   // ===================================================================================
   // Compute the residuals for the computation of multiple centrality

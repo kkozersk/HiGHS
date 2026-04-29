@@ -515,6 +515,48 @@ RandomVector append_to_random_vector(RandomVector const & to_append, RandomVecto
   return result;
 }
 
+int find_csr_value_index(HighsSparseMatrix const & a, int col, int row) {
+  assert(a.isRowwise());
+  for (int i = a.start_.at(row); i < a.start_.at(row+1); ++i)
+    if (a.index_.at(i) == col)
+      return i; 
+  return -1;
+}
+
+//TODO name, here?
+HighsLp modify_problem(SmpsCoreStructure const & core, Node & node) {
+    // TODO: here?
+    auto lp = core;
+    lp.ensureRowwise();
+    auto node_modifications = core.annotate_lp_entries(node.get_lp_modifications());
+    auto const & node_ranges = core.stage_submatrix.at(node.get_timestage());
+    for (auto const & mod : node_modifications) {
+      if (mod.is_objective)
+        lp.col_cost_.at(mod.col_idx) = mod.value;
+      else if (mod.is_rhs) {
+        auto LB = lp.row_lower_.at(mod.row_idx);
+        lp.row_lower_.at(mod.row_idx) = update_lb(LB, mod.value);
+        auto UB = lp.row_upper_.at(mod.row_idx);
+        lp.row_upper_.at(mod.row_idx) = update_ub(UB, mod.value);
+      }
+      else {
+        //TODO modify with a new val
+        auto idx = find_csr_value_index(lp.a_matrix_, mod.col_idx, mod.row_idx);
+        assert (idx > -1);
+        lp.a_matrix_.value_.at(idx) = mod.value;
+      }
+    }
+    auto prob = node.get_in_tree_probability();
+    //TODO transform
+    std::transform(lp.col_cost_.begin() + node_ranges.col_idx_begin, 
+                  lp.col_cost_.begin() + node_ranges.col_idx_end,
+                  lp.col_cost_.begin() + node_ranges.col_idx_begin,
+                  [prob](double x) { return prob * x;});
+    // for (int col = node_ranges.col_idx_begin; col < node_ranges.col_idx_end; ++col)
+    //   lp.col_cost_.at(col) *= prob;
+    return lp;
+}
+
 //TODO BOUNDS!!!!!
 void add_node_entry(SmpsCoreStructure const & core, Node & node, Highs & result) {
     // TODO: redundant looping
@@ -536,7 +578,6 @@ void add_node_entry(SmpsCoreStructure const & core, Node & node, Highs & result)
       row_data.translate_to_in_problem(translator);
       result.addRow(LB, UB, row_data.num_nz(), row_data.nz_indices.data(), row_data.nz_values.data());
     }        
-    // TODO prepare and a single call to changeColCosts
     auto prob = node.get_in_tree_probability();
     for (int col = node_ranges.col_idx_begin; col < node_ranges.col_idx_end; ++col)
       if (core.col_cost_.at(col) != 0)
@@ -548,12 +589,14 @@ void add_node_entry(SmpsCoreStructure const & core, Node & node, Highs & result)
 
 void add_node_tree_entries(SmpsCoreStructure const & core, Node & node, Highs & result) {
   add_node_entry(core, node, result); 
+  auto v = node.get_no_children();
   for (int i = 0; i < node.get_no_children(); ++i)  add_node_tree_entries(core, *node.get_child(i), result);
 }
 
 //TODO const tree?
 // TODO bread first?
 void add_tree_entries(const SmpsCoreStructure &core, const StochasticTree &tree, Highs &result) {
+  auto v = tree.root->get_no_children();
   for (int i = 0; i < tree.root->get_no_children(); ++i) add_node_tree_entries(core, *tree.root->get_child(i), result);
 }
 
@@ -642,27 +685,34 @@ double Node::get_in_tree_probability() const {
   return probability;
 }
 
+std::pair<SmpsCoreStructure, StochasticTree> build_stochastic_tree(
+                              std::string const & core_filename,
+                              std::string const & time_filename,
+                              std::string const & stoch_filename,
+                              HighsOptions const & highs_mps_options) {
+  SmpsCoreStructure core(highs_mps_options, core_filename);  
+   if (!core.is_valid()) return {core, nullptr};
+
+  SmpsTimeStructure time(time_filename);
+  if (!time.is_valid()) return {core, nullptr};
+
+  if (!core.load_time_stages(time)) return {core, nullptr};
+
+  auto stoch = read_stochastic_file(stoch_filename, core, time);  
+  if (stoch == nullptr || !stoch->is_valid()) return {core, nullptr};
+
+  return {core, stoch->constructTree()};             
+}
+
 bool build_stochastic_problem(Highs & problem,
                               std::string const & core_filename,
                               std::string const & time_filename,
                               std::string const & stoch_filename,
                               HighsOptions const & highs_mps_options) {
-  
-    SmpsCoreStructure core(highs_mps_options, core_filename);
-    if (!core.is_valid()) return false;
-
-    SmpsTimeStructure time(time_filename);
-    if (!time.is_valid()) return false;
-
-    if (!core.load_time_stages(time)) return false;
-
-    auto stoch = read_stochastic_file(stoch_filename, core, time);
-    if (stoch == nullptr || !stoch->is_valid()) return false;
-    auto tree = stoch->constructTree();
-
-    if (tree.root == nullptr) return false;
+    auto core_and_tree = build_stochastic_tree(core_filename, time_filename, stoch_filename, highs_mps_options);
+    if (core_and_tree.second.root == nullptr) return false;
     //TODO some checking should be done here
-    add_tree_entries(core, tree, problem);
+    add_tree_entries(core_and_tree.first, core_and_tree.second, problem);
     return true;
 }
 
