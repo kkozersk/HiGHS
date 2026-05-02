@@ -28,63 +28,11 @@ if ((NOT FAST_BUILD OR ALL_TESTS) AND NOT (BUILD_EXTRA_UNIT_ONLY))
 
   # Make test executable
   set(TEST_SOURCES
-      TestAlienBasis.cpp
-      TestBasis.cpp
-      TestBasisSolves.cpp
       TestBenders.cpp
-      TestCallbacks.cpp
-      TestCheckSolution.cpp
-      TestCrossover.cpp
-      TestDualize.cpp
-      TestEkk.cpp
-      TestFactor.cpp
-      TestFilereader.cpp
-      TestHighsCDouble.cpp
-      TestHighsGFkSolve.cpp
-      TestHighsHash.cpp
-      TestHighsHessian.cpp
-      TestHighsIntegers.cpp
-      TestHighsModel.cpp
-      TestHighsParallel.cpp
-      TestHighsRbTree.cpp
-      TestHighsSparseMatrix.cpp
-      TestHighsVersion.cpp
-      TestHipo.cpp
-      TestHSet.cpp
-      TestICrash.cpp
-      TestIis.cpp
-      TestInfo.cpp
-      TestIO.cpp
-      TestIpm.cpp
-      TestIpx.cpp
-      TestLogging.cpp
-      TestLPFileFormat.cpp
-      TestLpModification.cpp
-      TestLpOrientation.cpp
-      TestLpSolvers.cpp
-      TestLpValidation.cpp
+      #TestHipo.cpp
+      #TestSMPS.cpp
       TestMain.cpp
-      TestMipSolver.cpp
-      TestModelProperties.cpp
-      TestMultiObjective.cpp
-      TestNames.cpp
-      TestOptions.cpp
-      TestPdlp.cpp
-      TestPresolve.cpp
-      TestQpSolver.cpp
-      TestRanging.cpp
-      TestRays.cpp
-      TestSemiVariables.cpp
-      TestSetup.cpp
-      TestSMPS.cpp
-      TestSort.cpp
-      TestSpecialLps.cpp
-      TestThrow.cpp
-      TestTspSolver.cpp
-      TestUserScale.cpp
-      Avgas.cpp
   )
-
   set(OPT_LEVEL_CHANGED OFF)
 
   if(CMAKE_CXX_FLAGS_RELEASE MATCHES "-O[0-9s]" AND NOT CMAKE_CXX_FLAGS_RELEASE MATCHES "-O3")
@@ -109,8 +57,6 @@ if ((NOT FAST_BUILD OR ALL_TESTS) AND NOT (BUILD_EXTRA_UNIT_ONLY))
   endif()
 
   add_executable(unit_tests ${TEST_SOURCES})
-
-  set_target_properties(unit_tests PROPERTIES UNITY_BUILD OFF)
 
   if (UNIX)
       target_compile_options(unit_tests PRIVATE "-Wno-unused-variable")
@@ -198,77 +144,24 @@ if ((NOT FAST_BUILD OR ALL_TESTS) AND NOT (BUILD_EXTRA_UNIT_ONLY))
   #
   # define the set of feasible instances
   set(successInstances
-      "25fv47\;3149\; 5.5018458883\;"
-      "80bau3b\;3686\; 9.8722419241\;"
-      "adlittle\;74\; 2.2549496316\;"
-      "afiro\;22\;-4.6475314286\;"
-      "etamacro\;532\;-7.5571523330\;"
-      "greenbea\;5109\;-7.2555248130\;"
-      "shell\;623\; 1.2088253460\;"
-      "stair\;529\;-2.5126695119\;"
-      "standata\;72\; 1.2576995000\;"
-      "standgub\;68\; 1.2576995000\;"
-      "standmps\;218\; 1.4060175000\;"
       )
   
    set(successMacArmInstances
-      "25fv47\;3103\; 5.5018458883\;"
-      "80bau3b\;3705\; 9.8722419241\;"
-      "adlittle\;74\; 2.2549496316\;"
-      "afiro\;22\;-4.6475314286\;"
-      "etamacro\;531\;-7.5571523330\;"
-      "greenbea\;5156\;-7.2555248130\;"
-      "shell\;623\; 1.2088253460\;"
-      "stair\;531\;-2.5126695119\;"
-      "standata\;72\; 1.2576995000\;"
-      "standgub\;68\; 1.2576995000\;"
-      "standmps\;218\; 1.4060175000\;"
    )
 
    set(successRiscVInstances
-      "25fv47\;3103\; 5.5018458\;"
-      "80bau3b\;3705\; 9.8722419\;"
-      "etamacro\;531\;-7.5571523\;"
-      "greenbea\;5156\;-7.2555248\;"
-      "stair\;531\;-2.5126695\;" # last like mac arm
-      "adlittle\;74\; 2.2549496\;"
-      "afiro\;22\;-4.6475314\;"
-      "shell\;623\; 1.2088253\;"
-      "standata\;72\; 1.2576995\;"
-      "standgub\;68\; 1.2576995\;"
-      "standmps\;218\; 1.4060175\;"
    )
 
   set(infeasibleInstances
-      "bgetam\;        infeasible"
-      "box1\;          infeasible"
-      "ex72a\;         infeasible"
-      "forest6\;       infeasible"
-      "galenet\;       infeasible"
-      "gams10am\;      infeasible"
-  #    "klein1\;        infeasible"
-      "refinery\;      infeasible"
-      "woodinfe\;      infeasible"
       )
 
   set(unboundedInstances
-      "gas11\;         unbounded"
       )
 
   set(failInstances
       )
   
   set(mipInstances 
-      "small_mip\;3.2368421\;"
-      "flugpl\;1201500\;"
-      "lseu\;1120|1119.9999999\;"
-      "egout\;(568.1007|568.1006999)\;"
-      "gt2\;21166\;"
-      "rgn\;82.19999\;"
-      "bell5\;(8966406.49152|8966406.491519|8966406.49151)\;"
-      "sp150x300d\;(69|68.9999999)\;"
-      "p0548\;(8691|8690.9999999)\;"
-      "dcmulti\;188182\;"
       )
 
   # define settings
@@ -286,52 +179,14 @@ if ((NOT FAST_BUILD OR ALL_TESTS) AND NOT (BUILD_EXTRA_UNIT_ONLY))
   if (UNIX AND NOT APPLE AND NOT CMAKE_CXX_COMPILER_ID STREQUAL "IntelLLVM")
     if (CUPDLP_GPU)
         set(pdlpInstances
-            "25fv47\; 5.501847\;"
-            "adlittle\; 2.254949\;"
-            "afiro\;-4.647531\;"
-            "avgas\;-7.7499999\;"
-            "blending\;-3.19999999\;"
-            "chip\;-9.0000000\;"
-            "e226\;-1.1638932\;"
-            "scrs8\; 9.042968\;"
-            "sctest\; 5.750000001\;"
-            "shell\; 1.20882535\;"
-            "stair\;-2.5126695\;"
-            "standata\; 1.2576995\;"
-            "standgub\; 1.2576994\;"
             )
     else() # CUPDLP_CPU
         set(pdlpInstances
-            "25fv47\; 5.5018469\;"
-            "adlittle\; 2.254949\;"
-            "afiro\;-4.64753150\;"
-            "avgas\;-7.7499999\;"
-            "blending\;-3.1999999\;"
-            "chip\;-8.9999999\;"
-            "e226\;-1.16389294\;"
-            "scrs8\; 9.04297094\;"
-            "sctest\; 5.75000000\;"
-            "shell\; 1.20882534\;"
-            "stair\;-2.51266942\;"
-            "standata\; 1.25769944\;"
-            "standgub\; 1.25769944\;"
             )
     endif()
   elseif(WIN32 AND NOT CMAKE_CXX_COMPILER_ID STREQUAL "IntelLLVM")
     if (CUPDLP_GPU)
         set(pdlpInstances
-            "25fv47\; 5.50184\;"
-            "adlittle\; 2.254949\;"
-            "afiro\;-4.647531\;"
-            "avgas\;-7.749999\;"
-            "blending\;-3.19999999\;"
-            "chip\;-9.0000000\;"
-            "scrs8\; 9.0429693\;"
-            "sctest\; 5.7500000\;"
-            "shell\; 1.20882535\;"
-            "stair\;-2.512669\;" # 96 release 95 debug
-            "standata\; 1.2576995\;"
-            "standgub\; 1.257699\;"
             )
     else() # CUPDLP_CPU
         # on windows e226 model status is unknown

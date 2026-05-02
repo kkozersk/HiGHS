@@ -51,7 +51,7 @@ BLOCKS        DISCRETE
     RHS       R0004802      238.5639
     RHS       R0004902      176.9565
     RHS       R0005002      371.7341
- BL BLOCK002  PERIOD03        0.5816
+ BL BLOCK002  PERIOD02        0.5816
     RHS       R0004403      324.2092
     RHS       R0004503      853.6845
     RHS       R0004603      161.0266
@@ -59,7 +59,7 @@ BLOCKS        DISCRETE
     RHS       R0004803       59.1523
     RHS       R0004903      161.4442
     RHS       R0005003      384.4841
- BL BLOCK002  PERIOD03        0.0184
+ BL BLOCK002  PERIOD02        0.0184
     RHS       R0004403      453.1774
     RHS       R0004503      891.8734
     RHS       R0004603       57.3024
@@ -67,7 +67,7 @@ BLOCKS        DISCRETE
     RHS       R0004803      272.2125
     RHS       R0004903       39.9885
     RHS       R0005003      383.2039
- BL BLOCK002  PERIOD03        0.1100
+ BL BLOCK002  PERIOD02        0.1100
     RHS       R0004403      389.4386
     RHS       R0004503      690.6669
     RHS       R0004603      147.0715
@@ -75,7 +75,7 @@ BLOCKS        DISCRETE
     RHS       R0004803       70.5329
     RHS       R0004903        5.4843
     RHS       R0005003       68.9905
- BL BLOCK002  PERIOD03        0.0900
+ BL BLOCK002  PERIOD02        0.0900
     RHS       R0004403      394.7164
     RHS       R0004503        7.3497
     RHS       R0004603       40.7735
@@ -83,7 +83,7 @@ BLOCKS        DISCRETE
     RHS       R0004803      208.7734
     RHS       R0004903      170.6077
     RHS       R0005003      220.3213
- BL BLOCK002  PERIOD03        0.1149
+ BL BLOCK002  PERIOD02        0.1149
     RHS       R0004403      356.1858
     RHS       R0004503      784.0842
     RHS       R0004603      120.7431
@@ -91,7 +91,7 @@ BLOCKS        DISCRETE
     RHS       R0004803      105.8609
     RHS       R0004903      208.2657
     RHS       R0005003      538.1225
- BL BLOCK002  PERIOD03        0.0851
+ BL BLOCK002  PERIOD02        0.0851
     RHS       R0004403      662.6119
     RHS       R0004503      788.8005
     RHS       R0004603      200.9868

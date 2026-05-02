@@ -125,7 +125,8 @@ class SmpsCoreStructure : public HighsLp {
 
 class Node {
   std::vector<std::unique_ptr<Node>> children;
-  Node const * parent = nullptr;
+  // Node const * parent = nullptr;
+  Node * parent = nullptr;
   std::vector<LpEntry> lp_modifications;
   double node_probability; // TODO 0 <= p <= 1
   std::string timestage;
@@ -141,7 +142,8 @@ class Node {
     std::unique_ptr<Node> & get_child(int index) { return children.at(index); }
     std::unique_ptr<Node> const & get_child(int index) const { return children.at(index); }
     int get_no_children() const { return children.size(); }
-    Node const * get_parent() const { return parent; };
+    // Node const * get_parent() const { return parent; };
+    Node * get_parent() { return parent; };
     std::vector<LpEntry> get_lp_modifications() const { return lp_modifications; }
     double get_node_probability() const { return node_probability; }
     bool is_leaf() const { return children.empty(); }
@@ -151,7 +153,7 @@ class Node {
     bool rescale_to_children_probability();
     bool rescale_tree_to_leaf_probability();
 
-    double get_in_tree_probability() const;
+    double get_in_tree_probability();
 };
 
 struct StochasticTree {
@@ -346,7 +348,7 @@ struct SparseVector {
   void translate_to_in_problem(IdxTranslator const & translator);
 };
 
-Timestage2Range create_stochastic_path_translation(Node const & node);
+Timestage2Range create_stochastic_path_translation(Node & node);
 
 inline double update_ub(double old_ub, double new_rhs) { return old_ub == kHighsInf ? kHighsInf : new_rhs; };
 inline double update_lb(double old_lb, double new_rhs) { return old_lb == -kHighsInf ? -kHighsInf : new_rhs; };

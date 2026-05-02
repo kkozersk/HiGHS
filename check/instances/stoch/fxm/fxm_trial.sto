@@ -1,0 +1,10 @@
+STOCH         SCFXM1
+INDEP         DISCRETE
+    1D1IK     1DT012         1.                   TIME1  1.0
+    RHS       1MS037         50.0000              TIME2  0.166666667
+    RHS       1MS037         30.0000              TIME2  0.166666667
+    RHS       1MS037         25.0000              TIME2  0.166666667
+    RHS       1MS037         20.0000              TIME2  0.166666667
+    RHS       1MS037         15.0000              TIME2  0.166666667
+    RHS       1MS037         10.0000              TIME2  0.166666667
+ENDATA

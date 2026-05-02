@@ -1,5 +1,8 @@
 STOCH  Prob_5
 BLOCKS        DISCRETE
+ BL BLOCK000 PERIOD01       1.0
+    C0001001  R0002101     -702.0000
+   *
  BL BLOCK001  PERIOD02        0.1667
     RHS       R0004402      630.0049
     RHS       R0004502      510.5189
@@ -120,7 +123,7 @@ BLOCKS        DISCRETE
     RHS       R0006002       71.0000
     RHS       R0006102       35.0000
     RHS       R0006202       36.0000
- BL BLOCK002  PERIOD03        0.5000
+ BL BLOCK002  PERIOD02        0.5000
     RHS       R0004403      323.9389
     RHS       R0004503      326.3855
     RHS       R0004603       85.2727
@@ -140,7 +143,7 @@ BLOCKS        DISCRETE
     RHS       R0006003       71.0000
     RHS       R0006103       35.0000
     RHS       R0006203       36.0000
- BL BLOCK002  PERIOD03        0.5000
+ BL BLOCK002  PERIOD02        0.5000
     RHS       R0004403      420.7387
     RHS       R0004503      591.9952
     RHS       R0004603       88.0927
@@ -160,7 +163,7 @@ BLOCKS        DISCRETE
     RHS       R0006003       71.0000
     RHS       R0006103       35.0000
     RHS       R0006203       36.0000
- BL BLOCK003  PERIOD04        0.5000
+ BL BLOCK003  PERIOD02        0.5000
     RHS       R0004404      440.5621
     RHS       R0004504      530.2430
     RHS       R0004604      168.4244
@@ -180,7 +183,7 @@ BLOCKS        DISCRETE
     RHS       R0006004       71.0000
     RHS       R0006104       35.0000
     RHS       R0006204       36.0000
- BL BLOCK003  PERIOD04        0.5000
+ BL BLOCK003  PERIOD02        0.5000
     RHS       R0004404      462.7278
     RHS       R0004504      249.2188
     RHS       R0004604      178.4846
@@ -200,7 +203,7 @@ BLOCKS        DISCRETE
     RHS       R0006004       71.0000
     RHS       R0006104       35.0000
     RHS       R0006204       36.0000
- BL BLOCK004  PERIOD05        0.5000
+ BL BLOCK004  PERIOD02        0.5000
     RHS       R0004405      879.4758
     RHS       R0004505      351.1464
     RHS       R0004605        9.0655
@@ -220,7 +223,7 @@ BLOCKS        DISCRETE
     RHS       R0006005       71.0000
     RHS       R0006105       35.0000
     RHS       R0006205       36.0000
- BL BLOCK004  PERIOD05        0.5000
+ BL BLOCK004  PERIOD02        0.5000
     RHS       R0004405      920.5846
     RHS       R0004505      225.1372
     RHS       R0004605      193.5710

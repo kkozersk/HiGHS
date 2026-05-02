@@ -439,7 +439,13 @@ StochasticTree ScenarioStructure::constructTree() {
   std::map<std::pair<std::string, std::string>, Node *> scen_time2node {{{"ROOT", "ROOT"}, root.get()}};
   for (auto & scen : scenarios) {
     auto branch_out_stage = scen.parent_scenario == "ROOT" ? "ROOT" : time.get_previous_stage(scen.timestage);
-    Node * parent = scen_time2node.at({scen.parent_scenario, branch_out_stage});
+    Node * parent, * quasiparent = nullptr;
+    if (scen_time2node.count({scen.parent_scenario, branch_out_stage}) > 0) {
+      parent = scen_time2node.at({scen.parent_scenario, branch_out_stage});
+    } else { //TODO - quasiparent mechanism is a failover, should not be used normally
+      quasiparent = scen_time2node.at({scen.parent_scenario, scen.timestage});
+      parent = quasiparent->get_parent();
+    }
     if (scen.parent_scenario != "ROOT") scen += get_scenario(scen.parent_scenario);
     for (int t = time.get_stage_index(scen.timestage); t < time.get_no_timestages(); ++t) {
       auto timestage = time.get_timestage(t);
@@ -557,7 +563,6 @@ HighsLp modify_problem(SmpsCoreStructure const & core, Node & node) {
     return lp;
 }
 
-//TODO BOUNDS!!!!!
 void add_node_entry(SmpsCoreStructure const & core, Node & node, Highs & result) {
     // TODO: redundant looping
     auto const & node_ranges = core.stage_submatrix.at(node.get_timestage());
@@ -565,6 +570,10 @@ void add_node_entry(SmpsCoreStructure const & core, Node & node, Highs & result)
     node.set_in_problem_range(node_ranges.create_in_problem_range(result));
     node_ranges.expand_problem_by_range_vars(result, core.col_lower_, core.col_upper_);
     IdxTranslator translator {core.stage_submatrix, create_stochastic_path_translation(node)};
+    HighsSparseMatrix a; a.ensureRowwise(); a.num_col_ = result.getNumCol();
+    int no_new_rows = node_ranges.row_idx_end-node_ranges.row_idx_begin;
+    std::vector<double> lbs(no_new_rows);
+    std::vector<double> ubs(no_new_rows);
     for (int row = node_ranges.row_idx_begin; row < node_ranges.row_idx_end; ++row) {
       auto LB = core.row_lower_.at(row);
       auto UB = core.row_upper_.at(row);
@@ -576,8 +585,12 @@ void add_node_entry(SmpsCoreStructure const & core, Node & node, Highs & result)
         } else if (mod.row_idx == row)
            row_data.set(mod.col_idx, mod.value);
       row_data.translate_to_in_problem(translator);
-      result.addRow(LB, UB, row_data.num_nz(), row_data.nz_indices.data(), row_data.nz_values.data());
+      lbs.at(row - node_ranges.row_idx_begin) = LB;
+      ubs.at(row - node_ranges.row_idx_begin) = UB;
+      a.addVec(row_data.num_nz(), row_data.nz_indices.data(), row_data.nz_values.data());
+      // result.addRow(LB, UB, row_data.num_nz(), row_data.nz_indices.data(), row_data.nz_values.data());
     }        
+    result.addRows(no_new_rows, lbs.data(), ubs.data(), a.numNz(), a.start_.data(), a.index_.data(), a.value_.data());
     auto prob = node.get_in_tree_probability();
     for (int col = node_ranges.col_idx_begin; col < node_ranges.col_idx_end; ++col)
       if (core.col_cost_.at(col) != 0)
@@ -656,9 +669,9 @@ SparseVector SparseVector::get_matrix_row(HighsSparseMatrix const & A, int row_i
     return row_data;
 }
 
-Timestage2Range create_stochastic_path_translation(Node const & node) {
+Timestage2Range create_stochastic_path_translation(Node & node) {
   Timestage2Range timeperiod2range;
-  for (Node const * parent = &node; parent != nullptr; parent = parent->get_parent())
+  for (Node * parent = &node; parent != nullptr; parent = parent->get_parent())
     timeperiod2range[parent->get_timestage()] = parent->get_in_problem_range();
   return timeperiod2range;
 }
@@ -677,10 +690,10 @@ int IdxTranslator::operator()(int idx) const {
   return in_problem.at(it->first).col_idx_begin + in_range_shift;
 }
 
-double Node::get_in_tree_probability() const {
+double Node::get_in_tree_probability() {
   // TODO sum algorithm?
   auto probability = 1.;
-  for (Node const * parent = this; parent != nullptr; parent = parent->get_parent())
+  for (Node * parent = this; parent != nullptr; parent = parent->get_parent())
     probability *= parent->get_node_probability();
   return probability;
 }
