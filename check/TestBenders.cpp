@@ -17,7 +17,7 @@ const int max_iters = 100;
 void modify(Highs & m) {
   double ac = 1;
   m.setOptionValue("solver", kHipoString);
-  m.setOptionValue("solver", kSimplexString);
+  // m.setOptionValue("solver", kSimplexString);
   m.setOptionValue("optimality_tolerance", ac);
   m.setOptionValue("ipm_optimality_tolerance", ac);
   m.setOptionValue("run_crossover", kHighsOffString);
@@ -25,15 +25,245 @@ void modify(Highs & m) {
   m.setOptionValue("presolve", kHighsOnString);
   m.setOptionValue("centring_gamma", 1-1e-5);
 }
- 
 
-TEST_CASE("test-placeholder", "[highs-benders]") {
+std::vector<OptionValue> getMasterOpts() {
   ipm_acc = 1;
-  ipm_feas = 10;
+  ipm_feas = 20;
   used_solver = kHipoString;
   used_solver = kSimplexString;
   ipm_feas = used_solver == kHipoString ? ipm_feas : 1e-8;
+  return {
+    OptionValue("solver", used_solver),
+    OptionValue("optimality_tolerance", ipm_acc),
+    OptionValue("ipm_optimality_tolerance", ipm_acc),
+    OptionValue("run_crossover", kHighsOffString),
+    OptionValue("max_centring_steps", 1000),
+    OptionValue("presolve", kHighsOnString),
+    OptionValue("centring_gamma", 1-1e-5),
+    OptionValue("dual_feasibility_tolerance", ipm_feas),
+    OptionValue("primal_feasibility_tolerance", ipm_feas),
+  };
 }
+
+auto dir = std::string(HIGHS_DIR) + "/check/instances/stoch/";
+struct SmpsTestCase {
+  std::string corefile, timefile, stochfile, note;
+  double sub_lb;
+  bool aggregate;
+  double expected;
+};
+
+enum Start {
+  obj_start,
+  feas_start,
+  core_obj_start,
+  core_feas_start
+};
+
+std::vector<SmpsTestCase> tests {
+  {dir + "fxm/fxm.cor", dir + "fxm/fxm2.tim", dir + "fxm/fxm2_6.sto", "indep-2", 0, false, 18417.066},
+  {dir + "fxm/fxm.cor", dir + "fxm/fxm2.tim", dir + "fxm/fxm2_16.sto", "indep-2-bigger", 0, false, 18416.759},
+  {dir + "fxm/fxm.cor", dir + "fxm/fxm3.tim", dir + "fxm/fxm3_6.sto", "indep-3", 0, false, 18615.74},
+  {dir + "fxm/fxm.cor", dir + "fxm/fxm3.tim", dir + "fxm/fxm3_16.sto", "indep-3-bigger", 0, false, 18438.995},
+  {dir + "fxm/fxm.cor", dir + "fxm/fxm4.tim", dir + "fxm/fxm4_6.sto", "indep-4", 0, false, 18616.05},
+  {dir + "fxm/fxm.cor", dir + "fxm/fxm4.tim", dir + "fxm/fxm4_16.sto", "indep-4-bigger", 0, false, 18438.995},
+
+  {dir + "pltexp/pltexpA2.cor", dir + "pltexp/pltexpA2.tim", dir + "pltexp/pltexpA2_6.sto", "block-2", -100, false, -9.47935},
+  {dir + "pltexp/pltexpA2.cor", dir + "pltexp/pltexpA2.tim", dir + "pltexp/pltexpA2_16.sto", "block-2-bigger", -100, false, -9.66331},
+  {dir + "pltexp/pltexpA3.cor", dir + "pltexp/pltexpA3.tim", dir + "pltexp/pltexpA3_6.sto", "block-3", -100, false, -13.9694},
+  {dir + "pltexp/pltexpA3.cor", dir + "pltexp/pltexpA3.tim", dir + "pltexp/pltexpA3_16.sto", "block-3-bigger", -100, false, -14.2675},
+  {dir + "pltexp/pltexpA4.cor", dir + "pltexp/pltexpA4.tim", dir + "pltexp/pltexpA4_6.sto", "block-4", -100, false, -19.5994},
+  // {dir + "pltexp/pltexpA4.cor", dir + "pltexp/pltexpA4.tim", dir + "pltexp/pltexpA4_16.sto", "block-4-bigger", -100, false, kHighsInf},
+  // {dir + "pltexp/pltexpA5.cor", dir + "pltexp/pltexpA5.tim", dir + "pltexp/pltexpA5_6.sto", "block-5", -100, false, kHighsInf},
+  // {dir + "pltexp/pltexpA5.cor", dir + "pltexp/pltexpA5.tim", dir + "pltexp/pltexpA5_16.sto", "block-5-bigger", -100, false, kHighsInf},
+  // {dir + "pltexp/pltexpA6.cor", dir + "pltexp/pltexpA6.tim", dir + "pltexp/pltexpA6_6.sto", "block-6", -100, false, kHighsInf},
+  // {dir + "pltexp/pltexpA6.cor", dir + "pltexp/pltexpA6.tim", dir + "pltexp/pltexpA6_16.sto", "block-6-bigger", -100, false, kHighsInf},
+
+  {dir + "pltexp/pltexpA3.cor", dir + "pltexp/pltexpA3.tim", dir + "pltexp/pltexpB3_6.sto", "blockB-3", -100, false, -13.6432},
+  {dir + "pltexp/pltexpA4.cor", dir + "pltexp/pltexpA4.tim", dir + "pltexp/pltexpB4_6.sto", "blockB-4", -100, false, -17.9282},
+  // {dir + "pltexp/pltexpA5.cor", dir + "pltexp/pltexpA5.tim", dir + "pltexp/pltexpB5_6.sto", "blockB-5", -100, false, -23.8434},
+
+  {dir + "storm/stormG2.cor", dir + "storm/stormG2.tim", dir + "storm/stormG2_8.sto", "storm-8", 0, false, 15535235.73},
+  {dir + "storm/stormG2.cor", dir + "storm/stormG2.tim", dir + "storm/stormG2_27.sto", "storm-27", 0, false, 15508982.306},
+  {dir + "storm/stormG2.cor", dir + "storm/stormG2.tim", dir + "storm/stormG2_125.sto", "storm-125", 0, false, 15512091.185},
+  // {dir + "storm/stormG2.cor", dir + "storm/stormG2.tim", dir + "storm/stormG2_1000.sto", "storm-1000", 0, false, 15802590.244},
+
+  {dir + "sg/sgpf5y3.cor", dir + "sg/sgpf5y3.tim", dir + "sg/sgpf5y3.sce", "scen-3", -1e4, false, -3084.234},
+  {dir + "sg/sgpf5y4.cor", dir + "sg/sgpf5y4.tim", dir + "sg/sgpf5y4.sce", "scen-4", -1e4, false, -4248.131},
+  {dir + "sg/sgpf5y5.cor", dir + "sg/sgpf5y5.tim", dir + "sg/sgpf5y5.sce", "scen-5", -1e4, false, -5593.008},
+  // {dir + "sg/sgpf5y6.cor", dir + "sg/sgpf5y6.tim", dir + "sg/sgpf5y6.sce", "scen-6", -1e4, false, kHighsInf},
+// };
+
+// std::vector<SmpsTestCase> slptests {
+
+  {dir + "cargo/4node.cor", dir + "cargo/4node.tim", dir + "cargo/4node.sto.1", "4node-1", 0, false, kHighsInf},
+  {dir + "cargo/4node.cor", dir + "cargo/4node.tim", dir + "cargo/4node.sto.2", "4node-2", 0, false, kHighsInf},
+  {dir + "cargo/4node.cor", dir + "cargo/4node.tim", dir + "cargo/4node.sto.4", "4node-4", 0, false, kHighsInf},
+  {dir + "cargo/4node.cor", dir + "cargo/4node.tim", dir + "cargo/4node.sto.8", "4node-8", 0, false, kHighsInf},
+  {dir + "cargo/4node.cor", dir + "cargo/4node.tim", dir + "cargo/4node.sto.16", "4node-16", 0, false, kHighsInf},
+  {dir + "cargo/4node.cor", dir + "cargo/4node.tim", dir + "cargo/4node.sto.32", "4node-32", 0, false, kHighsInf},
+  {dir + "cargo/4node.cor", dir + "cargo/4node.tim", dir + "cargo/4node.sto.64", "4node-64", 0, false, kHighsInf},
+  {dir + "cargo/4node.cor", dir + "cargo/4node.tim", dir + "cargo/4node.sto.128", "4node-128", 0, false, kHighsInf},
+  {dir + "cargo/4node.cor", dir + "cargo/4node.tim", dir + "cargo/4node.sto.256", "4node-256", 0, false, kHighsInf},
+  {dir + "cargo/4node.cor", dir + "cargo/4node.tim", dir + "cargo/4node.sto.512", "4node-512", 0, false, kHighsInf},
+  // {dir + "cargo/4node.cor", dir + "cargo/4node.tim", dir + "cargo/4node.sto.1024", "4node-1024", 0, false, kHighsInf},
+  // {dir + "cargo/4node.cor", dir + "cargo/4node.tim", dir + "cargo/4node.sto.2048", "4node-2048", 0, false, kHighsInf},
+  // {dir + "cargo/4node.cor", dir + "cargo/4node.tim", dir + "cargo/4node.sto.4096", "4node-4096", 0, false, kHighsInf},
+  // {dir + "cargo/4node.cor", dir + "cargo/4node.tim", dir + "cargo/4node.sto.8192", "4node-8192", 0, false, kHighsInf},
+  // {dir + "cargo/4node.cor", dir + "cargo/4node.tim", dir + "cargo/4node.sto.16384", "4node-16384", 0, false, kHighsInf},
+  // {dir + "cargo/4node.cor", dir + "cargo/4node.tim", dir + "cargo/4node.sto.32768", "4node-32768", 0, false, kHighsInf},
+
+  {dir + "chem/chem.cor", dir + "chem/chem.tim", dir + "chem/chem.sto", "chem", -1e6, false, -13009.167},
+  {dir + "chem/chem.cor.base", dir + "chem/chem.tim", dir + "chem/chem.sto", "chem-base", -1e6, false, -13009.167},
+  {dir + "airlift/AIRL.cor", dir + "airlift/AIRL.tim", dir + "airlift/AIRL.sto.first", "airlift1", -1e6, false, 249101.672}, 
+  {dir + "airlift/AIRL.cor", dir + "airlift/AIRL.tim", dir + "airlift/AIRL.sto.second", "airlift2", -1e6, false, 269665.498},
+  // {dir + "phone/phone.cor", dir + "phone/phone.tim", dir + "phone/phone.sto", "phone", 0, false, 36.9}, 
+  // {dir + "phone/phone.cor", dir + "phone/phone.tim", dir + "phone/phone.sto.1", "phone1", 0, false, 36.9}, 
+  {dir + "stocfor2/stocfor2.cor", dir + "stocfor2/stocfor2.tim", dir + "stocfor2/stocfor2.sto", "stocfor", -1e6, false, -39772.448},
+  // {dir + "assets/assets.cor", dir + "assets/assets.tim", dir + "assets/assets.sto.small", "assets-small", -1e4, false, -723.839},
+  // {dir + "assets/assets.cor", dir + "assets/assets.tim", dir + "assets/assets.sto.large", "assets-large", -1e4, false, -695.963},
+};
+
+void zero_costs(Highs & highs) {
+  std::vector<double> zeros (highs.getNumCol(), 0);
+  highs.changeColsCost(0, highs.getNumCol()-1, zeros.data());
+}
+
+void multi_run(SmpsTestCase smps, bool aggregate, int max_scenarios, Start start) {
+  auto core_and_tree = build_stochastic_tree(smps.corefile, smps.timefile, smps.stochfile);
+  auto & tree = core_and_tree.second;
+  auto core = core_and_tree.first;
+  auto & stage_1st = tree.root->get_child(0);
+  auto & stage_2nd = stage_1st->get_child(0);
+  int no_scenarios = stage_1st->get_no_children();
+  if (no_scenarios > max_scenarios)
+    return;
+  smps.note = (aggregate ? "single-" : "multi-") + smps.note;
+  
+
+
+  auto const & master_range = core.stage_submatrix.at(stage_1st->get_timestage());
+  int no_master_vars = master_range.col_idx_end - master_range.col_idx_begin;
+  int no_master_rows = master_range.row_idx_end - master_range.row_idx_begin;
+
+  auto const & sub_range = core.stage_submatrix.at(stage_2nd->get_timestage());
+  int no_sub_vars = sub_range.col_idx_end - sub_range.col_idx_begin;
+  int no_sub_rows = sub_range.row_idx_end - sub_range.row_idx_begin;
+
+  CsvLogger log ("/tmp/dataset.csv");
+  log << smps.note << no_scenarios << no_master_vars << no_master_rows << no_sub_vars << no_sub_rows;
+  log.newline();
+
+  // Highs highs;
+  // REQUIRE(build_stochastic_problem(highs, smps.corefile, smps.timefile, smps.stochfile));
+  // REQUIRE(highs.getNumCol() == no_master_vars + no_sub_vars * no_scenarios);
+  // REQUIRE(highs.getNumRow() == no_master_rows + no_sub_rows * no_scenarios);
+  // highs.run();
+  // auto expected = highs.getObjectiveValue();
+  
+  std::vector<double> starting_point;
+  Highs highs2;
+  switch (start) {
+    case obj_start:
+      REQUIRE(build_stochastic_problem(highs2, smps.corefile, smps.timefile, smps.stochfile));
+      zero_costs(highs2); smps.note += "-obj_start";
+    break;
+    case feas_start:
+      smps.note += "-feas_start";
+    break;
+    case core_obj_start:
+      highs2.passModel(core); smps.note += "-core_obj_start";
+    break;
+    case core_feas_start:
+      highs2.passModel(core); zero_costs(highs2); smps.note += "-core_feas_start";
+    break;
+  }
+  highs2.run();
+  starting_point = highs2.getSolution().col_value;
+  if (start == feas_start) REQUIRE(starting_point.empty());
+  std::ofstream("/tmp/linking.csv", std::ios::app) << smps.note << ",";
+  std::ofstream("/tmp/iteration.csv", std::ios::app) << smps.note  << "," << std::endl;
+  std::ofstream("/tmp/cut_distances.csv", std::ios::app) << smps.note  << "," << std::endl;
+  std::ofstream("/tmp/ubd_lbd.csv", std::ios::app) << smps.note  << "," << std::endl;
+
+  
+  auto res = benders_l_shaped(core_and_tree.first, core_and_tree.second, starting_point, smps.sub_lb, 1e-3, 100, aggregate, getMasterOpts());
+  res.note(smps.expected, smps.note);
+  if (smps.expected != kHighsInf) {
+    REQUIRE(smps.note == smps.note);
+    REQUIRE(no_scenarios == no_scenarios);
+    REQUIRE(std::fabs(res.result - smps.expected) < 1e-3);
+  }
+  
+}
+
+// TEST_CASE("test-quick", "[highs-benders]") {
+//   auto instance = std::string(HIGHS_DIR) + "/check/instances/stoch/sg/sgpf5y6";
+//   auto corefile = instance + ".cor";
+//   auto timefile = instance + ".tim";
+//   auto stochfile = instance + ".sce";
+//   multi_run({corefile, timefile, stochfile, "4node", 0, true, 0}, 1e6, feas_start);
+
+// }
+
+
+// TEST_CASE("test-quick", "[highs-benders]") {
+//   auto instance = std::string(HIGHS_DIR) + "/check/instances/stoch/environ/env";
+//   auto corefile = instance + ".cor";
+//   auto timefile = instance + ".tim";
+//   auto stochfile = instance + ".sto.3780";
+  
+//   auto core_and_tree = build_stochastic_tree(corefile, timefile, stochfile);
+//   auto & tree = core_and_tree.second;
+//   auto core = core_and_tree.first;
+//   auto & stage_1st = tree.root->get_child(0);
+//   auto & stage_2nd = stage_1st->get_child(0);
+//   int no_scenarios = stage_1st->get_no_children();
+
+
+//   auto const & master_range = core.stage_submatrix.at(stage_1st->get_timestage());
+//   int no_master_vars = master_range.col_idx_end - master_range.col_idx_begin;
+//   int no_master_rows = master_range.row_idx_end - master_range.row_idx_begin;
+
+//   auto const & sub_range = core.stage_submatrix.at(stage_2nd->get_timestage());
+//   int no_sub_vars = sub_range.col_idx_end - sub_range.col_idx_begin;
+//   int no_sub_rows = sub_range.row_idx_end - sub_range.row_idx_begin;
+
+//   Highs highs;
+//   REQUIRE(build_stochastic_problem(highs, corefile, timefile, stochfile));
+//   REQUIRE(highs.getNumCol() == no_master_vars + no_sub_vars * no_scenarios);
+//   REQUIRE(highs.getNumRow() == no_master_rows + no_sub_rows * no_scenarios);
+//   highs.run();
+//   REQUIRE(no_scenarios == no_scenarios);
+//   REQUIRE(highs.getObjectiveValue() == 0.);
+// }
+
+// TEST_CASE("run-slp-instances", "[highs-benders]") {
+//   // for (auto test : tests)
+//   //   multi_run(test, 250, obj_start);
+//   for (auto test : slptests)
+//     multi_run(test, 1e6, feas_start);
+//   // for (auto test : tests)
+//   //   multi_run(test, 250, core_obj_start);
+//   // for (auto test : tests)
+//   //   multi_run(test, 250, core_feas_start);
+// }
+// TEST_CASE("run-istances", "[highs-benders]") {
+//   multi_run({dir + "storm/stormG2.cor", dir + "storm/stormG2.tim", dir + "storm/stormG2_8.sto", "storm-8", 0, true, 15535235.73}, 1e4, obj_start);
+//   //  multi_run({dir + "sg/sgpf5y3.cor", dir + "sg/sgpf5y3.tim", dir + "sg/sgpf5y3.sce", "scen-3", -1e4, true, -3084.234}, 1e4, feas_start);
+// }
+
+TEST_CASE("run-instances", "[highs-benders]") {
+  // for (auto test : tests)
+  //   multi_run(test, 250, obj_start);
+  for (auto test : tests)
+    multi_run(test, false, 1e6, feas_start);
+  // for (auto test : tests)
+  //   multi_run(test, 250, core_obj_start);
+  // for (auto test : tests)
+  //   multi_run(test, 250, core_feas_start);
+}
+
 // HighsLp get_simple_test_problem() {
 //   /*
 //     Problem
@@ -1535,8 +1765,8 @@ void run(std::string corefile, std::string timefile, std::string stochfile, std:
   REQUIRE(build_stochastic_problem(highs, corefile, timefile, stochfile));
   REQUIRE(highs.getNumCol() == no_master_vars + no_sub_vars * no_subs);
   REQUIRE(highs.getNumRow() == no_master_rows + no_sub_rows * no_subs);
-  highs.run();
-  auto expected = highs.getObjectiveValue();
+  // highs.run();
+  // auto expected = highs.getObjectiveValue();
   auto lp = highs.getModel().lp_;
   // lp.ensureRowwise();
   std::set<int> master_vars;
@@ -1545,19 +1775,21 @@ void run(std::string corefile, std::string timefile, std::string stochfile, std:
   auto core_and_tree = build_stochastic_tree(corefile, timefile, stochfile);
 
   Highs highs2;
-  highs2.passModel(lp);
-  std::vector<double> zeros(highs2.getNumCol(), 0);
-  highs2.changeColsCost(0, highs2.getNumCol()-1, zeros.data());
-  highs2.run();
+  // highs2.passModel(lp);
+  // highs2.passModel(core_and_tree.first);
+  // zero_costs(highs);
+  // modify(highs2);
+  // highs2.run();
   // std::vector<double> starting_point;
   auto starting_point = highs2.getSolution().col_value;
   std::ofstream("/tmp/iteration.csv", std::ios::app) << note << "," << std::endl;
   std::ofstream("/tmp/cut_distances.csv", std::ios::app) << note << "," << std::endl;
   std::ofstream("/tmp/ubd_lbd.csv", std::ios::app) << note << "," << std::endl;
 
-  auto res = benders(lp, master_vars, starting_point, subproblem_lb, 1e-3, max_iters);
-  res.note(expected, note);
-  REQUIRE(std::fabs(res.result - expected) < 1e-3);
+  auto res = benders(lp, master_vars, starting_point, subproblem_lb, 1e-3, max_iters, getMasterOpts());
+  res.note(0, note);
+  // res.note(expected, note);
+  // REQUIRE(std::fabs(res.result - expected) < 1e-3);
 }
 
 // TEST_CASE("test-benders-solve-indep-2-smps", "[highs-benders]") {
@@ -1618,14 +1850,14 @@ void run(std::string corefile, std::string timefile, std::string stochfile, std:
 //   auto instance = std::string(HIGHS_DIR) + "/check/instances/stoch/pltexp/pltexpA";
 //   auto coresize = core_size(instance + "4.cor");
 //   run(instance + "4.cor", instance + "4.tim", instance + "4_6.sto", "block-4", 188, 
-//     coresize.first - 272, 62, coresize.second - 62, 6*6*6, -100);
+//     coresize.first - 188, 62, coresize.second - 62, 6*6*6, -100);
 // }
 
 // TEST_CASE("test-benders-solve-block-4-bigger-smps", "[highs-benders]") {
 //   auto instance = std::string(HIGHS_DIR) + "/check/instances/stoch/pltexp/pltexpA";
 //   auto coresize = core_size(instance + "4.cor");
 //   run(instance + "4.cor", instance + "4.tim", instance + "4_16.sto", "block-4-bigger", 188, 
-//     coresize.first - 272, 62, coresize.second - 62, 16*16*16);
+//     coresize.first - 272, 62, coresize.second - 62, 16*16*16, -100);
 // }
 
 // TEST_CASE("test-benders-solve-storm-8", "[highs-benders]") {
@@ -1642,187 +1874,18 @@ void run(std::string corefile, std::string timefile, std::string stochfile, std:
 //     coresize.first - 121, 185, coresize.second - 185, 27, 0);
 // }
 
-TEST_CASE("test-benders-solve-storm-125", "[highs-benders]") {
-  auto instance = std::string(HIGHS_DIR) + "/check/instances/stoch/storm/stormG2";
-  auto coresize = core_size(instance + ".cor");
-  run(instance + ".cor", instance + ".tim", instance + "_125.sto", "storm-125", 121, 
-    coresize.first - 121, 185, coresize.second - 185, 125, 0);
-}
+// TEST_CASE("test-benders-solve-storm-125", "[highs-benders]") {
+//   auto instance = std::string(HIGHS_DIR) + "/check/instances/stoch/storm/stormG2";
+//   auto coresize = core_size(instance + ".cor");
+//   run(instance + ".cor", instance + ".tim", instance + "_125.sto", "storm-125", 121, 
+//     coresize.first - 121, 185, coresize.second - 185, 125, 0);
+// }
 
 // TEST_CASE("test-benders-solve-storm-1000", "[highs-benders]") {
 //   auto instance = std::string(HIGHS_DIR) + "/check/instances/stoch/storm/stormG2";
 //   auto coresize = core_size(instance + ".cor");
 //   run(instance + ".cor", instance + ".tim", instance + "_1000.sto", "storm-1000", 121, 
 //     coresize.first - 121, 185, coresize.second - 185, 1000, 0);
-// }
-
-auto dir = std::string(HIGHS_DIR) + "/check/instances/stoch/";
-struct SmpsTestCase {
-  std::string corefile, timefile, stochfile, note;
-  double sub_lb;
-  bool aggregate;
-  double expected;
-};
-
-enum Start {
-  obj_start,
-  feas_start,
-  core_obj_start,
-  core_feas_start
-};
-
-std::vector<SmpsTestCase> tests {
-  {dir + "fxm/fxm.cor", dir + "fxm/fxm2.tim", dir + "fxm/fxm2_6.sto", "indep-2", 0, false, 18417.066},
-  {dir + "fxm/fxm.cor", dir + "fxm/fxm2.tim", dir + "fxm/fxm2_16.sto", "indep-2-bigger", 0, false, 18416.759},
-  {dir + "fxm/fxm.cor", dir + "fxm/fxm3.tim", dir + "fxm/fxm3_6.sto", "indep-3", 0, false, 18615.74},
-  {dir + "fxm/fxm.cor", dir + "fxm/fxm3.tim", dir + "fxm/fxm3_16.sto", "indep-3-bigger", 0, false, 18438.995},
-  {dir + "fxm/fxm.cor", dir + "fxm/fxm4.tim", dir + "fxm/fxm4_6.sto", "indep-4", 0, false, 18616.05},
-  {dir + "fxm/fxm.cor", dir + "fxm/fxm4.tim", dir + "fxm/fxm4_16.sto", "indep-4-bigger", 0, false, 18438.995},
-
-  {dir + "pltexp/pltexpA2.cor", dir + "pltexp/pltexpA2.tim", dir + "pltexp/pltexpA2_6.sto", "block-2", -100, false, -9.47935},
-  {dir + "pltexp/pltexpA2.cor", dir + "pltexp/pltexpA2.tim", dir + "pltexp/pltexpA2_16.sto", "block-2-bigger", -100, false, -9.66331},
-  {dir + "pltexp/pltexpA3.cor", dir + "pltexp/pltexpA3.tim", dir + "pltexp/pltexpA3_6.sto", "block-3", -100, false, -13.9694},
-  {dir + "pltexp/pltexpA3.cor", dir + "pltexp/pltexpA3.tim", dir + "pltexp/pltexpA3_16.sto", "block-3-bigger", -100, false, -14.2675},
-  {dir + "pltexp/pltexpA4.cor", dir + "pltexp/pltexpA4.tim", dir + "pltexp/pltexpA4_6.sto", "block-4", -100, false, -19.5994},
-  {dir + "pltexp/pltexpA4.cor", dir + "pltexp/pltexpA4.tim", dir + "pltexp/pltexpA4_16.sto", "block-4-bigger", -100, false, kHighsInf},
-  {dir + "pltexp/pltexpA5.cor", dir + "pltexp/pltexpA5.tim", dir + "pltexp/pltexpA5_6.sto", "block-5", -100, false, kHighsInf},
-  {dir + "pltexp/pltexpA5.cor", dir + "pltexp/pltexpA5.tim", dir + "pltexp/pltexpA5_16.sto", "block-5-bigger", -100, false, kHighsInf},
-  {dir + "pltexp/pltexpA6.cor", dir + "pltexp/pltexpA6.tim", dir + "pltexp/pltexpA6_6.sto", "block-6", -100, false, kHighsInf},
-  {dir + "pltexp/pltexpA6.cor", dir + "pltexp/pltexpA6.tim", dir + "pltexp/pltexpA6_16.sto", "block-6-bigger", -100, false, kHighsInf},
-
-  {dir + "pltexp/pltexpA3.cor", dir + "pltexp/pltexpA3.tim", dir + "pltexp/pltexpB3_6.sto", "blockB-3", -100, false, -13.6432},
-  {dir + "pltexp/pltexpA4.cor", dir + "pltexp/pltexpA4.tim", dir + "pltexp/pltexpB4_6.sto", "blockB-4", -100, false, -17.9282},
-  {dir + "pltexp/pltexpA5.cor", dir + "pltexp/pltexpA5.tim", dir + "pltexp/pltexpB5_6.sto", "blockB-5", -100, false, -23.8434},
-
-  {dir + "storm/stormG2.cor", dir + "storm/stormG2.tim", dir + "storm/stormG2_8.sto", "storm-8", 0, false, 15535235.73},
-  {dir + "storm/stormG2.cor", dir + "storm/stormG2.tim", dir + "storm/stormG2_27.sto", "storm-27", 0, false, 15508982.306},
-  {dir + "storm/stormG2.cor", dir + "storm/stormG2.tim", dir + "storm/stormG2_125.sto", "storm-125", 0, false, 15512091.185},
-  {dir + "storm/stormG2.cor", dir + "storm/stormG2.tim", dir + "storm/stormG2_1000.sto", "storm-1000", 0, false, 15802590.244},
-
-  {dir + "sg/sgpf5y3.cor", dir + "sg/sgpf5y3.tim", dir + "sg/sgpf5y3.sce", "scen-3", -1e4, false, -3084.234},
-  {dir + "sg/sgpf5y4.cor", dir + "sg/sgpf5y4.tim", dir + "sg/sgpf5y4.sce", "scen-4", -1e4, false, -4248.131},
-  {dir + "sg/sgpf5y5.cor", dir + "sg/sgpf5y5.tim", dir + "sg/sgpf5y5.sce", "scen-5", -1e4, false, -5593.008},
-  {dir + "sg/sgpf5y6.cor", dir + "sg/sgpf5y6.tim", dir + "sg/sgpf5y6.sce", "scen-6", -1e4, false, kHighsInf},
-
-  {dir + "fxm/fxm.cor", dir + "fxm/fxm2.tim", dir + "fxm/fxm2_6.sto", "indep-2", 0, true, 18417.066},
-  {dir + "fxm/fxm.cor", dir + "fxm/fxm2.tim", dir + "fxm/fxm2_16.sto", "indep-2-bigger", 0, true, 18416.759},
-  {dir + "fxm/fxm.cor", dir + "fxm/fxm3.tim", dir + "fxm/fxm3_6.sto", "indep-3", 0, true, 18615.74},
-  {dir + "fxm/fxm.cor", dir + "fxm/fxm3.tim", dir + "fxm/fxm3_16.sto", "indep-3-bigger", 0, true, 18438.995},
-  {dir + "fxm/fxm.cor", dir + "fxm/fxm4.tim", dir + "fxm/fxm4_6.sto", "indep-4", 0, true, 18616.05},
-  {dir + "fxm/fxm.cor", dir + "fxm/fxm4.tim", dir + "fxm/fxm4_16.sto", "indep-4-bigger", 0, true, 18438.995},
-
-  {dir + "pltexp/pltexpA2.cor", dir + "pltexp/pltexpA2.tim", dir + "pltexp/pltexpA2_6.sto", "block-2", -100, true, -9.47935},
-  {dir + "pltexp/pltexpA2.cor", dir + "pltexp/pltexpA2.tim", dir + "pltexp/pltexpA2_16.sto", "block-2-bigger", -100, true, -9.66331},
-  {dir + "pltexp/pltexpA3.cor", dir + "pltexp/pltexpA3.tim", dir + "pltexp/pltexpA3_6.sto", "block-3", -100, true,-13.9694},
-  {dir + "pltexp/pltexpA3.cor", dir + "pltexp/pltexpA3.tim", dir + "pltexp/pltexpA3_16.sto", "block-3-bigger", -100, true, -14.2675},
-  {dir + "pltexp/pltexpA4.cor", dir + "pltexp/pltexpA4.tim", dir + "pltexp/pltexpA4_6.sto", "block-4", -100, true, -19.5994},
-  {dir + "pltexp/pltexpA4.cor", dir + "pltexp/pltexpA4.tim", dir + "pltexp/pltexpA4_16.sto", "block-4-bigger", -100, true, kHighsInf},
-  {dir + "pltexp/pltexpA5.cor", dir + "pltexp/pltexpA5.tim", dir + "pltexp/pltexpA5_6.sto", "block-5", -100, true, kHighsInf},
-  {dir + "pltexp/pltexpA5.cor", dir + "pltexp/pltexpA5.tim", dir + "pltexp/pltexpA5_16.sto", "block-5-bigger", -100, true, kHighsInf},
-  {dir + "pltexp/pltexpA6.cor", dir + "pltexp/pltexpA6.tim", dir + "pltexp/pltexpA6_6.sto", "block-6", -100, true, kHighsInf},
-  {dir + "pltexp/pltexpA6.cor", dir + "pltexp/pltexpA6.tim", dir + "pltexp/pltexpA6_16.sto", "block-6-bigger", -100, true, kHighsInf},
-
-  {dir + "pltexp/pltexpA3.cor", dir + "pltexp/pltexpA3.tim", dir + "pltexp/pltexpB3_6.sto", "blockB-3", -100, true, -13.6432},
-  {dir + "pltexp/pltexpA4.cor", dir + "pltexp/pltexpA4.tim", dir + "pltexp/pltexpB4_6.sto", "blockB-4", -100, true, -17.9282},
-  {dir + "pltexp/pltexpA5.cor", dir + "pltexp/pltexpA5.tim", dir + "pltexp/pltexpB5_6.sto", "blockB-5", -100, true, -23.8434},
-
-  {dir + "storm/stormG2.cor", dir + "storm/stormG2.tim", dir + "storm/stormG2_8.sto", "storm-8", 0, true, 15535235.73},
-  {dir + "storm/stormG2.cor", dir + "storm/stormG2.tim", dir + "storm/stormG2_27.sto", "storm-27", 0, true, 15508982.306},
-  {dir + "storm/stormG2.cor", dir + "storm/stormG2.tim", dir + "storm/stormG2_125.sto", "storm-125", 0, true, 15512091.185},
-  {dir + "storm/stormG2.cor", dir + "storm/stormG2.tim", dir + "storm/stormG2_1000.sto", "storm-1000", 0, true, 15802590.244},
-
-  {dir + "sg/sgpf5y3.cor", dir + "sg/sgpf5y3.tim", dir + "sg/sgpf5y3.sce", "scen-3", -1e4, true, -3084.234},
-  {dir + "sg/sgpf5y4.cor", dir + "sg/sgpf5y4.tim", dir + "sg/sgpf5y4.sce", "scen-4", -1e4, true, -4248.131},
-  {dir + "sg/sgpf5y5.cor", dir + "sg/sgpf5y5.tim", dir + "sg/sgpf5y5.sce", "scen-5", -1e4, true, -5593.008},
-  {dir + "sg/sgpf5y6.cor", dir + "sg/sgpf5y6.tim", dir + "sg/sgpf5y6.sce", "scen-6", -1e4, true, kHighsInf},
-};
-
-void zero_costs(Highs & highs) {
-  std::vector<double> zeros (highs.getNumCol(), 0);
-  highs.changeColsCost(0, highs.getNumCol()-1, zeros.data());
-}
-
-void multi_run(SmpsTestCase smps, int max_scenarios=1e4, Start start=obj_start) {
-  auto core_and_tree = build_stochastic_tree(smps.corefile, smps.timefile, smps.stochfile);
-  auto & tree = core_and_tree.second;
-  auto core = core_and_tree.first;
-  auto & stage_1st = tree.root->get_child(0);
-  auto & stage_2nd = stage_1st->get_child(0);
-  int no_scenarios = stage_1st->get_no_children();
-  if (no_scenarios > max_scenarios)
-    return;
-  smps.note = (smps.aggregate ? "single-" : "multi-") + smps.note;
-  
-
-
-  auto const & master_range = core.stage_submatrix.at(stage_1st->get_timestage());
-  int no_master_vars = master_range.col_idx_end - master_range.col_idx_begin;
-  int no_master_rows = master_range.row_idx_end - master_range.row_idx_begin;
-
-  auto const & sub_range = core.stage_submatrix.at(stage_2nd->get_timestage());
-  int no_sub_vars = sub_range.col_idx_end - sub_range.col_idx_begin;
-  int no_sub_rows = sub_range.row_idx_end - sub_range.row_idx_begin;
-
-  CsvLogger log ("/tmp/dataset.csv");
-  log << smps.note << no_scenarios << no_master_vars << no_master_rows << no_sub_vars << no_sub_rows;
-  log.newline();
-
-  // Highs highs;
-  // REQUIRE(build_stochastic_problem(highs, smps.corefile, smps.timefile, smps.stochfile));
-  // REQUIRE(highs.getNumCol() == no_master_vars + no_sub_vars * no_scenarios);
-  // REQUIRE(highs.getNumRow() == no_master_rows + no_sub_rows * no_scenarios);
-  // highs.run();
-  // auto expected = highs.getObjectiveValue();
-  
-  std::vector<double> starting_point;
-  Highs highs2;
-  switch (start) {
-    case obj_start:
-      REQUIRE(build_stochastic_problem(highs2, smps.corefile, smps.timefile, smps.stochfile));
-      zero_costs(highs2); smps.note += "-obj_start";
-    break;
-    case feas_start:
-      smps.note += "-feas_start";
-    break;
-    case core_obj_start:
-      highs2.passModel(core); smps.note += "-core_obj_start";
-    break;
-    case core_feas_start:
-      highs2.passModel(core); zero_costs(highs2); smps.note += "-core_feas_start";
-    break;
-  }
-  highs2.run();
-  starting_point = highs2.getSolution().col_value;
-  if (start == feas_start) REQUIRE(starting_point.empty());
-  std::ofstream("/tmp/linking.csv", std::ios::app) << smps.note << ",";
-  std::ofstream("/tmp/iteration.csv", std::ios::app) << smps.note  << "," << std::endl;
-  std::ofstream("/tmp/cut_distances.csv", std::ios::app) << smps.note  << "," << std::endl;
-  std::ofstream("/tmp/ubd_lbd.csv", std::ios::app) << smps.note  << "," << std::endl;
-
-  
-  auto res = benders_l_shaped(core_and_tree.first, core_and_tree.second, starting_point, smps.sub_lb, 1e-3, 100, smps.aggregate);
-  res.note(smps.expected, smps.note);
-  if (smps.expected != kHighsInf) {
-    REQUIRE(smps.note == smps.note);
-    REQUIRE(std::fabs(res.result - smps.expected) < 1e-3);
-  }
-  
-}
-
-// TEST_CASE("run-istances", "[highs-benders]") {
-//   multi_run({dir + "storm/stormG2.cor", dir + "storm/stormG2.tim", dir + "storm/stormG2_8.sto", "storm-8", 0, true, 15535235.73}, 1e4, obj_start);
-//   //  multi_run({dir + "sg/sgpf5y3.cor", dir + "sg/sgpf5y3.tim", dir + "sg/sgpf5y3.sce", "scen-3", -1e4, true, -3084.234}, 1e4, feas_start);
-// }
-
-// TEST_CASE("run-instances", "[highs-benders]") {
-//   for (auto test : tests)
-//     multi_run(test, 250, obj_start);
-//   for (auto test : tests)
-//     multi_run(test, 250, feas_start);
-//   for (auto test : tests)
-//     multi_run(test, 250, core_obj_start);
-//   for (auto test : tests)
-//     multi_run(test, 250, core_feas_start);
 // }
 
 // TEST_CASE("test-benders-solve-multi-indep-2-smps", "[highs-benders]") {

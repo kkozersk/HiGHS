@@ -1,0 +1,21 @@
+STOCH         4NODECAR
+INDEP         DISCRETE
+    X0.0      MLA       1.0          PERIOD1    1.0
+    RHS     CBAB       50.0000       PERIOD2   1.000000
+    RHS     CBAC       80.0000       PERIOD2   0.95
+    RHS     CBAC       90.0          PERIOD2   0.05
+    RHS     CBAE       40.0000       PERIOD2   1.000000    
+    RHS     CBBA       45.0000       PERIOD2   0.50
+    RHS     CBBA       50.0          PERIOD2   0.50   
+    RHS     CBBC       68.0000       PERIOD2   1.000000
+    RHS     CBBE       42.0000       PERIOD2   0.90
+    RHS     CBBE       52.0          PERIOD2   0.10    
+    RHS     CBCA       100.000       PERIOD2   1.000000    
+    RHS     CBCB       83.0000       PERIOD2   1.000000
+    RHS     CBCE       122.000       PERIOD2   0.90
+    RHS     CBCE       130.0         PERIOD2   0.10    
+    RHS     CBEA       33.0000       PERIOD2   0.95
+    RHS     CBEA       38.0          PERIOD2   0.05    
+    RHS     CBEB       54.0000       PERIOD2   1.000000
+    RHS     CBEC       72.0000       PERIOD2   1.000000
+ENDATA  

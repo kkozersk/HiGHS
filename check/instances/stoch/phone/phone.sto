@@ -1,0 +1,34 @@
+STOCH         PHONE   
+INDEP         DISCRETE
+    X1        BUD        1.0           PERIOD1        1.0
+    RHS       DEM12      2.70000       PERIOD2   0.500000    
+    RHS       DEM12      3.30000       PERIOD2   0.500000    
+    RHS       DEM13      3.96000       PERIOD2   0.500000    
+    RHS       DEM13      4.84000       PERIOD2   0.500000    
+    RHS       DEM14      4.50000       PERIOD2   0.500000    
+    RHS       DEM14      5.50000       PERIOD2   0.500000    
+    RHS       DEM15      4.68000       PERIOD2   0.500000    
+    RHS       DEM15      5.72000       PERIOD2   0.500000    
+    RHS       DEM16      1.89000       PERIOD2   0.500000    
+    RHS       DEM16      2.31000       PERIOD2   0.500000    
+    RHS       DEM23      4.14000       PERIOD2   0.500000    
+    RHS       DEM23      5.06000       PERIOD2   0.500000    
+    RHS       DEM24      4.50000       PERIOD2   0.500000    
+    RHS       DEM24      5.50000       PERIOD2   0.500000    
+    RHS       DEM25      4.77000       PERIOD2   0.500000    
+    RHS       DEM25      5.83000       PERIOD2   0.500000    
+    RHS       DEM26     0.990000       PERIOD2   0.500000    
+    RHS       DEM26      1.21000       PERIOD2   0.500000    
+    RHS       DEM34      5.58000       PERIOD2   0.500000    
+    RHS       DEM34      6.82000       PERIOD2   0.500000    
+    RHS       DEM35      5.67000       PERIOD2   0.500000    
+    RHS       DEM35      6.93000       PERIOD2   0.500000    
+    RHS       DEM36      2.79000       PERIOD2   0.500000    
+    RHS       DEM36      3.41000       PERIOD2   0.500000    
+    RHS       DEM45      6.39000       PERIOD2   0.500000    
+    RHS       DEM45      7.81000       PERIOD2   0.500000    
+    RHS       DEM46      1.26000       PERIOD2   0.500000    
+    RHS       DEM46      1.54000       PERIOD2   0.500000    
+    RHS       DEM56      1.89000       PERIOD2   0.500000    
+    RHS       DEM56      2.31000       PERIOD2   0.500000    
+ENDATA  

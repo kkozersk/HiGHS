@@ -1,0 +1,15 @@
+STOCH         CHEM
+BLOCKS        DISCRETE
+ BL BLOCK0    PERIOD1   1.0
+    NN1T0     CN1T0     1.0
+ BL BLOCK1    PERIOD2   0.6
+    RHS     DM4T1     150.0
+    RHS     DM7T1     200.0
+    QS04T1    OBJ       -58.00           
+    QS07T1    OBJ       -80.00
+ BL BLOCK1    PERIOD2   0.4
+    RHS     DM4T1     100.0
+    RHS     DM7T1     150.0
+    QS04T1    OBJ       -51.00
+    QS07T1    OBJ       -70.00
+ENDATA    
