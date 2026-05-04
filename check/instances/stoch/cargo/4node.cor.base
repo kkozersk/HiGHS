@@ -656,7 +656,6 @@ RHS
     RHS     MXFH0     480.0
     RHS     MXFH1     240.0
     RHS     MNFH0     0.0
-    RHS     MNFH0     0.0
     RHS     CBAB      5.0
     RHS     CBAC      8.0
     RHS     CBAE      4.0

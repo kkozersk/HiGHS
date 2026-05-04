@@ -9,8 +9,7 @@
 #include "parallel/HighsParallel.h"
 int optim_count =  0;
 int recentring_count = 0;
-double primal_feasibility = 0;
-double dual_feasibility = 0;
+
 namespace hipo {
 
 Int Solver::load(const Int num_var, const Int num_con, const double* obj,
@@ -173,29 +172,42 @@ bool Solver::correctors(bool use_specialized_sigma) {
   return false;
 }
 
+bool Solver::isFeasible() const {
+  return it_->pinf < options_.feasibility_tol && it_->dinf < options_.feasibility_tol;
+}
+
 void Solver::recentring() {
   sigma_ = 1;
   optim_count = iter_;
   auto it = iter_;
   auto st = info_.status;
   double frozen_mu = options_.frozen_mu > 0 ? options_.frozen_mu : it_->computeMu();
+  bool recentring_success;
   for (Int i = 0; i < options_.max_recentring_iter; ++i) {
+    
     it_->mu = frozen_mu;
     // if (isWellCentered() || prepareIter(true) || predictor(false)) break;
-    bool a = isWellCentered();
-    bool b = prepareIter(true);
-    bool c = predictor(false);
+    // bool a = isWellCentered();
+    // bool b = prepareIter(true);
+    // bool c = predictor(false);
     // bool d = correctors(false);
-    if (a || b || c) break;
+    recentring_success = isFeasible() && isWellCentered();
+    if (recentring_success || prepareIter(true) || predictor(false)) break;
     makeStep(true);
   }
   recentring_count = iter_ - it;
-  primal_feasibility =  it_->pinf;
-  dual_feasibility = it_->dinf;
   // auto recentring_st = iter_ - it;
+  std::ofstream("/tmp/ipm_stats.csv", std::ios::app) << it << "," << recentring_count 
+    << "," << options_.recentring_step << "\n";
   // std::ofstream("/tmp/steps_stats", std::ios::app)<< recentring_st << std::endl;
   iter_ = it;
   info_.status = st;
+  if (options_.max_recentring_iter > 0 && st != kStatusPDFeas) {
+      info_.status = recentring_success ? kStatusImprecise : kStatusFailed;
+  }
+ 
+  // if (st == kStatusSolved)
+  
 }
 
 inline bool is_between(double num, double lb, double ub) { return lb <= num && num <= ub; }
@@ -561,8 +573,8 @@ void Solver::stepSizes(bool recentring) {
   auto old_d = alpha_dual_;
   // return;
   if (recentring) {
-    alpha_primal_ = 0.3 * max_p;
-    alpha_dual_ = 0.3 * max_d;
+    alpha_primal_ = options_.recentring_step * alpha_primal_;
+    alpha_dual_ = options_.recentring_step  * alpha_dual_;
     auto new_p = alpha_primal_;
     auto new_d = alpha_dual_;
     assert(alpha_primal_ > 0 && alpha_primal_ < 1 && alpha_dual_ > 0 &&

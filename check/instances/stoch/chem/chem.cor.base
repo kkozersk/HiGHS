@@ -195,28 +195,28 @@ COLUMNS
     QSP4T2B   SB4T2B    -1.0
     QSP7T2B   SB7T2B    -1.0
 RHS
-    RIGHT     BL1T1     200.0
-    RIGHT     BL2T1     250.0
-    RIGHT     IN1T1     400.0
-    RIGHT     IN2T1     400.0
-    RIGHT     IN3T1     400.0
-    RIGHT     IN4T1     400.0
-    RIGHT     IN5T1     400.0
-    RIGHT     IN6T1     400.0
-    RIGHT     IN7T1     400.0
-    RIGHT     DM4T1     150.0
-    RIGHT     DM7T1     200.0
-    RIGHT     DM4T2A    100.0
-    RIGHT     DM7T2A    150.0
-    RIGHT     DM4T2B    150.0
-    RIGHT     DM7T2B    200.0
-    RIGHT     BL1T2     200.0
-    RIGHT     BL2T2     250.0
-    RIGHT     IN1T2     400.0
-    RIGHT     IN2T2     400.0
-    RIGHT     IN3T2     400.0
-    RIGHT     IN4T2     400.0
-    RIGHT     IN5T2     400.0
-    RIGHT     IN6T2     400.0
-    RIGHT     IN7T2     400.0
+    RHS       BL1T1     200.0
+    RHS       BL2T1     250.0
+    RHS       IN1T1     400.0
+    RHS       IN2T1     400.0
+    RHS       IN3T1     400.0
+    RHS       IN4T1     400.0
+    RHS       IN5T1     400.0
+    RHS       IN6T1     400.0
+    RHS       IN7T1     400.0
+    RHS       DM4T1     150.0
+    RHS       DM7T1     200.0
+    RHS       DM4T2A    100.0
+    RHS       DM7T2A    150.0
+    RHS       DM4T2B    150.0
+    RHS       DM7T2B    200.0
+    RHS       BL1T2     200.0
+    RHS       BL2T2     250.0
+    RHS       IN1T2     400.0
+    RHS       IN2T2     400.0
+    RHS       IN3T2     400.0
+    RHS       IN4T2     400.0
+    RHS       IN5T2     400.0
+    RHS       IN6T2     400.0
+    RHS       IN7T2     400.0
 ENDATA

@@ -52,6 +52,7 @@ struct Options {
   double frozen_mu = 0.5;
   Int max_recentring_iter = 100;
   double centring_gamma = 0.1;
+  double recentring_step = 0.3;
 
   // Logging
   bool display = true;

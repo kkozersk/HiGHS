@@ -438,6 +438,7 @@ struct HighsOptionsStruct {
   double centring_ratio_tolerance;
   double fixed_mu;
   double centring_gamma;
+  double recentring_step;
 
   // Options for iCrash
   bool icrash;
@@ -601,6 +602,7 @@ struct HighsOptionsStruct {
         centring_ratio_tolerance(0.0),
         fixed_mu(0.0),
         centring_gamma(0.1),
+        recentring_step(0.3),
         icrash(false),
         icrash_dualize(false),
         icrash_strategy(""),
@@ -1627,6 +1629,12 @@ class HighsOptions : public HighsOptionsStruct {
                                "accuracy of recentring procedure: forall i "
                                "gamma * mu <= x_i * s_i <= gamma^-1 * mu",
                                advanced, &centring_gamma, 0, 0.1, kHighsInf);
+    records.push_back(record_double);
+
+    record_double =
+        new OptionRecordDouble("recentring_step",
+                               "step multiplier during recentring",
+                               advanced, &recentring_step, 0, 0.3, 1);
     records.push_back(record_double);
 
     // Set up the log_options aliases

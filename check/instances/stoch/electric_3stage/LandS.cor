@@ -78,14 +78,14 @@ COLUMNS
     Z42       DEMND22   1.0
     Z43       OBJ       5.5            OPLM24    1.0
     Z43       DEMND23   1.0
-RHS           RIGHT
-    RIGHT     MINCAP    12.0
-    RIGHT     BUDGET    120.0
-    RIGHT     DEMAND1   1.0
-    RIGHT     DEMAND2   3.0
-    RIGHT     DEMAND3   2.0
-    RIGHT     DEMND21   1.2
-    RIGHT     DEMND22   3.5
-    RIGHT     DEMND23   3.0
+RHS           
+    RHS     MINCAP    12.0
+    RHS     BUDGET    120.0
+    RHS     DEMAND1   1.0
+    RHS     DEMAND2   3.0
+    RHS     DEMAND3   2.0
+    RHS     DEMND21   1.2
+    RHS     DEMND22   3.5
+    RHS     DEMND23   3.0
 ENDATA
  

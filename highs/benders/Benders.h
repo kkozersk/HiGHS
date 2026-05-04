@@ -70,10 +70,6 @@ struct Cut {
   double rhs;
 };
 
-double ipm_acc = 1e-2;
-double ipm_feas = 1e-7;
-std::string used_solver = kHipoString;
-
 class CsvLogger : public std::ofstream {
   public:
   CsvLogger(std::string const & filename) : std::ofstream(filename, std::ios::app) {};
@@ -98,6 +94,12 @@ class CsvLogger : public std::ofstream {
   }
 };
 
+struct MasterAdaptationParams {
+  double ipm_acc;
+  double ipm_feas;
+  MasterAdaptationParams(double ipm_acc=1e-8, double ipm_feas=1e-8) : ipm_acc(ipm_acc), ipm_feas(ipm_feas) {}
+};
+
 struct  BendersRet {
   double result;
   int iter;
@@ -105,16 +107,16 @@ struct  BendersRet {
   std::vector<int> feas_iters;
   std::vector<int> recentring_steps;
   std::vector<int> optim_steps;
-  std::vector<double> pinf, dinf;
+  MasterAdaptationParams adapt;
   double gap;
   double master_time;
   double sub_time;
   bool first_optim;
   BendersRet(double gap=0, double res=kHighsInf, BendersIterationInfo info={}, int iter=-1, bool first_optim = false, std::vector<int> UBD_iters= std::vector<int>{}, std::vector<int> feas_iters= std::vector<int>{},
-     std::vector<int> recentring_steps = {}, std::vector<int> optim_steps = {},
-    std::vector<double> pinf={}, std::vector<double> dinf = {})
+     std::vector<int> recentring_steps = {}, std::vector<int> optim_steps = {}, MasterAdaptationParams adapt={})
     : master_time(info.master_time), sub_time(info.sub_time), result(res), iter(iter), first_optim(first_optim),
-     UBD_iters(UBD_iters), feas_iters(feas_iters), recentring_steps(recentring_steps), optim_steps(optim_steps), pinf(pinf), dinf(dinf), gap(gap) {}
+     UBD_iters(UBD_iters), feas_iters(feas_iters), recentring_steps(recentring_steps), optim_steps(optim_steps),
+     gap(gap), adapt(adapt) {}
   void note(double expected, std::string problem) {
     CsvLogger of("/tmp/results.csv");
     auto last_imp = UBD_iters.empty() ? -1 : UBD_iters.back();
@@ -127,13 +129,8 @@ struct  BendersRet {
     double opt_mean = optim_steps.empty() ? 0 : opt_sum / optim_steps.size();
     int max_opt = optim_steps.empty() ? 0 : *std::max_element(optim_steps.begin(), optim_steps.end());
 
-    double pinf_sum = std::accumulate(pinf.begin(), pinf.end(), 0.);
-    double pinf_mean = pinf.empty() ? 0 : pinf_sum / pinf.size();
-
-    double dinf_sum = std::accumulate(dinf.begin(), dinf.end(), 0.);
-    double dinf_mean = dinf.empty() ? 0 : dinf_sum / dinf.size();
-    of << problem << ipm_acc << result << result - expected  << gap << iter << last_imp << (int) feas_iters.size() 
-       << rec_mean << max_rec << opt_mean << max_opt << pinf_mean << dinf_mean << master_time << sub_time << first_optim;
+    of << problem << adapt.ipm_acc << result << result - expected  << gap << iter << last_imp << (int) feas_iters.size() 
+       << rec_mean << max_rec << opt_mean << max_opt << master_time << sub_time << first_optim;
     of.newline();
 
     auto fp = std::fopen("/tmp/exac_results.csv", "a");
@@ -206,18 +203,18 @@ BendersIterationInfo solve_subproblem(Highs & subproblem, BendersIterationInfo i
 BendersIterationInfo solve_master(Highs & master, BendersIterationInfo info);
 double calculate_solution_cost(Highs const & master, double subproblem_cost, std::set<HighsInt> const & master_variables, std::vector<double> const & master_values);
 double calculate_solution_cost(Highs const & master, Highs const & subproblem, std::set<HighsInt> const & master_variables, std::vector<double> const & master_values);
-BendersRet benders(HighsLp & base_problem, std::set<HighsInt> const & master_variables, std::vector<double> const & starting_point, double subproblem_lb, double eps=1e-3, int max_iter=1e2, std::vector<OptionValue> const & masterOptions = {});
-BendersRet benders(HighsLp & base_problem, std::string const & master_name_pattern, std::vector<double> const & starting_point, double subproblem_lb, double eps=1e-3, std::vector<OptionValue> const & masterOptions = {});
+BendersRet benders(HighsLp & base_problem, std::set<HighsInt> const & master_variables, std::vector<double> const & starting_point, double subproblem_lb, double eps=1e-3, int max_iter=1e2, std::vector<OptionValue> const & masterOptions = {}, MasterAdaptationParams adapt={});
+BendersRet benders(HighsLp & base_problem, std::string const & master_name_pattern, std::vector<double> const & starting_point, double subproblem_lb, double eps=1e-3, std::vector<OptionValue> const & masterOptions = {}, MasterAdaptationParams adapt={});
 // BendersRet multi_benders(HighsLp & base_problem, std::set<HighsInt> const & master_variables, std::vector<std::set<HighsInt>> const & subproblem_variables, std::vector<double> const & starting_point, double subproblem_lb, double eps=1e-3, int max_iter=1e2);  
 // BendersRet benders2(HighsLp & base_problem, std::set<HighsInt> const & master_variables, std::vector<double> const & starting_point, double subproblem_lb, double eps=1e-3);
 // BendersRet benders2(HighsLp & base_problem, std::string const & master_name_pattern, std::vector<double> const & starting_point, double subproblem_lb, double eps=1e-3);
 BendersRet multi_benders_loop(MultiBendersProblems & problems, std::set<HighsInt> const & master_variables,
-                     std::vector<double> const & starting_point, double eps, int max_iter);
+                     std::vector<double> const & starting_point, double eps, int max_iter, MasterAdaptationParams adapt={});
 BendersRet multi_benders_loop_aggregated(MultiBendersProblems & problems, std::set<HighsInt> const & master_variables,
-                     std::vector<double> const & starting_point, double eps, int max_iter);
+                     std::vector<double> const & starting_point, double eps, int max_iter, MasterAdaptationParams adapt={});
 
 
-BendersRet benders_loop(BendersProblems & problems, std::set<HighsInt> const & master_variables, std::vector<double> const & starting_point, double eps, int max_iter);
+BendersRet benders_loop(BendersProblems & problems, std::set<HighsInt> const & master_variables, std::vector<double> const & starting_point, double eps, int max_iter, MasterAdaptationParams adapt={});
 std::vector<double> get_dual_costs(HighsLp const & lp);
 std::set<HighsInt> index_set_union(std::set<HighsInt> const & a, std::set<HighsInt> const & b);
 std::set<HighsInt> index_set_intersection(std::set<HighsInt> const & a, std::set<HighsInt> const & b);
@@ -227,7 +224,7 @@ std::set<HighsInt> index_set_intersection(std::set<HighsInt> const & a, std::set
 BendersRet benders_l_shaped(SmpsCoreStructure & core, StochasticTree & tree, 
   std::vector<double> const & starting_point, double subproblem_lb,
   double eps=1e-3, int max_iter=1e2, bool aggregate_cuts=false,
-  std::vector<OptionValue> const & masterOptions={}
+  std::vector<OptionValue> const & masterOptions={}, MasterAdaptationParams adapt={}
 );
 
 inline double vecsum(std::vector<double> const & vec) {

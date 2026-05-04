@@ -24,8 +24,6 @@
 
 extern int recentring_count;
 extern int optim_count;
-extern double primal_feasibility;
-extern double dual_feasibility;
 namespace hipo {
 
 class Solver {
@@ -339,6 +337,8 @@ class Solver {
   void printHeader() const;
   void printOutput() const;
   void printSummary() const;
+
+  bool isFeasible() const;
 };
 
 using VecRef = std::vector<double> const &;

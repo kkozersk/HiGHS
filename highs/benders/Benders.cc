@@ -79,6 +79,8 @@ void create_master_problem(Highs & master, HighsLp const & base_problem, std::se
   std::vector<double> lb(no_subproblems, subproblem_lb);
   std::vector<double> ub(no_subproblems, kHighsInf);
   master.addCols(no_subproblems, ones.data(), lb.data(), ub.data(), 0, nullptr, nullptr, nullptr);
+  master.setOptionValue("output_flag", false);
+  master.setOptionValue("log_to_console", false);
   // for (int i = 0; i < no_subproblems; ++i)
   //   master.addCol(1, subproblem_lb, kHighsInf, 0, nullptr, nullptr);
 }
@@ -165,6 +167,8 @@ void create_feasibility_subproblem(Highs & feas_subproblem, HighsLp const & base
   );
   std::vector<int> to_delete = set_to_vector(master_only_rows);
   feas_subproblem.deleteRows(to_delete.size(), to_delete.data());
+  feas_subproblem.setOptionValue("output_flag", false);
+  feas_subproblem.setOptionValue("log_to_console", false);
 }
 
 //TODO sub and feas sub have too many rows and columns
@@ -236,8 +240,6 @@ Cut form_cut(Highs & master, Highs const & subproblem, std::set<HighsInt> const 
   if (cut_type == CutType::Objective) nonzero_multipliers = add_mu_entry(nonzero_multipliers, master_variables.size() + subproblem_no);
   auto rhs  = dual_objective + old_value_multiple;
 
-  // CsvLogger log("/tmp/cut_log.csv");
-  // log.log_with_note(rhs, " <=") << multipliers;
   return {nonzero_multipliers, rhs};
 }
 
@@ -399,6 +401,7 @@ void decrease_feas(double & feas, Highs & master, double div) {
 
 std::vector<double> quick_master_solve(Highs & master) {
   master.run();
+  CsvLogger ("/tmp/xs.csv") << master.getSolution().col_value;
   // TOOD -- asssert on error?
   return master.getSolution().col_value;
 }
@@ -416,13 +419,14 @@ std::vector<double> quick_master_solve(Highs & master) {
 //     master.setOptionValue("primal_feasibility_tolerance", ipm_feas);
 // }
 
-BendersRet benders(HighsLp & base_problem, std::set<HighsInt> const & master_variables, std::vector<double> const & starting_point, double subproblem_lb, double eps, int max_iter, std::vector<OptionValue> const & masterOptions) { 
+BendersRet benders(HighsLp & base_problem, std::set<HighsInt> const & master_variables, std::vector<double> const & starting_point, double subproblem_lb,
+   double eps, int max_iter, std::vector<OptionValue> const & masterOptions, MasterAdaptationParams params) { 
   BendersProblems problems;
   decompose_problem(problems, base_problem, master_variables, subproblem_lb);
   // modify_master(problems.master);
   apply_options(problems.master, masterOptions);
   return benders_loop(problems, master_variables, 
-    starting_point.empty() ? quick_master_solve(problems.master) : starting_point, eps, max_iter);
+    starting_point.empty() ? quick_master_solve(problems.master) : starting_point, eps, max_iter, params);
 }
 
 std::vector<double> unravel(NonZeroVector const & vec) {
@@ -434,31 +438,20 @@ std::vector<double> unravel(NonZeroVector const & vec) {
   return result;
 }
 
-BendersRet benders_loop(BendersProblems & problems, std::set<HighsInt> const & master_variables, std::vector<double> const & starting_point, double eps, int max_iter) { 
+BendersRet benders_loop(BendersProblems & problems, std::set<HighsInt> const & master_variables,
+   std::vector<double> const & starting_point, double eps, int max_iter, MasterAdaptationParams params) { 
   int no_master_rows = problems.master.getNumRow();
   BendersIterationInfo info;
   auto master_values = starting_point;
   int iter = 0;
   double UBD = kHighsInf, LBD = -kHighsInf;
   bool any_objective_cuts = false;
-  //TODO 1st iter infeas
-  // TODO verify starting from a master feasible, if no point is passed
-  // if (std::all_of(starting_point.begin(), starting_point.end(),[](double v){return v == 0.;})) {
-  //   info = solve_master(problems.master, info);
-  //   master_values = problems.master.getSolution().col_value;
-  // }
-  if (master_values.empty()) {
-    solve_master(problems.master, info);
-    master_values = problems.master.getSolution().col_value;
-  }
   std::vector<int> UBD_updates {};
   std::vector<int> feasible_iters {};
   std::vector<int> recentring_counts {};
   std::vector<int> optim_counts {};
-  std::vector<double> pinf {};
-  std::vector<double> dinf {};
-  double acc = ipm_acc;
-  double feas = ipm_feas;
+  double acc = params.ipm_acc;
+  double feas = params.ipm_feas;
   double rel_gap;
   double last_gap = INFINITY;
   double mean_orto, max_orto;
@@ -467,18 +460,18 @@ BendersRet benders_loop(BendersProblems & problems, std::set<HighsInt> const & m
   std::vector<std::vector<double>> feas_cuts, obj_cuts;
   std::vector<double> rhss;
   std::vector<bool> was_feas;
-  std::vector<int> type_shifts;
+  // std::vector<int> type_shifts;
   CsvLogger dist("/tmp/cut_distances.csv");
   CsvLogger ubd_lbd("/tmp/ubd_lbd.csv");
   CsvLogger xs("/tmp/xs.csv");
   CsvLogger duals("/tmp/duals.csv");
-  int oscillation_count = 0;
-  int d_osci_count = 0;
-  int big_oscil_count = 0;
+  // int oscillation_count = 0;
+  // int d_osci_count = 0;
+  // int big_oscil_count = 0;
   int streak = 0;
   bool last_optim = false;
   bool first_optim = false;
-  int cut_type_shift = 0;
+  // int cut_type_shift = 0;
   while (UBD - LBD > eps && !info.was_error && iter++ < max_iter) {
     bool was_feasible = true;
     info = solve_subproblem(problems.subproblem, info, master_variables, master_values);
@@ -528,28 +521,28 @@ BendersRet benders_loop(BendersProblems & problems, std::set<HighsInt> const & m
       feas_cuts.push_back(un);
       rhss.push_back(cut.rhs);
       CsvLogger("/tmp/aggregate2.csv") << cut.rhs << un;
+      
     }
-    if (iter > 1 && !was_feasible && last_optim)
-      cut_type_shift = 1;
-    else if (iter > 1 && was_feasible && !last_optim)
-      cut_type_shift = 2;
-    else cut_type_shift = 0;
-    type_shifts.push_back(cut_type_shift);
+    // if (iter > 1 && !was_feasible && last_optim)
+    //   cut_type_shift = 1;
+    // else if (iter > 1 && was_feasible && !last_optim)
+    //   cut_type_shift = 2;
+    // else cut_type_shift = 0;
+    // type_shifts.push_back(cut_type_shift);
     last_optim = was_feasible;
     if (std::isfinite(max_orto) && std::fabs(max_orto) > 0.99) {
-      decrease_gap(acc, problems.master,  streak > 1 ? 2.5 : 10);
+      // decrease_gap(acc, problems.master,  streak > 1 ? 2.5 : 10);
       // decrease_gap(acc, problems.master,  was_feasible ? 5 : 10);
     }
     // if (info.was_error) break;
     info = solve_master(problems.master, info);
     recentring_counts.push_back(recentring_count);
     optim_counts.push_back(optim_count);
-    pinf.push_back(primal_feasibility);
-    dinf.push_back(dual_feasibility);
-    // if (problems.master.getModelStatus() != HighsModelStatus::kOptimal)
-    //   assert(1 == 0);
+    if (problems.master.getModelStatus() != HighsModelStatus::kOptimal && problems.master.getModelStatus() != HighsModelStatus::kUnknown)
+      assert(1 == 0);
     master_values = problems.master.getSolution().col_value;
-    xs << cut_type_shift << master_values;
+    // xs << cut_type_shift << master_values;
+    xs << master_values;
     auto d = problems.master.getSolution().row_dual;
     problems.master.getDualObjectiveValue(LBD);
     save_iteration_data(LBD, UBD, acc, feas, was_feasible, mean_orto, max_orto_idx, max_orto);
@@ -570,7 +563,7 @@ BendersRet benders_loop(BendersProblems & problems, std::set<HighsInt> const & m
         dist.log_with_note(std::round(100 * distance) / 100., oscillation ? "(OSC)" : "");
         duals.log_with_note(d.at(no_master_rows + i) * norm_a, (oscillation ? "(OSC)" : ""));
         far_away.at(i) = distance >= 1;  
-        oscillation_count += oscillation;
+        // oscillation_count += oscillation;
       }
     dist.newline();
     duals.newline();
@@ -581,16 +574,16 @@ BendersRet benders_loop(BendersProblems & problems, std::set<HighsInt> const & m
   // for (int i = 0; i < problems.master.getNumRow() - no_master_rows; ++i) {
   //     dist << (was_feas.at(i) ? "obj" : "feas");
   // }
-  dist << type_shifts << oscillation_count;
+  // dist << type_shifts << oscillation_count;
   dist.newline();
   ubd_lbd.newline();
-  return {UBD-LBD, UBD, info, iter, first_optim, UBD_updates, feasible_iters, recentring_counts, optim_counts, pinf, dinf};
+  return {UBD-LBD, UBD, info, iter, first_optim, UBD_updates, feasible_iters, recentring_counts, optim_counts, params};
 }
 
 inline bool all(std::vector<bool> const & v) { return std::all_of(v.begin(), v.end(), [](bool x) { return x; }); }
 
 BendersRet multi_benders_loop(MultiBendersProblems & problems, std::set<HighsInt> const & master_variables,
-                     std::vector<double> const & starting_point, double eps, int max_iter) { 
+                     std::vector<double> const & starting_point, double eps, int max_iter, MasterAdaptationParams params) { 
   BendersIterationInfo info;
   auto master_values = starting_point;
   int iter = 0;
@@ -602,14 +595,13 @@ BendersRet multi_benders_loop(MultiBendersProblems & problems, std::set<HighsInt
   std::vector<int> feasible_iters {};
   std::vector<int> recentring_counts {};
   std::vector<int> optim_counts {};
-  std::vector<double> pinf {};
-  std::vector<double> dinf {};
 
   // std::vector<std::vector<std::vector<double>>> obj_cuts (subproblems_variables.size());
   // std::vector<std::vector<std::vector<double>>> feas_cuts (subproblems_variables.size());
   // std::vector<std::tuple<double, int, double>> ortho (subproblems_variables.size());
   std::vector<bool> was_feasible (no_subproblems);
-  double acc = ipm_acc;
+  double acc = params.ipm_acc;
+  double feas = params.ipm_feas;
   int oscillation_count = 0;
   bool was_all_feas = false;
   auto no_master_rows = problems.master.getNumRow();
@@ -657,6 +649,7 @@ BendersRet multi_benders_loop(MultiBendersProblems & problems, std::set<HighsInt
     if (all_feasible) {
         if (iter == 1) first_optim = true;
         if (was_all_feas) decrease_gap(acc, problems.master, 2.5);
+        decrease_feas(feas, problems.master, 5);
         was_all_feas = true;
         feasible_iters.push_back(iter);
         double solution_cost = calculate_solution_cost(problems.master, subproblem_costs, master_variables, master_values);
@@ -672,10 +665,8 @@ BendersRet multi_benders_loop(MultiBendersProblems & problems, std::set<HighsInt
     info = solve_master(problems.master, info);
     recentring_counts.push_back(recentring_count);
     optim_counts.push_back(optim_count);
-    pinf.push_back(primal_feasibility);
-    dinf.push_back(dual_feasibility);
-    if (problems.master.getModelStatus() != HighsModelStatus::kOptimal)
-      assert(1 == 0);
+    // if (problems.master.getModelStatus() != HighsModelStatus::kOptimal && problems.master.getModelStatus() != HighsModelStatus::kUnknown)
+    //   assert(1 == 0);
     master_values = problems.master.getSolution().col_value;
     xs << master_values;
     problems.master.getDualObjectiveValue(LBD);
@@ -687,11 +678,11 @@ BendersRet multi_benders_loop(MultiBendersProblems & problems, std::set<HighsInt
   dist.newline();
   ubd_lbd.newline();
   xs.newline();
-  return {UBD-LBD, UBD, info, iter, first_optim, UBD_updates, feasible_iters, recentring_counts, optim_counts, pinf, dinf};
+  return {UBD-LBD, UBD, info, iter, first_optim, UBD_updates, feasible_iters, recentring_counts, optim_counts, params};
 }
 
 BendersRet multi_benders_loop_aggregated(MultiBendersProblems & problems, std::set<HighsInt> const & master_variables,
-                     std::vector<double> const & starting_point, double eps, int max_iter) { 
+                     std::vector<double> const & starting_point, double eps, int max_iter, MasterAdaptationParams params) { 
   BendersIterationInfo info;
   auto master_values = starting_point;
   int iter = 0;
@@ -703,15 +694,13 @@ BendersRet multi_benders_loop_aggregated(MultiBendersProblems & problems, std::s
   std::vector<int> feasible_iters {};
   std::vector<int> recentring_counts {};
   std::vector<int> optim_counts {};
-  std::vector<double> pinf {};
-  std::vector<double> dinf {};
 
   // std::vector<std::vector<std::vector<double>>> obj_cuts (subproblems_variables.size());
   // std::vector<std::vector<std::vector<double>>> feas_cuts (subproblems_variables.size());
   // std::vector<std::tuple<double, int, double>> ortho (subproblems_variables.size());
   std::vector<bool> was_feasible (no_subproblems);
-  double acc = ipm_acc;
-  double feas = ipm_feas;
+  double acc = params.ipm_acc;
+  double feas = params.ipm_feas;
   int oscillation_count = 0;
   bool was_all_feas = false;
   auto no_master_rows = problems.master.getNumRow();
@@ -778,10 +767,8 @@ BendersRet multi_benders_loop_aggregated(MultiBendersProblems & problems, std::s
     info = solve_master(problems.master, info);
     recentring_counts.push_back(recentring_count);
     optim_counts.push_back(optim_count);
-    pinf.push_back(primal_feasibility);
-    dinf.push_back(dual_feasibility);
-    if (problems.master.getModelStatus() != HighsModelStatus::kOptimal)
-      assert(1 == 0);
+    // if (problems.master.getModelStatus() != HighsModelStatus::kOptimal && problems.master.getModelStatus() != HighsModelStatus::kUnknown)
+    //   assert(1 == 0);
     master_values = problems.master.getSolution().col_value;
     xs << master_values;
       problems.master.getDualObjectiveValue(LBD);
@@ -793,12 +780,13 @@ BendersRet multi_benders_loop_aggregated(MultiBendersProblems & problems, std::s
   dist.newline() << oscillation_count;
   dist.newline();
   xs.newline();
-  return {UBD-LBD, UBD, info, iter, first_optim, UBD_updates, feasible_iters, recentring_counts, optim_counts, pinf, dinf};
+  return {UBD-LBD, UBD, info, iter, first_optim, UBD_updates, feasible_iters, recentring_counts, optim_counts, params};
 }
 
 
 BendersRet benders_l_shaped(SmpsCoreStructure & core, StochasticTree & tree, 
-  std::vector<double> const & starting_point, double subproblem_lb, double eps, int max_iter, bool aggregate_cuts, std::vector<OptionValue> const & masterOptions) {
+  std::vector<double> const & starting_point, double subproblem_lb, double eps, int max_iter,
+  bool aggregate_cuts, std::vector<OptionValue> const & masterOptions, MasterAdaptationParams params) {
   assert(core.is_valid() && tree.root != nullptr && core.stage_submatrix.size() == 2 && tree.root->get_no_children() == 1);
   auto & stage_1st = tree.root->get_child(0);
   int no_subproblems = stage_1st->get_no_children();
@@ -825,8 +813,8 @@ BendersRet benders_l_shaped(SmpsCoreStructure & core, StochasticTree & tree,
   }
   auto start = starting_point.empty() ? quick_master_solve(problems.master) : starting_point;
   return aggregate_cuts ?
-      multi_benders_loop_aggregated(problems, master_variables, start, eps, max_iter) :
-      multi_benders_loop(problems, master_variables, start, eps, max_iter);
+      multi_benders_loop_aggregated(problems, master_variables, start, eps, max_iter, params) :
+      multi_benders_loop(problems, master_variables, start, eps, max_iter, params);
 }
 
 void add_vec_to_vec(std::vector<double> & base, NonZeroVector const & addition) {
