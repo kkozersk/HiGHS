@@ -10,6 +10,8 @@
 #include "lp_data/HighsStatus.h"
 #include "lp_data/HighsLpUtils.h"
 #include "ipm/hipo/ipm/Solver.h"
+#include "io/HMPSIO.h"
+
 
 HighsInt find_row_index(std::vector<HighsInt> const & csr_starts, HighsInt index) {
   auto pointer = std::upper_bound(csr_starts.begin(), csr_starts.end(), index);
@@ -78,7 +80,11 @@ void create_master_problem(Highs & master, HighsLp const & base_problem, std::se
   std::vector<double> ones(no_subproblems, 1);
   std::vector<double> lb(no_subproblems, subproblem_lb);
   std::vector<double> ub(no_subproblems, kHighsInf);
+  int original_col_count = master.getNumCol();
   master.addCols(no_subproblems, ones.data(), lb.data(), ub.data(), 0, nullptr, nullptr, nullptr);
+  for (int i = 0; i < no_subproblems; ++i) {
+    master.passColName(original_col_count + i, std::string("BENDMU")+std::to_string(i));
+  }
   master.setOptionValue("output_flag", false);
   master.setOptionValue("log_to_console", false);
   // for (int i = 0; i < no_subproblems; ++i)
@@ -155,6 +161,8 @@ HighsSparseMatrix construct_extension_matrix(HighsLp const & base_problem, std::
 
 void create_feasibility_subproblem(Highs & feas_subproblem, HighsLp const & base_problem, std::set<HighsInt> const & master_variables, std::set<HighsInt> const & mixed_rows,  std::set<HighsInt> const & master_only_rows, 
   HighsSparseMatrix const & extension_matrix) {
+  
+    // return;
       feas_subproblem.passModel(base_problem);
   feas_subproblem.changeObjectiveOffset(0);
   std::vector<double> zeros(base_problem.num_col_, 0);
@@ -227,11 +235,12 @@ NonZeroVector add_mu_entry(NonZeroVector vector, HighsInt mu_index) {
   return vector;
 }
 
-void add_nonzero_row(Highs & problem, double lower, double upper, NonZeroVector const & row_vector) {
+void add_nonzero_row(Highs & problem, double lower, double upper, NonZeroVector const & row_vector, std::string const & name) {
   problem.addRow(lower, upper, row_vector.number_of_nonzeros, row_vector.nonzero_indices.data(), row_vector.nonzero_values.data());
+  if (name != "") problem.passRowName(problem.getNumRow() - 1, name);
 }
 
-Cut form_cut(Highs & master, Highs const & subproblem, std::set<HighsInt> const & master_variables, std::vector<double> const & master_values, CutType cut_type, int subproblem_no) {
+Cut form_cut(Highs const & subproblem, std::set<HighsInt> const & master_variables, std::vector<double> const & master_values, CutType cut_type, int subproblem_no) {
   double dual_objective;
   subproblem.getDualObjectiveValue(dual_objective);
   auto multipliers = get_master_multipliers(subproblem, master_variables);
@@ -281,6 +290,7 @@ std::vector<double> get_dual_costs(HighsLp const & lp) {
 }
 
 BendersIterationInfo solve_feasibility_subproblem(Highs & subproblem, BendersIterationInfo info, std::set<HighsInt> const & master_variables, std::vector<double> const & master_values) {
+  // assert(1==0);
   fix_master_variables(subproblem, master_variables, master_values);
   auto start = subproblem.getRunTime();
   info.was_error = info.was_error || subproblem.run() == HighsStatus::kError ;//|| subproblem.getModelStatus() != HighsModelStatus::kOptimal;
@@ -297,6 +307,7 @@ BendersIterationInfo solve_subproblem(Highs & subproblem, BendersIterationInfo i
   auto end =  subproblem.getRunTime();
   info.sub_time += end - start;
   info.was_subproblem_feasible = subproblem.getModelStatus() == HighsModelStatus::kOptimal;
+  // CsvLogger("/tmp/subvars.csv") << subproblem.getSolution().col_value;
   return info;
 }
 
@@ -313,6 +324,12 @@ double calculate_solution_cost(Highs const & master, double subproblem_cost, std
   int no_master_vars = master_variables.size();
   double master_cost = std::inner_product(master_values.begin(), master_values.begin() + no_master_vars, master_costs.begin(), 0.);
   double offset; master.getObjectiveOffset(offset);
+  return subproblem_cost + master_cost + offset;
+}
+
+double calculate_solution_cost(std::vector<double> const & master_costs, double offset, double subproblem_cost, std::set<HighsInt> const & master_variables, std::vector<double> const & master_values) {
+  int no_master_vars = master_variables.size();
+  double master_cost = std::inner_product(master_values.begin(), master_values.begin() + no_master_vars, master_costs.begin(), 0.);
   return subproblem_cost + master_cost + offset;
 }
 
@@ -381,6 +398,17 @@ std::tuple<double,int,double> count_ortho(std::vector<std::vector<double>> const
   return {mean(orthos), max_idx.first, max_idx.second};
 }
 
+void tighter(MasterAdaptationParams & params, Highs & master) {
+  params.no_optim_steps = std::min(params.no_optim_steps + params.delta_steps, params.max_steps);
+  master.setOptionValue("ipm_iteration_limit", params.no_optim_steps);
+  // if (params.no_optim_steps >= params.max_steps) {
+  //     master.setOptionValue("solver", kSimplexString);
+  //     master.setOptionValue("dual_feasibility_tolerance", 1e-8);
+  //     master.setOptionValue("primal_feasibility_tolerance", 1e-8);
+  //   }
+      
+}
+
 void decrease_gap(double & acc, Highs & master, double div) {
     acc = std::max(acc / div, 1e-7);
     master.setOptionValue("optimality_tolerance", acc);
@@ -401,6 +429,7 @@ void decrease_feas(double & feas, Highs & master, double div) {
 
 std::vector<double> quick_master_solve(Highs & master) {
   master.run();
+  auto st = master.getModelStatus();
   CsvLogger ("/tmp/xs.csv") << master.getSolution().col_value;
   // TOOD -- asssert on error?
   return master.getSolution().col_value;
@@ -487,8 +516,8 @@ BendersRet benders_loop(BendersProblems & problems, std::set<HighsInt> const & m
       if (solution_cost < UBD) UBD_updates.push_back(iter);
       UBD = std::min(UBD, solution_cost);
       if (UBD - LBD <= eps) break;
-      CsvLogger("/tmp/v_mults.csv") << problems.subproblem.getSolution().row_dual;
-      auto cut = form_cut(problems.master, problems.subproblem, master_variables, master_values, CutType::Objective);
+      // CsvLogger("/tmp/v_mults.csv") << problems.subproblem.getSolution().row_dual;
+      auto cut = form_cut(problems.subproblem, master_variables, master_values, CutType::Objective);
       add_nonzero_row(problems.master, cut.rhs, kHighsInf, cut.coefficients);
       // auto cut = add_cut(problems.master, problems.subproblem, master_variables, master_values, CutType::Objective);
       auto un = unravel(cut.coefficients);
@@ -509,8 +538,8 @@ BendersRet benders_loop(BendersProblems & problems, std::set<HighsInt> const & m
       was_feasible = false;
       was_feas.push_back(was_feasible);
       info = solve_feasibility_subproblem(problems.feas_subproblem, info, master_variables, master_values);
-      CsvLogger("/tmp/v_mults.csv") << problems.subproblem.getSolution().row_dual;
-      auto cut = form_cut(problems.master, problems.feas_subproblem, master_variables, master_values, CutType::Feasibility);
+      // CsvLogger("/tmp/v_mults.csv") << problems.subproblem.getSolution().row_dual;
+      auto cut = form_cut(problems.feas_subproblem, master_variables, master_values, CutType::Feasibility);
       add_nonzero_row(problems.master, cut.rhs, kHighsInf, cut.coefficients);
       // auto cut = add_cut(problems.master, problems.feas_subproblem, master_variables, master_values, CutType::Feasibility);
       auto un = unravel(cut.coefficients);
@@ -630,8 +659,8 @@ BendersRet multi_benders_loop(MultiBendersProblems & problems, std::set<HighsInt
       if (info.was_subproblem_feasible) {
         feas_count++;
         subproblem_costs += subproblem.getObjectiveValue();
-        CsvLogger("/tmp/v_mults.csv") << subproblem.getSolution().row_dual;
-        auto cut = form_cut(problems.master, subproblem, master_variables, master_values, CutType::Objective, i);
+        // CsvLogger("/tmp/v_mults.csv") << subproblem.getSolution().row_dual;
+        auto cut = form_cut(subproblem, master_variables, master_values, CutType::Objective, i);
         new_rhs.at(i) = cut.rhs;
         new_cuts.addVec(cut.coefficients.number_of_nonzeros, cut.coefficients.nonzero_indices.data(), cut.coefficients.nonzero_values.data());
         was_feas.push_back(true);
@@ -640,8 +669,8 @@ BendersRet multi_benders_loop(MultiBendersProblems & problems, std::set<HighsInt
         all_feasible = false;
         auto & feas_subproblem = problems.feas_subproblems.at(i);
         info = solve_feasibility_subproblem(feas_subproblem, info, master_variables, master_values);
-        CsvLogger("/tmp/v_mults.csv") << feas_subproblem.getSolution().row_dual;
-        auto cut = form_cut(problems.master, feas_subproblem, master_variables, master_values, CutType::Feasibility, i);
+        // CsvLogger("/tmp/v_mults.csv") << feas_subproblem.getSolution().row_dual;
+        auto cut = form_cut(feas_subproblem, master_variables, master_values, CutType::Feasibility, i);
         new_rhs.at(i) = cut.rhs;
         new_cuts.addVec(cut.coefficients.number_of_nonzeros, cut.coefficients.nonzero_indices.data(), cut.coefficients.nonzero_values.data());
       }
@@ -701,6 +730,8 @@ BendersRet multi_benders_loop_aggregated(MultiBendersProblems & problems, std::s
   std::vector<bool> was_feasible (no_subproblems);
   double acc = params.ipm_acc;
   double feas = params.ipm_feas;
+  int num_optim_steps = params.no_optim_steps;
+  auto copy_params = params;
   int oscillation_count = 0;
   bool was_all_feas = false;
   auto no_master_rows = problems.master.getNumRow();
@@ -712,9 +743,392 @@ BendersRet multi_benders_loop_aggregated(MultiBendersProblems & problems, std::s
   CsvLogger dist("/tmp/cut_distances.csv");
   CsvLogger xs("/tmp/xs.csv");
   CsvLogger duals("/tmp/duals.csv");
-
+  CsvLogger steps("/tmp/steps.csv");
   double rhs;
+  bool tighten = true;
+  bool switched = false;
+  double absgap, relgap;
   std::vector<double> cut_mults(problems.master.getNumCol());
+  int update_counter = 0;
+  while (UBD - LBD > eps && !info.was_error && iter++ < max_iter) {
+    absgap = UBD-LBD;
+    relgap = (UBD == kHighsInf ? kHighsInf : (UBD-LBD)/(1 + std::fabs(UBD)));
+
+    if (absgap <= 10 * eps || relgap <= 10 * eps) {
+      switched = true;
+      problems.master.setOptionValue("solver", kSimplexString);
+      problems.master.setOptionValue("dual_feasibility_tolerance", 1e-8);
+      problems.master.setOptionValue("primal_feasibility_tolerance", 1e-8);
+      copy_params.no_optim_steps = copy_params.max_steps;
+    }
+
+    zerovec(cut_mults);
+    rhs = 0;
+    int feas_count = 0;
+    double subproblem_costs = 0;
+    bool all_feasible = true;
+    for (int i = 0; i < no_subproblems; ++i) { 
+      auto & subproblem = problems.subproblems.at(i);
+      info = solve_subproblem(subproblem, info, master_variables, master_values);
+      if (info.was_subproblem_feasible) {
+        feas_count++;
+        if (!all_feasible)
+          continue;
+        subproblem_costs += subproblem.getObjectiveValue();
+        // CsvLogger("/tmp/v_mults.csv") << subproblem.getSolution().row_dual;
+        auto cut = form_cut(subproblem, master_variables, master_values, CutType::Objective);
+        rhs += cut.rhs;
+        add_vec_to_vec(cut_mults, cut.coefficients);
+        cut_mults.back() = 1;
+        was_feas.push_back(true);
+      }
+      else {
+        if (all_feasible) {
+          zerovec(cut_mults);
+          rhs = 0;
+          all_feasible = false;
+        }
+        auto & feas_subproblem = problems.feas_subproblems.at(i);
+        info = solve_feasibility_subproblem(feas_subproblem, info, master_variables, master_values);
+        // CsvLogger("/tmp/v_mults.csv") << feas_subproblem.getSolution().row_dual;
+        auto cut = form_cut(feas_subproblem, master_variables, master_values, CutType::Feasibility);
+        rhs += cut.rhs;
+        add_vec_to_vec(cut_mults, cut.coefficients);
+      }
+    }
+    if (all_feasible) {
+
+        if (iter == 1) first_optim=true;
+        // if (was_all_feas) decrease_gap(acc, problems.master, 2.5);
+        // decrease_feas(feas, problems.master, 5);
+        was_all_feas = true;
+        feasible_iters.push_back(iter);
+        double solution_cost = calculate_solution_cost(problems.master, subproblem_costs, master_variables, master_values);
+        if (update_counter % params.every_n_steps == 0) tighter(copy_params, problems.master);
+        update_counter++;
+        // if (solution_cost < UBD || !params.on_improve) {
+        //   if (tighten) tighter(copy_params, problems.master);
+        //   tighten = params.flip ? !tighten : true;
+        // }        
+        if (solution_cost < UBD) 
+          UBD_updates.push_back(iter);
+        UBD = std::min(UBD, solution_cost);
+        if (UBD - LBD <= eps) break;
+    }
+    CsvLogger("/tmp/aggregate.csv") << rhs << cut_mults;
+    add_nonzero_row(problems.master, rhs, kHighsInf, {cut_mults});
+    info = solve_master(problems.master, info);
+    if (!switched) {
+      recentring_counts.push_back(recentring_count);
+      optim_counts.push_back(optim_count);
+    }
+    
+    // if (problems.master.getModelStatus() != HighsModelStatus::kOptimal && problems.master.getModelStatus() != HighsModelStatus::kUnknown)
+    //   assert(1 == 0);
+    master_values = problems.master.getSolution().col_value;
+    xs << master_values;
+      problems.master.getDualObjectiveValue(LBD);
+    ubd_lbd << UBD << LBD << feas_count; 
+    ubd_lbd.newline();
+
+    steps << UBD-LBD << (UBD == kHighsInf ? kHighsInf : (UBD-LBD)/(1 + std::fabs(UBD))) << copy_params.max_steps
+      << (copy_params.no_optim_steps >= copy_params.max_steps);
+    steps.newline();
+  }
+  ubd_lbd.newline();
+  xs.newline();
+  dist.newline() << oscillation_count;
+  dist.newline();
+  xs.newline();
+  steps.newline();
+  return {UBD-LBD, UBD, info, iter, first_optim, UBD_updates, feasible_iters, recentring_counts, optim_counts, params};
+}
+
+BendersRet multi_benders_loop_aggregated_level(MultiBendersProblems & problems, std::set<HighsInt> const & master_variables,
+                     std::vector<double> const & starting_point, double eps, int max_iter, MasterAdaptationParams params) { 
+  BendersIterationInfo info;
+  auto master_values = starting_point;
+  int iter = 0;
+  double UBD = kHighsInf, LBD = -kHighsInf;
+  int no_subproblems = problems.subproblems.size();
+  int no_master_cols = master_variables.size();
+  int no_master_cols2 =problems.master.getNumCol();
+  // std::vector<bool> any_objective_cuts(no_subproblems, false);
+  // bool all_objective_cuts = false;
+  std::vector<int> UBD_updates {};
+  std::vector<int> feasible_iters {};
+  std::vector<int> recentring_counts {};
+  std::vector<int> optim_counts {};
+
+  // std::vector<std::vector<std::vector<double>>> obj_cuts (subproblems_variables.size());
+  // std::vector<std::vector<std::vector<double>>> feas_cuts (subproblems_variables.size());
+  // std::vector<std::tuple<double, int, double>> ortho (subproblems_variables.size());
+  std::vector<bool> was_feasible (no_subproblems);
+  double acc = params.ipm_acc;
+  double feas = params.ipm_feas;
+  int num_optim_steps = params.no_optim_steps;
+  auto copy_params = params;
+  int oscillation_count = 0;
+  bool was_all_feas = false;
+  auto no_master_rows = problems.master.getNumRow();
+  bool first_optim = false;
+  std::vector<double> rhss;
+  std::vector<bool> was_feas;
+  std::vector<bool> far_away;
+  CsvLogger ubd_lbd("/tmp/ubd_lbd.csv");
+  CsvLogger dist("/tmp/cut_distances.csv");
+  CsvLogger xs("/tmp/xs.csv");
+  CsvLogger duals("/tmp/duals.csv");
+  CsvLogger steps("/tmp/steps.csv");
+  double rhs;
+  // double gamma = 0.2; //0.025
+  bool in_level = false;
+  
+  std::vector<double> cut_mults(problems.master.getNumCol()); 
+  
+  Highs quad_master;
+  quad_master.passModel(problems.master.getModel());
+  int spec_constraint = quad_master.getNumRow();
+  add_nonzero_row(quad_master, -kHighsInf, kHighsInf, {problems.master.getLp().col_cost_}, "LEVEL");
+  assert(quad_master.getNumRow() == spec_constraint+1);
+  HighsHessian hess;
+  hess.dim_ = master_variables.size() + 1; //+1?
+  hess.format_ = HessianFormat::kTriangular;
+  hess.value_ = std::vector<double>(hess.dim_, 1);
+  hess.value_.back() = 0;
+  hess.index_ = std::vector<int>(hess.dim_, 0);
+  hess.start_ = std::vector<int>(hess.dim_ + 1, 0);
+  for (int i = 0; i < hess.dim_; ++i) {
+    hess.index_.at(i) = i;
+    hess.start_.at(i) = i;
+  }
+  hess.start_.at(hess.dim_) = hess.dim_;
+  quad_master.passHessian(hess);
+  std::vector<double> zeros (quad_master.getNumCol(), 0);
+  quad_master.changeColsCost(0, problems.master.getNumCol()-1, zeros.data());
+  // quad_master.setOptionValue("time_limit", 600);
+  // quad_master.setOptionValue("qp_regularization_value", 1e-8);
+  quad_master.setOptionValue("presolve", kHighsOnString);
+  // quad_master.setOptionValue("dual_feasibility_tolerance", 1e-7);
+  double projected_improvement=-kHighsInf;
+  double real_improvement=-kHighsInf;
+  double target=-kHighsInf;
+  double gamma = params.gamma;
+  double omega = 0.9;
+  int error_counter=0;
+  CsvLogger gammas("/tmp/gammas.csv");
+  // CsvLogger inlevels("/tmp/inlevel.csv");
+  CsvLogger err("/tmp/errors.csv") ;
+  while (UBD - LBD> eps && !info.was_error && iter++ < max_iter) {
+    zerovec(cut_mults);
+    rhs = 0;
+    int feas_count = 0;
+    double subproblem_costs = 0;
+    bool all_feasible = true;
+    for (int i = 0; i < no_subproblems; ++i) { 
+      auto & subproblem = problems.subproblems.at(i);
+      info = solve_subproblem(subproblem, info, master_variables, master_values);
+      if (info.was_subproblem_feasible) {
+        feas_count++;
+        if (!all_feasible)
+          continue;
+        subproblem_costs += subproblem.getObjectiveValue();
+        // CsvLogger("/tmp/v_mults.csv") << subproblem.getSolution().row_dual;
+        auto cut = form_cut(subproblem, master_variables, master_values, CutType::Objective);
+        rhs += cut.rhs;
+        add_vec_to_vec(cut_mults, cut.coefficients);
+        cut_mults.back() = 1;
+        was_feas.push_back(true);
+      }
+      else {
+        if (all_feasible) {
+          zerovec(cut_mults);
+          rhs = 0;
+          all_feasible = false;
+        }
+        auto & feas_subproblem = problems.feas_subproblems.at(i);
+        info = solve_feasibility_subproblem(feas_subproblem, info, master_variables, master_values);
+        // CsvLogger("/tmp/v_mults.csv") << feas_subproblem.getSolution().row_dual;
+        auto cut = form_cut(feas_subproblem, master_variables, master_values, CutType::Feasibility);
+        rhs += cut.rhs;
+        add_vec_to_vec(cut_mults, cut.coefficients);
+      }
+    }
+    if (all_feasible) {
+
+        if (iter == 1) first_optim=true;
+        // if (was_all_feas) decrease_gap(acc, problems.master, 2.5);
+        // decrease_feas(feas, problems.master, 5);
+        was_all_feas = true;
+        feasible_iters.push_back(iter);
+        double solution_cost = calculate_solution_cost(problems.master, subproblem_costs, master_variables, master_values);      
+        real_improvement = UBD-solution_cost;
+        if (solution_cost < UBD) 
+          UBD_updates.push_back(iter);
+        UBD = std::min(UBD, solution_cost);
+        if (UBD - LBD <= eps) break;
+    }
+    CsvLogger("/tmp/aggregate.csv") << rhs << cut_mults;   
+    add_nonzero_row(problems.master, rhs, kHighsInf, {cut_mults}, std::string("CUT") + std::to_string(iter));
+    info = solve_master(problems.master, info);
+    LBD = problems.master.getObjectiveValue();
+    if (UBD-LBD <= eps) break;
+    if (in_level && all_feasible && real_improvement > 0) {
+      double r = real_improvement / projected_improvement;
+      if (r <= 0.1)
+        gamma = 1 - omega * (1-gamma);
+      else if (r > 0.9)
+        gamma *= omega;
+    }
+    gammas << gamma;
+    gammas.newline();
+    double absgap = UBD-LBD;
+    double relgap = UBD < kHighsInf ? (UBD-LBD)/(1+std::fabs(UBD)) : kHighsInf;
+    bool close = absgap < 10*eps || relgap < 10*eps;
+    add_nonzero_row(quad_master, rhs, kHighsInf, {cut_mults}, std::string("CUT") + std::to_string(iter));
+    if (close) in_level = false;
+    if (UBD < kHighsInf && LBD > -kHighsInf && !close) {
+    // if (UBD < kHighsInf && LBD > -kHighsInf) {
+      in_level = true;
+      target = LBD + gamma * (UBD-LBD);
+      projected_improvement = UBD - target;
+      quad_master.changeRowBounds(spec_constraint,  -kHighsInf, target);
+      std::vector<double> linear_factor(master_variables.size(), 0);
+      double constant = 0;
+      for (int i = 0; i < master_variables.size(); ++i) {
+          auto val = master_values.at(i);
+          val = std::round(val / params.rounding) * params.rounding;
+          linear_factor.at(i) = -val;
+          constant += val * val / 2;
+      }      
+      NonZeroVector nz_factors {linear_factor};
+      // CsvLogger id("/tmp/idk.csv");
+      // id << nz_factors.number_of_nonzeros;
+      // id.newline();
+      // id << nz_factors.nonzero_indices;
+      // id << nz_factors.nonzero_values;
+      quad_master.changeColsCost(nz_factors.number_of_nonzeros, nz_factors.nonzero_indices.data(), nz_factors.nonzero_values.data());
+      quad_master.changeObjectiveOffset(constant);
+      
+      std::vector<int> indices(quad_master.getNumCol());
+      for (int i = 0; i < quad_master.getNumCol(); ++i) indices[i] = i;
+      quad_master.setSolution(quad_master.getNumCol(), indices.data(), problems.master.getSolution().col_value.data());
+      // auto basis = problems.master.getBasis();
+      // basis.row_status.insert(basis.row_status.begin() + spec_constraint, HighsBasisStatus::kBasic);
+      // basis.alien = true;
+      // quad_master.setBasis(basis);
+      // CsvLogger("/tmp/ccopy.csv") << quad_master.getModel().lp_.col_cost_;
+      // CsvLogger("/tmp/hescopy.csv") << quad_master.getModel().hessian_.value_;
+      // CsvLogger("/tmp/hescopy.csv") << quad_master.getModel().hessian_.index_;
+      // CsvLogger("/tmp/hescopy.csv") << quad_master.getModel().hessian_.start_;
+      info = solve_master(quad_master, info);
+      if (info.was_error) {
+          error_counter++;
+          if (error_counter > 5) omega = 1.0;
+          err << iter << gamma;
+          gamma = params.gamma;
+          err.newline();
+          in_level = false;
+          info.was_error = false;
+      }
+        
+    }
+    // CsvLogger ("/tmp/copycost.csv") << problems.master.getModel().lp_.col_cost_;
+    // CsvLogger ("/tmp/copyhess.csv") << problems.master.getModel().hessian_.value_;
+    // if (!in_level)
+    
+    // if (problems.master.getModelStatus() != HighsModelStatus::kOptimal && problems.master.getModelStatus() != HighsModelStatus::kUnknown)
+    //   assert(1 == 0);
+    //offset?
+    // CsvLogger normlog("/tmp/norm.csv");
+    // auto c = problems.master.getModel().lp_.col_cost_;
+    // auto l = std::inner_product(c.begin(), c.end(), problems.master.getSolution().col_value.begin(), 0.0);
+    // double con; problems.master.getObjectiveOffset(con);
+    // double q = problems.master.getModel().hessian_.objectiveValue(problems.master.getSolution().col_value);
+    // normlog << problems.master.getObjectiveValue() << l << con << q << l + con + q;
+    // normlog << problems.master.getObjectiveValue() << problems.master.getObjectiveValue() + master_values.back() * master_values.back();
+    // normlog.newline();
+    // inlevels << in_level;
+    // inlevels.newline();
+    master_values = (in_level ? quad_master : problems.master).getSolution().col_value;
+    // master_values = ( problems.master).getSolution().col_value;
+    xs << master_values;
+    ubd_lbd << UBD << LBD << feas_count; 
+    ubd_lbd.newline();
+
+    steps << UBD-LBD << (UBD == kHighsInf ? kHighsInf : (UBD-LBD)/(1 + std::fabs(UBD))) << copy_params.max_steps
+      << (copy_params.no_optim_steps >= copy_params.max_steps);
+    steps.newline();
+  }
+  ubd_lbd.newline();
+  xs.newline();
+  dist.newline() << oscillation_count;
+  dist.newline();
+  xs.newline();
+  steps.newline();
+  return {UBD-LBD, UBD, info, iter, first_optim, UBD_updates, feasible_iters, recentring_counts, optim_counts, params};
+}
+
+BendersRet multi_benders_loop_aggregated_ipm_level(MultiBendersProblems & problems, std::set<HighsInt> const & master_variables,
+                     std::vector<double> const & starting_point, double eps, int max_iter, MasterAdaptationParams params) { 
+  BendersIterationInfo info;
+  auto master_values = starting_point;
+  int iter = 0;
+  double UBD = kHighsInf, LBD = -kHighsInf;
+  int no_subproblems = problems.subproblems.size();
+  int no_master_cols = master_variables.size();
+  int no_master_cols2 =problems.master.getNumCol();
+  // std::vector<bool> any_objective_cuts(no_subproblems, false);
+  // bool all_objective_cuts = false;
+  std::vector<int> UBD_updates {};
+  std::vector<int> feasible_iters {};
+  std::vector<int> recentring_counts {};
+  std::vector<int> optim_counts {};
+
+  // std::vector<std::vector<std::vector<double>>> obj_cuts (subproblems_variables.size());
+  // std::vector<std::vector<std::vector<double>>> feas_cuts (subproblems_variables.size());
+  // std::vector<std::tuple<double, int, double>> ortho (subproblems_variables.size());
+  std::vector<bool> was_feasible (no_subproblems);
+  double acc = params.ipm_acc;
+  double feas = params.ipm_feas;
+  int num_optim_steps = params.no_optim_steps;
+  auto copy_params = params;
+  int oscillation_count = 0;
+  bool was_all_feas = false;
+  auto no_master_rows = problems.master.getNumRow();
+  bool first_optim = false;
+  std::vector<double> rhss;
+  std::vector<bool> was_feas;
+  std::vector<bool> far_away;
+  CsvLogger ubd_lbd("/tmp/ubd_lbd.csv");
+  CsvLogger dist("/tmp/cut_distances.csv");
+  CsvLogger xs("/tmp/xs.csv");
+  CsvLogger duals("/tmp/duals.csv");
+  CsvLogger steps("/tmp/steps.csv");
+  double rhs;
+  // double gamma = 0.2; //0.025
+  bool in_level = false;
+  
+  std::vector<double> cut_mults(problems.master.getNumCol()); 
+  Highs quad_master;
+  quad_master.passModel(problems.master.getModel());
+  quad_master.setOptionValue("solver", kHipoString);
+  int spec_constraint = quad_master.getNumRow();
+  add_nonzero_row(quad_master, -kHighsInf, kHighsInf, {problems.master.getLp().col_cost_});
+  assert(quad_master.getNumRow() == spec_constraint+1);
+  
+  std::vector<double> zeros (quad_master.getNumCol(), 0);
+  quad_master.changeColsCost(0, problems.master.getNumCol()-1, zeros.data());
+  quad_master.setOptionValue("max_centring_steps", 100);
+  quad_master.setOptionValue("run_crossover", kHighsOffString);
+  quad_master.setOptionValue("centring_gamma", 1-1e-5);
+  quad_master.setOptionValue("recentring_step", 1.0);
+  quad_master.setOptionValue("ipm_iteration_limit", 0);
+
+  double target=-kHighsInf;
+  double gamma = params.gamma;
+  int error_counter=0;
+  CsvLogger err("/tmp/errors.csv") ;
   while (UBD - LBD > eps && !info.was_error && iter++ < max_iter) {
     zerovec(cut_mults);
     rhs = 0;
@@ -729,8 +1143,7 @@ BendersRet multi_benders_loop_aggregated(MultiBendersProblems & problems, std::s
         if (!all_feasible)
           continue;
         subproblem_costs += subproblem.getObjectiveValue();
-        CsvLogger("/tmp/v_mults.csv") << subproblem.getSolution().row_dual;
-        auto cut = form_cut(problems.master, subproblem, master_variables, master_values, CutType::Objective);
+        auto cut = form_cut(subproblem, master_variables, master_values, CutType::Objective);
         rhs += cut.rhs;
         add_vec_to_vec(cut_mults, cut.coefficients);
         cut_mults.back() = 1;
@@ -744,45 +1157,57 @@ BendersRet multi_benders_loop_aggregated(MultiBendersProblems & problems, std::s
         }
         auto & feas_subproblem = problems.feas_subproblems.at(i);
         info = solve_feasibility_subproblem(feas_subproblem, info, master_variables, master_values);
-        CsvLogger("/tmp/v_mults.csv") << feas_subproblem.getSolution().row_dual;
-        auto cut = form_cut(problems.master, feas_subproblem, master_variables, master_values, CutType::Feasibility);
+        auto cut = form_cut(feas_subproblem, master_variables, master_values, CutType::Feasibility);
         rhs += cut.rhs;
         add_vec_to_vec(cut_mults, cut.coefficients);
       }
     }
     if (all_feasible) {
         if (iter == 1) first_optim=true;
-        if (was_all_feas) decrease_gap(acc, problems.master, 2.5);
-        decrease_feas(feas, problems.master, 5);
         was_all_feas = true;
         feasible_iters.push_back(iter);
-        double solution_cost = calculate_solution_cost(problems.master, subproblem_costs, master_variables, master_values);
-        if (solution_cost < UBD)
+        double solution_cost = calculate_solution_cost(problems.master, subproblem_costs, master_variables, master_values);      
+        if (solution_cost < UBD) 
           UBD_updates.push_back(iter);
         UBD = std::min(UBD, solution_cost);
         if (UBD - LBD <= eps) break;
     }
-    CsvLogger("/tmp/aggregate.csv") << rhs << cut_mults;
+    // CsvLogger("/tmp/aggregate.csv") << rhs << cut_mults;   
     add_nonzero_row(problems.master, rhs, kHighsInf, {cut_mults});
     info = solve_master(problems.master, info);
-    recentring_counts.push_back(recentring_count);
-    optim_counts.push_back(optim_count);
-    // if (problems.master.getModelStatus() != HighsModelStatus::kOptimal && problems.master.getModelStatus() != HighsModelStatus::kUnknown)
-    //   assert(1 == 0);
-    master_values = problems.master.getSolution().col_value;
-    xs << master_values;
-      problems.master.getDualObjectiveValue(LBD);
+    LBD = problems.master.getObjectiveValue();
+    if (UBD-LBD <= eps) break;
+    double absgap = UBD-LBD;
+    double relgap = UBD < kHighsInf ? (UBD-LBD)/(1+std::fabs(UBD)) : kHighsInf;
+    add_nonzero_row(quad_master, rhs, kHighsInf, {cut_mults});
+    if (UBD < kHighsInf && LBD > -kHighsInf) {
+      target = LBD + gamma * (UBD-LBD);
+      double target_l = LBD + (gamma - params.rounding) * (UBD-LBD);
+      double target_u = LBD + (gamma + params.rounding) * (UBD-LBD);
+      quad_master.changeRowBounds(spec_constraint,  target_l, target_u);
+    }
+    bool close = absgap < 10*eps || relgap < 10*eps;
+    if (!close) {
+      info = solve_master(quad_master, info);
+      recentring_counts.push_back(recentring_count);
+      optim_counts.push_back(optim_count);
+      if (info.was_error) {
+          error_counter++;
+          err << iter;
+          err.newline();
+          info.was_error = false;
+      }
+    }
+    master_values = (!close ? quad_master : problems.master).getSolution().col_value;
+    // xs << master_values;
     ubd_lbd << UBD << LBD << feas_count; 
     ubd_lbd.newline();
   }
   ubd_lbd.newline();
-  xs.newline();
-  dist.newline() << oscillation_count;
-  dist.newline();
-  xs.newline();
+  // xs.newline();
+  // xs.newline();
   return {UBD-LBD, UBD, info, iter, first_optim, UBD_updates, feasible_iters, recentring_counts, optim_counts, params};
 }
-
 
 BendersRet benders_l_shaped(SmpsCoreStructure & core, StochasticTree & tree, 
   std::vector<double> const & starting_point, double subproblem_lb, double eps, int max_iter,
@@ -800,8 +1225,10 @@ BendersRet benders_l_shaped(SmpsCoreStructure & core, StochasticTree & tree,
   auto & master = problems.master;
   auto master_lp = modify_problem(core, *stage_1st);
   std::ofstream("/tmp/linking.csv", std::ios::app) << row_division.mixed_rows.size() << "\n";
-  create_master_problem(master, master_lp, master_variables, row_division.subproblem_rows, subproblem_lb, aggregate_cuts ? 1 : no_subproblems);
+  create_master_problem(master, master_lp, master_variables, row_division.subproblem_rows, subproblem_lb, 1);
+  // create_master_problem(master, master_lp, master_variables, row_division.subproblem_rows, subproblem_lb, aggregate_cuts ? 1 : no_subproblems);
   apply_options(master, masterOptions);
+  auto start = starting_point.empty() ? quick_master_solve(problems.master) : starting_point;
   problems.subproblems = std::vector<Highs> (no_subproblems);
   problems.feas_subproblems = std::vector<Highs> (no_subproblems);
   auto a = construct_extension_matrix(core, row_division.mixed_rows);
@@ -811,13 +1238,109 @@ BendersRet benders_l_shaped(SmpsCoreStructure & core, StochasticTree & tree,
     create_subproblem(problems.subproblems.at(i), base_sub_lp, master_variables, row_division.master_only_rows);
     create_feasibility_subproblem(problems.feas_subproblems.at(i), base_sub_lp, master_variables, row_division.mixed_rows, row_division.master_only_rows, a);
   }
-  auto start = starting_point.empty() ? quick_master_solve(problems.master) : starting_point;
+  
   return aggregate_cuts ?
       multi_benders_loop_aggregated(problems, master_variables, start, eps, max_iter, params) :
-      multi_benders_loop(problems, master_variables, start, eps, max_iter, params);
+      multi_benders_loop_aggregated_ipm_level(problems, master_variables, start, eps, max_iter, params);
+      // multi_benders_loop_aggregated_level(problems, master_variables, start, eps, max_iter, params);
 }
 
 void add_vec_to_vec(std::vector<double> & base, NonZeroVector const & addition) {
   for (int i = 0; i < addition.number_of_nonzeros; ++i)
     base.at(addition.nonzero_indices.at(i)) += addition.nonzero_values.at(i);
+}
+
+BendersRet  BendersAlgorithm::benders_loop(
+    MultiBendersProblems & problems, std::set<HighsInt> const & master_variables,
+    std::vector<double> const & starting_point, MasterProblem & master_solver) {
+      std::vector<double> master_values = starting_point;
+      while (!is_gap_closed() && !error && iter++ < max_iter) {
+        auto sub_res = solve_subproblems(problems.subproblems, problems.feas_subproblems, master_variables, master_values);
+        // TODO get rid of that
+        if (sub_res.all_feasible) {
+          double solution_cost = calculate_solution_cost(problems.master, sub_res.subproblem_costs, master_variables, master_values);      
+          UBD = std::min(UBD, solution_cost);
+          if (is_gap_closed()) break;
+        }
+        master_solver.add_cut(sub_res.cut);
+        master_solver.solve(UBD, LBD, is_close());
+        LBD = master_solver.getLBD();
+        master_values = master_solver.getMasterValues();
+      }
+      //TODO Time missing
+      return {UBD-LBD, UBD, {}, iter};
+    }
+
+  BendersAlgorithm::SubproblemsResult BendersAlgorithm::solve_subproblems(std::vector<Highs> & subproblems, 
+    std::vector<Highs> & feas_subproblems, std::set<HighsInt> const & master_variables, std::vector<double> const & master_values) {
+    
+      //TODO drop multi vectors
+      // TODO pass basis?
+      // TODO pass info?
+      // TODO tidy between subtypes
+      std::vector<double> obj_cut_multipliers(master_variables.size()+1, 0);
+      std::vector<double> feas_cut_multipliers(master_variables.size()+1, 0);
+      double obj_rhs = 0;
+      double feas_rhs = 0;
+      double subproblem_costs = 0;
+      bool all_feasible = true;
+      BendersIterationInfo info;
+      for (int i = 0; i < subproblems.size(); ++i) { 
+        auto & subproblem = subproblems.at(i); //TODO: Unnecessary solution if infeasible
+        auto & feas_subproblem = feas_subproblems.at(i);
+        info = solve_subproblem(subproblem, info, master_variables, master_values);
+        if (info.was_subproblem_feasible) {
+          if (!all_feasible) continue;
+          subproblem_costs += subproblem.getObjectiveValue();
+          auto cut = form_cut(subproblem, master_variables, master_values, CutType::Objective);
+          obj_rhs += cut.rhs;
+          add_vec_to_vec(obj_cut_multipliers, cut.coefficients);
+          obj_cut_multipliers.back() = 1; //TODO only works for aggregated
+        }
+        else {
+          all_feasible = false;
+          info = solve_feasibility_subproblem(feas_subproblem, info, master_variables, master_values);
+          auto cut = form_cut(feas_subproblem, master_variables, master_values, CutType::Feasibility);
+          feas_rhs += cut.rhs;
+          add_vec_to_vec(feas_cut_multipliers, cut.coefficients);
+        }
+      }
+      if (info.was_error) signalize_error();
+      //TODO ugly
+      return {
+        all_feasible,
+        {all_feasible ? obj_cut_multipliers : feas_cut_multipliers, all_feasible ? obj_rhs : feas_rhs},
+        all_feasible ? subproblem_costs : kHighsInf
+      };
+
+    }
+
+void MasterProblem::add_cut(CutData const & cut) {
+  add_nonzero_row(master, cut.dual_objective, kHighsInf, {cut.master_multipliers});
+}
+void StandardMasterProblem::solve(double UBD, double LBD, bool is_close, bool all_feasible) {
+        BendersIterationInfo info;
+        info = solve_master(master, info);
+        // TODO signalize error
+        // TODO info
+        // if (info.was_error) signalize_error();
+    }
+
+//TODO constructors
+
+void ProximalIPMMasterProblem::solve(double UBD, double LBD, bool is_close, bool all_feasible) {
+    if (is_close) {
+      master.setOptionValue("solver", kSimplexString);
+      master.setOptionValue("dual_feasibility_tolerance", 1e-8);
+      master.setOptionValue("primal_feasibility_tolerance", 1e-8);
+    }
+    if (all_feasible && feas_iter_counter++ % increment_every_n_iter == 0) {
+      optim_steps = std::min(optim_steps + 1, max_optim_steps);
+      master.setOptionValue("ipm_iteration_limit", optim_steps);
+    }
+    BendersIterationInfo info;
+    info = solve_master(master, info);
+    // TODO signalize error
+    // TODO info
+    // if (info.was_error) signalize_error();
 }

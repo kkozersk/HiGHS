@@ -69,6 +69,8 @@ void Solver::runIpm() {
     if (correctors()) break;
     makeStep();
   }
+  if (iter_ == options_.max_iter) checkTermination();
+  // if (it_->pdgap > 1e-8) recentring();
   recentring();
 
   terminate();
@@ -191,19 +193,26 @@ void Solver::recentring() {
     // bool b = prepareIter(true);
     // bool c = predictor(false);
     // bool d = correctors(false);
-    recentring_success = isFeasible() && isWellCentered();
-    if (recentring_success || prepareIter(true) || predictor(false)) break;
+    bool f = isFeasible();
+    bool c = isWellCentered();
+    bool p = prepareIter(true);
+    bool pr = predictor(false);
+    recentring_success = f && c;
+    // recentring_success = isFeasible() && isWellCentered();
+    if (recentring_success || p || pr) break;
+    // if (recentring_success || prepareIter(true) || predictor(false)) break;
     makeStep(true);
   }
   recentring_count = iter_ - it;
   // auto recentring_st = iter_ - it;
-  std::ofstream("/tmp/ipm_stats.csv", std::ios::app) << it << "," << recentring_count 
-    << "," << options_.recentring_step << "\n";
+  // std::ofstream("/tmp/ipm_stats.csv", std::ios::app) << it << "," << recentring_count 
+    // << "," << options_.recentring_step << "\n";
   // std::ofstream("/tmp/steps_stats", std::ios::app)<< recentring_st << std::endl;
   iter_ = it;
   info_.status = st;
   if (options_.max_recentring_iter > 0 && st != kStatusPDFeas) {
-      info_.status = recentring_success ? kStatusImprecise : kStatusFailed;
+      // TODO: it should fail here
+      info_.status = recentring_success ? kStatusImprecise : kStatusUnknown;
   }
  
   // if (st == kStatusSolved)

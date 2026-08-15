@@ -1,0 +1,7 @@
+STOCH         STOCHFOR
+BLOCKS        DISCRETE
+ BL BLOCK0    PERIOD1       1.00
+    CLASS3.1  BOUND3.1       1.    
+ BL BLOCK1    PERIOD2       1.00
+    CLASS3.1  REGEN1.2       -.93742
+ENDATA

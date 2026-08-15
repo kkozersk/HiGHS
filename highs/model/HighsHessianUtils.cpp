@@ -227,6 +227,8 @@ HighsStatus extractTriangularHessian(const HighsOptions& options,
   HighsInt nnz = 0;
   for (HighsInt iCol = 0; iCol < dim; iCol++) {
     const HighsInt nnz0 = nnz;
+    int x = hessian.start_[iCol];
+    int y = hessian.start_[iCol + 1];
     for (HighsInt iEl = hessian.start_[iCol]; iEl < hessian.start_[iCol + 1];
          iEl++) {
       HighsInt iRow = hessian.index_[iEl];

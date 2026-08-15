@@ -11,6 +11,7 @@
 #include "io/SMPS.h"
 #include "util/HighsSparseMatrix.h"
 
+
 struct RowDivision {
   std::set<HighsInt> master_rows;
   std::set<HighsInt> subproblem_rows;
@@ -95,9 +96,20 @@ class CsvLogger : public std::ofstream {
 };
 
 struct MasterAdaptationParams {
-  double ipm_acc;
-  double ipm_feas;
-  MasterAdaptationParams(double ipm_acc=1e-8, double ipm_feas=1e-8) : ipm_acc(ipm_acc), ipm_feas(ipm_feas) {}
+  double ipm_acc=1e-8;
+  double ipm_feas=1e-8;
+  int no_optim_steps=200;
+  int delta_steps = 2;
+  int max_steps = 15;
+  bool flip=false;
+  bool on_improve=false;
+  int every_n_steps = 2;
+  double gamma = 0.5;
+  double rounding = 1e-4;
+  MasterAdaptationParams(double ipm_acc=1e-8, double ipm_feas=1e-8, int no_optim_steps=200, int delta_steps=2,
+     int max_steps=15, bool flip=false, bool on_improve=false, int every_n_steps=2, double gamma=0.5, double rounding=1e-4) 
+    : ipm_acc(ipm_acc), ipm_feas(ipm_feas), no_optim_steps(no_optim_steps), delta_steps(delta_steps),
+      max_steps(max_steps), flip(flip), on_improve(on_improve), every_n_steps(every_n_steps), gamma(gamma), rounding(rounding) {}
 };
 
 struct  BendersRet {
@@ -167,6 +179,9 @@ inline void apply_options(Highs & problem, std::vector<OptionValue> const & opti
   for (auto & option : optionValues) option.apply_to(problem);
 }
 
+
+
+
 HighsInt find_row_index(std::vector<HighsInt> const & csr_starts, HighsInt index);
 RowDivision divide_rows(std::vector<HighsInt> const & csr_index, std::vector<HighsInt> const & csr_starts, std::set<HighsInt> const & master_variables); 
 RowDivision divide_rows(HighsSparseMatrix & constraint_matrix, std::set<HighsInt> const & master_variables);
@@ -188,12 +203,12 @@ BendersProblems decompose_problem(HighsLp & problem, std::set<HighsInt> const & 
 std::vector<double> get_master_multipliers(Highs const & subproblem, std::set<HighsInt> const & master_variables);
 NonZeroVector create_nonzero_vector(std::vector<double> const & base_vector);
 NonZeroVector add_mu_entry(NonZeroVector vector, HighsInt mu_index);
-void add_nonzero_row(Highs & problem, double lower, double upper, NonZeroVector const & row_vector);
+void add_nonzero_row(Highs & problem, double lower, double upper, NonZeroVector const & row_vector, std::string const & name="");
 // void add_nonzero_col(Highs & problem, double col_cost, double col_lower, double col_upper, NonZeroVector const & col_vector);
 // void add_cut(BendersProblems & problems, std::set<HighsInt> const & master_variables, std::vector<double> const & master_values, CutType cut_type);
 // std::pair<std::vector<double>, double> add_cut(Highs & master, CutData const & cut, std::set<HighsInt> const & master_variables, std::vector<double> const & master_values, CutType cut_type, int subproblem_no=0);
 // std::pair<std::vector<double>, double> add_cut(Highs & master, Highs const & subproblem, std::set<HighsInt> const & master_variables, std::vector<double> const & master_values, CutType cut_type, int subproblem_no=0);
-Cut form_cut(Highs & master, Highs const & subproblem, std::set<HighsInt> const & master_variables, std::vector<double> const & master_values, CutType cut_type, int subproblem_no=0);
+Cut form_cut(Highs const & subproblem, std::set<HighsInt> const & master_variables, std::vector<double> const & master_values, CutType cut_type, int subproblem_no=0);
 // void solve_feasibility_subproblem(Highs & subproblem);
 // BendersIterationInfo solve_feasibility_subproblem(Highs & feas_subproblem); 
 std::set<HighsInt> discover_master_variables(std::vector<std::string> const & variable_names, std::regex const & master_name_pattern);
@@ -241,3 +256,90 @@ inline std::vector<HighsInt> set_to_vector(std::set<HighsInt> const & set) {
   return {set.begin(), set.end()};
 }
 
+class MasterProblem {
+  protected:
+  Highs master {};
+  public:
+  virtual void pass_model(HighsModel const & model) {master.passModel(model);};
+  virtual ~MasterProblem() {};
+  virtual void solve(double UBD, double LBD, bool is_close) = 0;
+  virtual void add_cut(CutData const & cut);
+  double getLBD() const { double lbd; master.getDualObjectiveValue(lbd); return lbd; }
+  virtual std::vector<double> getMasterValues() const { return master.getSolution().col_value; }
+};
+
+class BendersAlgorithm {
+  double LBD = -kHighsInf, UBD = kHighsInf;
+  double eps = 1e-3;
+  int max_iter = 500;
+  bool error = false;
+  int iter = 0;
+  protected:
+  bool signalize_error() { error = true; }
+  public: 
+  virtual ~BendersAlgorithm() {};
+  BendersRet virtual benders_loop(MultiBendersProblems & problems, std::set<HighsInt> const & master_variables,
+                     std::vector<double> const & starting_point, MasterProblem & master_solver);
+  
+  struct SubproblemsResult { bool all_feasible; CutData cut; double subproblem_costs; };
+  SubproblemsResult solve_subproblems(std::vector<Highs> & subproblems, 
+    std::vector<Highs> & feas_subproblems, std::set<HighsInt> const & master_variables, std::vector<double> const & master_values);
+  // struct MasterResult {double LBD; std::vector<double> master_values; };
+  // virtual MasterResult solve_master_problem(Highs & master, CutData const & cut);
+  double getLBD() const { return LBD; }
+  double getUBD() const { return UBD; }
+  double get_abs_gap() const { return UBD - LBD; }
+  double get_rel_gap() const { return UBD == kHighsInf ? kHighsInf : (UBD-LBD)/(1 + std::fabs(UBD)); }
+  double is_close() const { return get_abs_gap() <= 10 * eps || get_rel_gap() <= 10 * eps;  }
+  double is_gap_closed() const { return get_abs_gap() <= eps; }
+  bool was_error() const { return was_error; }
+  
+  
+};
+
+
+class StandardMasterProblem : public MasterProblem {
+  public:
+  void solve(double UBD, double LBD, bool is_close, bool all_feasible); 
+};
+
+
+class ProximalIPMMasterProblem : public MasterProblem {
+  int optim_steps;
+  int max_optim_steps;
+  int increment_every_n_iter;
+  int feas_iter_counter;
+  public:
+  ProximalIPMMasterProblem(int starting_optim_steps = 5, int max_optim_steps = 15, int increment_every_n_iter=2):
+    optim_steps(starting_optim_steps), max_optim_steps(max_optim_steps),
+    increment_every_n_iter(increment_every_n_iter), feas_iter_counter(0) 
+    {}
+   void solve(double UBD, double LBD, bool is_close, bool all_feasible); 
+};
+
+// class StandardBenders : public BendersAlgorithm {};
+
+// class StabilisedBenders : public BendersAlgorithm {
+//   public:
+//   virtual ~StabilisedBenders() {};
+//   void virtual setup_stabilisation(Highs & master) = 0;
+//   void virtual update_stabilisation(Highs & master) = 0;
+// };
+
+// class LevelSetQpBenders : public StabilisedBenders {
+
+// };
+
+// class LevelSetIPMBenders : public StabilisedBenders {
+
+// };
+
+// class ProximalIPMBenders : public StabilisedBenders {
+//   int starting_optim_steps;
+//   int max_optim_steps;
+//   int increment_every_n_iter;
+//   public:
+//   ProximalIPMBenders(int no_optim_steps = 5, int max_steps = 15, int every_n_steps=2):
+//     starting_optim_steps(no_optim_steps), max_optim_steps(max_steps), increment_every_n_iter(increment_every_n_iter) 
+//     {}
+// };

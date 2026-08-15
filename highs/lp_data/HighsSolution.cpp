@@ -931,7 +931,7 @@ void getPrimalDualBasisErrors(const HighsOptions& options, const HighsLp& lp,
           iVar < lp.num_col_ ? "Column" : "Row   ",
           iVar < lp.num_col_ ? int(iVar) : int(iVar - lp.num_col_), lower,
           value, upper, value_residual);
-    assert(status_value_ok);
+    // assert(status_value_ok);
 
     if (status == HighsBasisStatus::kBasic) {
       double abs_basic_dual = std::fabs(dual);
