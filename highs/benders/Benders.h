@@ -124,6 +124,7 @@ struct  BendersRet {
   double master_time;
   double sub_time;
   bool first_optim;
+  bool was_error = false;
   BendersRet(double gap=0, double res=kHighsInf, BendersIterationInfo info={}, int iter=-1, bool first_optim = false, std::vector<int> UBD_iters= std::vector<int>{}, std::vector<int> feas_iters= std::vector<int>{},
      std::vector<int> recentring_steps = {}, std::vector<int> optim_steps = {}, MasterAdaptationParams adapt={})
     : master_time(info.master_time), sub_time(info.sub_time), result(res), iter(iter), first_optim(first_optim),
@@ -142,7 +143,7 @@ struct  BendersRet {
     int max_opt = optim_steps.empty() ? 0 : *std::max_element(optim_steps.begin(), optim_steps.end());
 
     of << problem << adapt.ipm_acc << result << result - expected  << gap << iter << last_imp << (int) feas_iters.size() 
-       << rec_mean << max_rec << opt_mean << max_opt << master_time << sub_time << first_optim;
+       << rec_mean << max_rec << opt_mean << max_opt << master_time << sub_time << first_optim << was_error;
     of.newline();
 
     auto fp = std::fopen("/tmp/exac_results.csv", "a");
@@ -242,6 +243,8 @@ BendersRet benders_l_shaped(SmpsCoreStructure & core, StochasticTree & tree,
   std::vector<OptionValue> const & masterOptions={}, MasterAdaptationParams adapt={}
 );
 
+
+
 inline double vecsum(std::vector<double> const & vec) {
   return std::accumulate(vec.begin(), vec.end(), 0.);
 }
@@ -256,17 +259,33 @@ inline std::vector<HighsInt> set_to_vector(std::set<HighsInt> const & set) {
   return {set.begin(), set.end()};
 }
 
+inline bool is_close(double UBD, double LBD, double eps) {
+  double absgap = UBD-LBD;
+  double relgap = UBD < kHighsInf ? (UBD-LBD)/(1+std::fabs(UBD)) : kHighsInf;
+  return absgap < 10*eps || relgap < 10*eps;
+}
+
 class MasterProblem {
   protected:
+  double master_time = 0;
   Highs master {};
+  int num_mu;
+  static void add_cut_to_problem(Highs & problem, CutData const & cut, std::string const & name);
   public:
-  virtual void pass_model(HighsModel const & model) {master.passModel(model);};
+  virtual void pass_model(HighsModel const & model, int no_mu=1) {master.passModel(model); num_mu = no_mu;};
   virtual ~MasterProblem() {};
-  virtual void solve(double UBD, double LBD, bool is_close) = 0;
-  virtual void add_cut(CutData const & cut);
-  double getLBD() const { double lbd; master.getDualObjectiveValue(lbd); return lbd; }
+  virtual bool solve(double UBD, double LBD, double eps, double solution_cost) = 0;
+  virtual void add_cut(CutData const & cut, int iter);
+  double getLBD() const { double lbd; master.getDualObjectiveValue(lbd); return lbd; } // TODO might not work for MILP?
+  double get_master_time() const { return master_time; }
   virtual std::vector<double> getMasterValues() const { return master.getSolution().col_value; }
+  std::vector<double> starting_point();
 };
+
+BendersRet benders_l_shaped2(SmpsCoreStructure & core, StochasticTree & tree, 
+  std::vector<double> const & starting_point, double subproblem_lb, MasterProblem & master_solver,
+  double eps=1e-3, int max_iter=1e2
+);
 
 class BendersAlgorithm {
   double LBD = -kHighsInf, UBD = kHighsInf;
@@ -275,32 +294,29 @@ class BendersAlgorithm {
   bool error = false;
   int iter = 0;
   protected:
-  bool signalize_error() { error = true; }
+  // bool signalize_error() { error = true; }
   public: 
+  BendersAlgorithm(double eps=1e-3, int max_iter=500) : eps(eps), max_iter(max_iter) {}
   virtual ~BendersAlgorithm() {};
+  //TODO delete params
   BendersRet virtual benders_loop(MultiBendersProblems & problems, std::set<HighsInt> const & master_variables,
                      std::vector<double> const & starting_point, MasterProblem & master_solver);
   
-  struct SubproblemsResult { bool all_feasible; CutData cut; double subproblem_costs; };
+  struct SubproblemsResult { bool all_feasible; CutData cut; double subproblem_costs; double time; };
   SubproblemsResult solve_subproblems(std::vector<Highs> & subproblems, 
     std::vector<Highs> & feas_subproblems, std::set<HighsInt> const & master_variables, std::vector<double> const & master_values);
-  // struct MasterResult {double LBD; std::vector<double> master_values; };
-  // virtual MasterResult solve_master_problem(Highs & master, CutData const & cut);
   double getLBD() const { return LBD; }
   double getUBD() const { return UBD; }
   double get_abs_gap() const { return UBD - LBD; }
   double get_rel_gap() const { return UBD == kHighsInf ? kHighsInf : (UBD-LBD)/(1 + std::fabs(UBD)); }
-  double is_close() const { return get_abs_gap() <= 10 * eps || get_rel_gap() <= 10 * eps;  }
+  // double is_close() const { return get_abs_gap() <= 10 * eps || get_rel_gap() <= 10 * eps;  }
   double is_gap_closed() const { return get_abs_gap() <= eps; }
-  bool was_error() const { return was_error; }
-  
-  
+  bool was_error() const { return error; }
 };
-
 
 class StandardMasterProblem : public MasterProblem {
   public:
-  void solve(double UBD, double LBD, bool is_close, bool all_feasible); 
+  bool solve(double UBD, double LBD, double eps, double solution_cost); 
 };
 
 
@@ -314,32 +330,54 @@ class ProximalIPMMasterProblem : public MasterProblem {
     optim_steps(starting_optim_steps), max_optim_steps(max_optim_steps),
     increment_every_n_iter(increment_every_n_iter), feas_iter_counter(0) 
     {}
-   void solve(double UBD, double LBD, bool is_close, bool all_feasible); 
+  void pass_model(HighsModel const & model, int num_mu=1);
+  bool solve(double UBD, double LBD, double eps, double solution_cost); 
 };
 
-// class StandardBenders : public BendersAlgorithm {};
+class LevelSetMasterProblem : public MasterProblem {
+  protected:
+  Highs level_set_master {};
+  bool in_level = false;
+  int level_set_constraint = -1;
+  virtual bool is_in_level(double UBD, double LBD, double eps) const = 0;
+  public:
+   void add_cut(CutData const & cut, int iter);
+   void pass_model(HighsModel const & model, int num_mu=1);
+   std::vector<double> getMasterValues() const { return (in_level ? level_set_master : master).getSolution().col_value; }
+  
+};
 
-// class StabilisedBenders : public BendersAlgorithm {
-//   public:
-//   virtual ~StabilisedBenders() {};
-//   void virtual setup_stabilisation(Highs & master) = 0;
-//   void virtual update_stabilisation(Highs & master) = 0;
-// };
+class LevelSetQpMasterProblem : public LevelSetMasterProblem {
+  double gamma;
+  double orig_gamma;
+  double omega;
+  double rounding;
+  double projected_improvement;
+  int error_counter = 0;
+  double prev_UBD = kHighsInf;
+  //TODO what is the starting point is passed?
+  bool is_in_level(double UBD, double LBD, double eps) const {
+    return UBD < kHighsInf && LBD > -kHighsInf && !is_close(UBD, LBD, eps);
+  }
+  HighsHessian create_level_set_hessian(int num_master_variables, int num_mu) const;
+  std::pair<NonZeroVector, double> create_distance_costs() const;
+  public:
+  LevelSetQpMasterProblem(double gamma, double omega, double rounding=1e-8) : gamma(gamma), orig_gamma(gamma), omega(omega), rounding(rounding) {}
+   bool solve(double UBD, double LBD, double eps, double solution_cost); 
+   void pass_model(HighsModel const & model, int num_mu=1);
+};
 
-// class LevelSetQpBenders : public StabilisedBenders {
-
-// };
-
-// class LevelSetIPMBenders : public StabilisedBenders {
-
-// };
-
-// class ProximalIPMBenders : public StabilisedBenders {
-//   int starting_optim_steps;
-//   int max_optim_steps;
-//   int increment_every_n_iter;
-//   public:
-//   ProximalIPMBenders(int no_optim_steps = 5, int max_steps = 15, int every_n_steps=2):
-//     starting_optim_steps(no_optim_steps), max_optim_steps(max_steps), increment_every_n_iter(increment_every_n_iter) 
-//     {}
-// };
+class LevelSetIpmMasterProblem : public LevelSetMasterProblem {
+  double gamma_l;
+  double gamma_u;
+  //TODO tidy
+  bool is_in_level(double UBD, double LBD, double eps) const {
+    return (UBD == kHighsInf) || !is_close(UBD, LBD, eps);
+  }
+  public:
+  LevelSetIpmMasterProblem(double gamma_l, double gamma_u): gamma_l(gamma_l), gamma_u(gamma_u) {}
+  bool solve(double UBD, double LBD, double eps, double solution_cost); 
+  void pass_model(HighsModel const & model, int num_mu=1);
+};
+//TODO add vars at pass model?
+//TODO master solver reset?

@@ -186,28 +186,12 @@ void Solver::recentring() {
   double frozen_mu = options_.frozen_mu > 0 ? options_.frozen_mu : it_->computeMu();
   bool recentring_success;
   for (Int i = 0; i < options_.max_recentring_iter; ++i) {
-    
     it_->mu = frozen_mu;
-    // if (isWellCentered() || prepareIter(true) || predictor(false)) break;
-    // bool a = isWellCentered();
-    // bool b = prepareIter(true);
-    // bool c = predictor(false);
-    // bool d = correctors(false);
-    bool f = isFeasible();
-    bool c = isWellCentered();
-    bool p = prepareIter(true);
-    bool pr = predictor(false);
-    recentring_success = f && c;
-    // recentring_success = isFeasible() && isWellCentered();
-    if (recentring_success || p || pr) break;
-    // if (recentring_success || prepareIter(true) || predictor(false)) break;
+    recentring_success = isFeasible() && isWellCentered();
+    if (recentring_success || prepareIter(true) || predictor(false)) break;
     makeStep(true);
   }
   recentring_count = iter_ - it;
-  // auto recentring_st = iter_ - it;
-  // std::ofstream("/tmp/ipm_stats.csv", std::ios::app) << it << "," << recentring_count 
-    // << "," << options_.recentring_step << "\n";
-  // std::ofstream("/tmp/steps_stats", std::ios::app)<< recentring_st << std::endl;
   iter_ = it;
   info_.status = st;
   if (options_.max_recentring_iter > 0 && st != kStatusPDFeas) {
