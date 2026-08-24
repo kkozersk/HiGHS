@@ -330,7 +330,7 @@ int multi_run2(SmpsTestCase smps, int max_scenarios, Start start, MasterProblem 
   std::ofstream("/tmp/errors.csv", std::ios::app) << smps.note  << "," << std::endl;
   std::ofstream ("/tmp/gammas.csv", std::ios::app) << smps.note  << "," << std::endl;
 
-  auto res = benders_l_shaped2(core_and_tree.first, core_and_tree.second, starting_point, smps.sub_lb, master_solver, 1e-3, max_iters);
+  auto res = benders_l_shaped(core_and_tree.first, core_and_tree.second, starting_point, smps.sub_lb, master_solver, 1e-3, max_iters);
   res.note(smps.expected, smps.note);
   auto diff = smps.expected != kHighsInf ? std::fabs(res.result - smps.expected) : 0.0;
   return diff < 1e-3 ? res.iter : max_iters;

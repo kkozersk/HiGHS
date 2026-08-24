@@ -525,7 +525,7 @@ BendersRet multi_benders_loop(MultiBendersProblems & problems, std::set<HighsInt
   return {UBD-LBD, UBD, info, iter, first_optim, UBD_updates, feasible_iters, recentring_counts, optim_counts, params};
 }
 
-BendersRet benders_l_shaped2(SmpsCoreStructure & core, StochasticTree & tree, 
+BendersRet benders_l_shaped(SmpsCoreStructure & core, StochasticTree & tree, 
   std::vector<double> const & starting_point, double subproblem_lb, MasterProblem & master_solver, double eps, int max_iter) {
   assert(core.is_valid() && tree.root != nullptr && core.stage_submatrix.size() == 2 && tree.root->get_no_children() == 1);
   auto & stage_1st = tree.root->get_child(0);
@@ -539,7 +539,6 @@ BendersRet benders_l_shaped2(SmpsCoreStructure & core, StochasticTree & tree,
   auto row_division = divide_rows(core.a_matrix_, master_variables);
   auto & master = problems.master;
   auto master_lp = modify_problem(core, *stage_1st);
-  std::ofstream("/tmp/linking.csv", std::ios::app) << row_division.mixed_rows.size() << "\n";
   create_master_problem(master, master_lp, master_variables, row_division.subproblem_rows, subproblem_lb, 1);
   // create_master_problem(master, master_lp, master_variables, row_division.subproblem_rows, subproblem_lb, aggregate_cuts ? 1 : no_subproblems);
   // auto start = starting_point.empty() ? quick_master_solve(problems.master) : starting_point;

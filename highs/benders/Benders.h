@@ -237,13 +237,6 @@ std::set<HighsInt> index_set_intersection(std::set<HighsInt> const & a, std::set
 // void decompose_problem(MultiBendersProblems & problems, HighsLp & base_problem, std::set<HighsInt> const & master_variables, std::vector<std::set<HighsInt>> const & subproblems_variables);
 // void create_subproblem(Highs & subproblem, HighsLp const & base_problem, std::set<HighsInt> const & master_variables, std::set<HighsInt> const & other_rows, std::set<HighsInt> const & subproblem_variables, std::set<HighsInt> const & master_only_variables); 
 
-BendersRet benders_l_shaped(SmpsCoreStructure & core, StochasticTree & tree, 
-  std::vector<double> const & starting_point, double subproblem_lb,
-  double eps=1e-3, int max_iter=1e2, bool aggregate_cuts=false,
-  std::vector<OptionValue> const & masterOptions={}, MasterAdaptationParams adapt={}
-);
-
-
 
 inline double vecsum(std::vector<double> const & vec) {
   return std::accumulate(vec.begin(), vec.end(), 0.);
@@ -282,7 +275,7 @@ class MasterProblem {
   std::vector<double> starting_point();
 };
 
-BendersRet benders_l_shaped2(SmpsCoreStructure & core, StochasticTree & tree, 
+BendersRet benders_l_shaped(SmpsCoreStructure & core, StochasticTree & tree, 
   std::vector<double> const & starting_point, double subproblem_lb, MasterProblem & master_solver,
   double eps=1e-3, int max_iter=1e2
 );

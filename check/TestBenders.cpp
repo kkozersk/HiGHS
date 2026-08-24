@@ -764,7 +764,7 @@ TEST_CASE("test-solve-l-shaped-fxm", "[highs-benders]") {
   auto & tree = core_and_tree.second;
   auto core = core_and_tree.first;
   StandardMasterProblem master_solver {}; 
-  auto res = benders_l_shaped2(core_and_tree.first, core_and_tree.second, {}, 0, master_solver, 1e-3, 500);
+  auto res = benders_l_shaped(core_and_tree.first, core_and_tree.second, {}, 0, master_solver, 1e-3, 500);
   REQUIRE(std::fabs(res.result - 18417.066) < 1e-3);
   REQUIRE(res.iter == 40);
 }
@@ -775,7 +775,7 @@ TEST_CASE("test-solve-l-shaped-pltexpA", "[highs-benders]") {
   auto & tree = core_and_tree.second;
   auto core = core_and_tree.first;
   StandardMasterProblem master_solver {}; 
-  auto res = benders_l_shaped2(core_and_tree.first, core_and_tree.second, {}, -100, master_solver, 1e-3, 500);
+  auto res = benders_l_shaped(core_and_tree.first, core_and_tree.second, {}, -100, master_solver, 1e-3, 500);
   REQUIRE(std::fabs(res.result - -9.47935) < 1e-3);
   REQUIRE(res.iter == 1);
 }
@@ -786,7 +786,7 @@ TEST_CASE("test-solve-l-shaped-storm", "[highs-benders]") {
   auto & tree = core_and_tree.second;
   auto core = core_and_tree.first;
   StandardMasterProblem master_solver {}; 
-  auto res = benders_l_shaped2(core_and_tree.first, core_and_tree.second, {}, 0, master_solver, 1e-3, 500);
+  auto res = benders_l_shaped(core_and_tree.first, core_and_tree.second, {}, 0, master_solver, 1e-3, 500);
   REQUIRE(std::fabs(res.result - 15535235.73) < 1e-3);
   REQUIRE(res.iter == 29);
 }
