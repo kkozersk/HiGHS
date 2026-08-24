@@ -204,7 +204,10 @@ class MasterProblem {
   void solve_problem_with_logging(Highs & problem);
   static void add_cut_to_problem(Highs & problem, CutData const & cut, std::string const & name);
   public:
-  virtual void pass_model(HighsModel const & model, int no_mu=1) {master.passModel(model); num_mu = no_mu;};
+  virtual void pass_model(HighsModel const & model, int no_mu=1) {
+    master.passModel(model); num_mu = no_mu;  
+    master.setOptionValue("output_flag", false); master.setOptionValue("log_to_console", false);
+  };
   virtual ~MasterProblem() {};
   virtual bool solve(double UBD, double LBD, double eps, double solution_cost) = 0;
   virtual void add_cut(CutData const & cut, int iter);
