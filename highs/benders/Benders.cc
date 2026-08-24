@@ -436,7 +436,6 @@ void MasterProblem::add_cut(CutData const & cut, int iter) {
 }
 
 bool StandardMasterProblem::solve(double UBD, double LBD, double eps, double solution_cost) {
-  BendersIterationInfo info;
   solve_problem_with_logging(master);
   return !error;
 }
@@ -508,7 +507,6 @@ std::pair<NonZeroVector, double> LevelSetQpMasterProblem::create_distance_costs(
 
 bool LevelSetQpMasterProblem::solve(double UBD, double LBD, double eps, double solution_cost) {
   auto distance_costs = create_distance_costs(); //TODO ugly placement  
-  BendersIterationInfo info;
     solve_problem_with_logging(master);
     LBD = master.getObjectiveValue();
     double real_improvement = prev_UBD-solution_cost; 
@@ -528,16 +526,15 @@ bool LevelSetQpMasterProblem::solve(double UBD, double LBD, double eps, double s
       level_set_master.changeObjectiveOffset(distance_costs.second);
       
       solve_problem_with_logging(level_set_master);
-      if (info.was_error) {
+      if (error) {
           if (++error_counter > 5) omega = 1.0;
           gamma = orig_gamma;
           in_level = false;
-          info.was_error = false;
+          error = false;
       }
         
     }
-    master_time += info.master_time;
-    return !info.was_error;
+    return !error;
 }
 
 void LevelSetIpmMasterProblem::pass_model(HighsModel const & model, int no_mu) {
@@ -582,16 +579,13 @@ void ProximalIPMMasterProblem::pass_model(HighsModel const & model, int no_mu) {
 //TODO rename master_problem?
 
 std::vector<double> MasterProblem::starting_point() {
-  BendersIterationInfo info;
   solve_problem_with_logging(master);
-  master_time = info.master_time;
   if (master.getModelStatus() != HighsModelStatus::kUnbounded) // TODO what if imprecise?
     return master.getSolution().col_value;
   auto copy_costs = master.getLp().col_cost_;
   std::vector<double> zeros (master.getNumCol(), 0);
   master.changeColsCost(0, master.getNumCol()-1, zeros.data());
   solve_problem_with_logging(master);
-  master_time = info.master_time;
   master.changeColsCost(0, master.getNumCol()-1, copy_costs.data());
   return master.getSolution().col_value; 
   //TODO what if error?
