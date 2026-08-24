@@ -22,8 +22,6 @@
 #include "util/HighsSparseMatrix.h"
 #include "util/HighsTimer.h"
 
-extern int recentring_count;
-extern int optim_count;
 namespace hipo {
 
 class Solver {

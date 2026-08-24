@@ -7,8 +7,6 @@
 #include "hipo/ipm/Parameters.h"
 #include "ipm/hipo/auxiliary/Log.h"
 #include "parallel/HighsParallel.h"
-int optim_count =  0;
-int recentring_count = 0;
 
 namespace hipo {
 
@@ -180,7 +178,6 @@ bool Solver::isFeasible() const {
 
 void Solver::recentring() {
   sigma_ = 1;
-  optim_count = iter_;
   auto it = iter_;
   auto st = info_.status;
   double frozen_mu = options_.frozen_mu > 0 ? options_.frozen_mu : it_->computeMu();
@@ -191,7 +188,6 @@ void Solver::recentring() {
     if (recentring_success || prepareIter(true) || predictor(false)) break;
     makeStep(true);
   }
-  recentring_count = iter_ - it;
   iter_ = it;
   info_.status = st;
   if (options_.max_recentring_iter > 0 && st != kStatusPDFeas) {
