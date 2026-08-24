@@ -143,13 +143,13 @@ void create_feasibility_subproblem(Highs & feas_subproblem, HighsLp const & base
 }
 
 //TODO sub and feas sub have too many rows and columns
-void decompose_problem(BendersProblems & problems, HighsLp const & base_problem, std::set<HighsInt> const & master_variables, RowDivision const & row_division, double subproblem_lb) {
+void decompose_problem(MultiBendersProblems & problems, HighsLp const & base_problem, std::set<HighsInt> const & master_variables, RowDivision const & row_division, double subproblem_lb) {
   create_master_problem(problems.master, base_problem, master_variables, row_division.subproblem_rows, subproblem_lb);
-  create_subproblem(problems.subproblem, base_problem, master_variables, row_division.master_only_rows);
-  create_feasibility_subproblem(problems.feas_subproblem, base_problem, master_variables, row_division.mixed_rows, row_division.master_only_rows);
+  create_subproblem(problems.subproblems.at(0), base_problem, master_variables, row_division.master_only_rows);
+  create_feasibility_subproblem(problems.feas_subproblems.at(0), base_problem, master_variables, row_division.mixed_rows, row_division.master_only_rows);
 }
 
-void decompose_problem(BendersProblems & problems, HighsLp & base_problem, std::set<HighsInt> const & master_variables, double subproblem_lb) {
+void decompose_problem(MultiBendersProblems & problems, HighsLp & base_problem, std::set<HighsInt> const & master_variables, double subproblem_lb) {
   auto row_division = divide_rows(base_problem.a_matrix_, master_variables);
   decompose_problem(problems, base_problem, master_variables, row_division, subproblem_lb);
 }
@@ -248,12 +248,6 @@ double calculate_solution_cost(Highs const & master, double subproblem_cost, std
   return subproblem_cost + master_cost + offset;
 }
 
-double calculate_solution_cost(std::vector<double> const & master_costs, double offset, double subproblem_cost, std::set<HighsInt> const & master_variables, std::vector<double> const & master_values) {
-  int no_master_vars = master_variables.size();
-  double master_cost = std::inner_product(master_values.begin(), master_values.begin() + no_master_vars, master_costs.begin(), 0.);
-  return subproblem_cost + master_cost + offset;
-}
-
 double calculate_solution_cost(Highs const & master, Highs const & subproblem, std::set<HighsInt> const & master_variables, std::vector<double> const & master_values) {
   return calculate_solution_cost(master, subproblem.getObjectiveValue(), master_variables, master_values);
 }
@@ -263,53 +257,13 @@ double calculate_solution_cost(Highs const & master, Highs const & subproblem, s
 //   return benders(base_problem, master_variables, starting_point);
 // }
 
-std::vector<double> quick_master_solve(Highs & master) {
-  master.run();
-  auto st = master.getModelStatus();
-  // TOOD -- asssert on error?
-  return master.getSolution().col_value;
-}
-
 BendersRet benders(HighsLp & base_problem, std::set<HighsInt> const & master_variables, std::vector<double> const & starting_point, double subproblem_lb,
    double eps, int max_iter) { 
-  BendersProblems problems;
+  MultiBendersProblems problems {1};
+  StandardMasterProblem master_solver {};
   decompose_problem(problems, base_problem, master_variables, subproblem_lb);
-  // modify_master(problems.master);
-  return benders_loop(problems, master_variables, 
-    starting_point.empty() ? quick_master_solve(problems.master) : starting_point, eps, max_iter);
-}
-
-BendersRet benders_loop(BendersProblems & problems, std::set<HighsInt> const & master_variables,
-   std::vector<double> const & starting_point, double eps, int max_iter) { 
-  int no_master_rows = problems.master.getNumRow();
-  BendersIterationInfo info;
-  auto master_values = starting_point;
-  int iter = 0;
-  double UBD = kHighsInf, LBD = -kHighsInf;
-  while (UBD - LBD > eps && !info.was_error && iter++ < max_iter) {
-    bool was_feasible = true;
-    info = solve_subproblem(problems.subproblem, info, master_variables, master_values);
-    if (info.was_subproblem_feasible) {
-      double solution_cost = calculate_solution_cost(problems.master, problems.subproblem, master_variables, master_values);
-      UBD = std::min(UBD, solution_cost);
-      if (UBD - LBD <= eps) break;
-      auto cut = form_cut(problems.subproblem, master_variables, master_values, CutType::Objective);
-      add_nonzero_row(problems.master, cut.rhs, kHighsInf, cut.coefficients);
-    }
-    else {
-      was_feasible = false;
-      info = solve_feasibility_subproblem(problems.feas_subproblem, info, master_variables, master_values);
-      auto cut = form_cut(problems.feas_subproblem, master_variables, master_values, CutType::Feasibility);
-      add_nonzero_row(problems.master, cut.rhs, kHighsInf, cut.coefficients);
-      
-    }
-    info = solve_master(problems.master, info);
-    if (problems.master.getModelStatus() != HighsModelStatus::kOptimal && problems.master.getModelStatus() != HighsModelStatus::kUnknown)
-      assert(1 == 0);
-    master_values = problems.master.getSolution().col_value;
-    problems.master.getDualObjectiveValue(LBD);
-  }
-  return {UBD-LBD, UBD, info, iter};
+  BendersAlgorithm benders(eps, max_iter);
+  return benders.benders_loop(problems, master_variables, starting_point, master_solver);
 }
 
 // BendersRet multi_benders_loop(MultiBendersProblems & problems, std::set<HighsInt> const & master_variables,
@@ -379,15 +333,11 @@ BendersRet benders_l_shaped(SmpsCoreStructure & core, StochasticTree & tree,
   auto const & node_ranges = core.stage_submatrix.at(stage_1st->get_timestage());
   for (int i = node_ranges.col_idx_begin; i < node_ranges.col_idx_end; ++i) master_variables.emplace(i);
 
-  MultiBendersProblems problems;
+  MultiBendersProblems problems {no_subproblems};
   auto row_division = divide_rows(core.a_matrix_, master_variables);
   auto & master = problems.master;
   auto master_lp = modify_problem(core, *stage_1st);
   create_master_problem(master, master_lp, master_variables, row_division.subproblem_rows, subproblem_lb, 1);
-  // create_master_problem(master, master_lp, master_variables, row_division.subproblem_rows, subproblem_lb, aggregate_cuts ? 1 : no_subproblems);
-  // auto start = starting_point.empty() ? quick_master_solve(problems.master) : starting_point;
-  problems.subproblems = std::vector<Highs> (no_subproblems);
-  problems.feas_subproblems = std::vector<Highs> (no_subproblems);
   auto a = construct_extension_matrix(core, row_division.mixed_rows);
   for (int i = 0; i < no_subproblems; ++i) {
     auto & stage_2nd = stage_1st->get_child(i);

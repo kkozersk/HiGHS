@@ -585,10 +585,10 @@ TEST_CASE("test-get-multipliers", "[highs-benders]") {
 TEST_CASE("test-add-objective-cut", "[highs-benders]") {
   auto lp = get_simple_test_problem();
   std::set<HighsInt> master_variables {0}; //  with complicating variables 0
-  BendersProblems problems;
+  MultiBendersProblems problems;
   decompose_problem(problems, lp, master_variables, -1e3);
   auto & master = problems.master;
-  auto & subproblem = problems.subproblem;
+  auto & subproblem = problems.subproblems.at(0);
   
   auto num_col = master.getLp().num_col_;
   auto num_row = master.getLp().num_row_;
@@ -647,11 +647,11 @@ TEST_CASE("test-discover-master-variables", "[highs-benders]") {
 TEST_CASE("test-add-feasibility-cut", "[highs-benders]") {
   auto lp = get_simple_test_problem();
   std::set<HighsInt> master_variables {0}; //  with complicating variables 0
-  BendersProblems problems;
+  MultiBendersProblems problems;
   decompose_problem(problems, lp, master_variables, -1e3);
   auto & master = problems.master;
-  auto & subproblem = problems.subproblem;
-  auto & feas_subproblem = problems.feas_subproblem;
+  auto & subproblem = problems.subproblems.at(0);
+  auto & feas_subproblem = problems.feas_subproblems.at(0);
 
   auto num_col = master.getLp().num_col_;
   auto num_row = master.getLp().num_row_;
