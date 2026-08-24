@@ -737,9 +737,6 @@ bool LevelSetQpMasterProblem::solve(double UBD, double LBD, double eps, double s
       level_set_master.changeColsCost(distance_costs.first.number_of_nonzeros, distance_costs.first.nonzero_indices.data(), distance_costs.first.nonzero_values.data());
       level_set_master.changeObjectiveOffset(distance_costs.second);
       
-      // std::vector<int> indices(level_set_master.getNumCol());
-      // for (int i = 0; i < level_set_master.getNumCol(); ++i) indices[i] = i;
-      // level_set_master.setSolution(level_set_master.getNumCol(), indices.data(), master.getSolution().col_value.data());
       info = solve_master(level_set_master, info);
       if (info.was_error) {
           if (++error_counter > 5) omega = 1.0;
