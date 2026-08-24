@@ -230,7 +230,6 @@ class BendersAlgorithm {
   public: 
   BendersAlgorithm(double eps=1e-3, int max_iter=500) : eps(eps), max_iter(max_iter) {}
   virtual ~BendersAlgorithm() {};
-  //TODO delete params
   BendersRet virtual benders_loop(MultiBendersProblems & problems, std::set<HighsInt> const & master_variables,
                      std::vector<double> const & starting_point, MasterProblem & master_solver);
   
@@ -302,7 +301,6 @@ class LevelSetQpMasterProblem : public LevelSetMasterProblem {
 class LevelSetIpmMasterProblem : public LevelSetMasterProblem {
   double gamma_l;
   double gamma_u;
-  //TODO tidy
   bool is_in_level(double UBD, double LBD, double eps) const {
     return (UBD == kHighsInf) || !is_close(UBD, LBD, eps);
   }

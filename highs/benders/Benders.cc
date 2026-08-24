@@ -561,7 +561,6 @@ bool LevelSetIpmMasterProblem::solve(double UBD, double LBD, double eps, double 
     }
     return !error;
 }
-//TODO delete BendersInfo
 
 void ProximalIPMMasterProblem::pass_model(HighsModel const & model, int no_mu) {
   MasterProblem::pass_model(model, no_mu);
@@ -576,7 +575,6 @@ void ProximalIPMMasterProblem::pass_model(HighsModel const & model, int no_mu) {
   // master.setOptionValue("primal_feasibility_tolerance", 1e-8);
   // master.setOptionValue("dual_feasibility_tolerance", 1e-8);
 }
-//TODO rename master_problem?
 
 std::vector<double> MasterProblem::starting_point() {
   solve_problem_with_logging(master);
