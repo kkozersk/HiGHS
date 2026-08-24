@@ -758,35 +758,98 @@ TEST_CASE("test-solve-afiro", "[highs-benders]") {
   REQUIRE(res.iter == 7);
 }
 
-TEST_CASE("test-solve-l-shaped-fxm", "[highs-benders]") {
-  auto base = std::string(HIGHS_DIR) + "/check/instances/stoch/fxm/fxm";
-  auto core_and_tree = build_stochastic_tree(base + ".cor", base + "2.tim", base + "2_6.sto");
-  auto & tree = core_and_tree.second;
-  auto core = core_and_tree.first;
-  StandardMasterProblem master_solver {}; 
-  auto res = benders_l_shaped(core_and_tree.first, core_and_tree.second, {}, 0, master_solver, 1e-3, 500);
-  REQUIRE(std::fabs(res.result - 18417.066) < 1e-3);
-  REQUIRE(res.iter == 40);
+TEST_CASE("test-solve-l-shaped-no-stabilisation", "[highs-benders]") {
+  auto dir = std::string(HIGHS_DIR) + "/check/instances/stoch/";
+  struct SmpsTestCase {
+    std::string corefile, timefile, stochfile, note;
+    double sub_lb;
+    int expected_iter_count;
+    double expected_result;
+  };
+  std::vector<SmpsTestCase> cases {
+    {dir + "fxm/fxm.cor", dir + "fxm/fxm2.tim", dir + "fxm/fxm2_6.sto", "indep-2", 0, 40, 18417.066},
+    {dir + "pltexp/pltexpA2.cor", dir + "pltexp/pltexpA2.tim", dir + "pltexp/pltexpA2_6.sto", "block-2", -100, 1, -9.47935},
+    {dir + "storm/stormG2.cor", dir + "storm/stormG2.tim", dir + "storm/stormG2_8.sto", "storm-8", 0, 29, 15535235.73},
+  };
+  for (auto test : cases) {
+    auto core_and_tree = build_stochastic_tree(test.corefile, test.timefile, test.stochfile);
+    auto & tree = core_and_tree.second;
+    auto core = core_and_tree.first;
+    StandardMasterProblem master_solver {}; 
+    auto res = benders_l_shaped(core_and_tree.first, core_and_tree.second, {}, test.sub_lb, master_solver, 1e-3, 500);
+    REQUIRE(std::fabs(res.result - test.expected_result) < 1e-3);
+    REQUIRE(res.iter == test.expected_iter_count);
+  }
 }
 
-TEST_CASE("test-solve-l-shaped-pltexpA", "[highs-benders]") {
-  auto base = std::string(HIGHS_DIR) + "/check/instances/stoch/pltexp/pltexpA2";
-  auto core_and_tree = build_stochastic_tree(base + ".cor", base + ".tim", base + "_6.sto");
-  auto & tree = core_and_tree.second;
-  auto core = core_and_tree.first;
-  StandardMasterProblem master_solver {};  
-  auto res = benders_l_shaped(core_and_tree.first, core_and_tree.second, {}, -100, master_solver, 1e-3, 500);
-  REQUIRE(std::fabs(res.result - -9.47935) < 1e-3);
-  REQUIRE(res.iter == 1);
+TEST_CASE("test-solve-l-shaped-quad-stabilisation", "[highs-benders]") {
+  auto dir = std::string(HIGHS_DIR) + "/check/instances/stoch/";
+  struct SmpsTestCase {
+    std::string corefile, timefile, stochfile, note;
+    double sub_lb;
+    int expected_iter_count;
+    double expected_result;
+  };
+  std::vector<SmpsTestCase> cases {
+    {dir + "fxm/fxm.cor", dir + "fxm/fxm2.tim", dir + "fxm/fxm2_6.sto", "indep-2", 0, 42, 18417.066},
+    {dir + "pltexp/pltexpA2.cor", dir + "pltexp/pltexpA2.tim", dir + "pltexp/pltexpA2_6.sto", "block-2", -100, 1, -9.47935},
+    {dir + "storm/stormG2.cor", dir + "storm/stormG2.tim", dir + "storm/stormG2_8.sto", "storm-8", 0, 43, 15535235.73},
+  };
+  for (auto test : cases) {
+    auto core_and_tree = build_stochastic_tree(test.corefile, test.timefile, test.stochfile);
+    auto & tree = core_and_tree.second;
+    auto core = core_and_tree.first;
+    LevelSetQpMasterProblem master_solver {0.5, 0.9}; 
+    auto res = benders_l_shaped(core_and_tree.first, core_and_tree.second, {}, test.sub_lb, master_solver, 1e-3, 500);
+    REQUIRE(std::fabs(res.result - test.expected_result) < 1e-3);
+    REQUIRE(res.iter == test.expected_iter_count);
+  }
 }
 
-TEST_CASE("test-solve-l-shaped-storm", "[highs-benders]") {
-  auto base = std::string(HIGHS_DIR) + "/check/instances/stoch/storm/stormG2";
-  auto core_and_tree = build_stochastic_tree(base + ".cor", base + ".tim", base + "_8.sto");
-  auto & tree = core_and_tree.second;
-  auto core = core_and_tree.first;
-  StandardMasterProblem master_solver {};  
-  auto res = benders_l_shaped(core_and_tree.first, core_and_tree.second, {}, 0, master_solver, 1e-3, 500);
-  REQUIRE(std::fabs(res.result - 15535235.73) < 1e-3);
-  REQUIRE(res.iter == 29);
+TEST_CASE("test-solve-l-shaped-prox-stabilisation", "[highs-benders]") {
+  auto dir = std::string(HIGHS_DIR) + "/check/instances/stoch/";
+  struct SmpsTestCase {
+    std::string corefile, timefile, stochfile, note;
+    double sub_lb;
+    int expected_iter_count;
+    double expected_result;
+  };
+  std::vector<SmpsTestCase> cases {
+    {dir + "fxm/fxm.cor", dir + "fxm/fxm2.tim", dir + "fxm/fxm2_6.sto", "indep-2", 0, 28, 18417.066},
+    {dir + "pltexp/pltexpA2.cor", dir + "pltexp/pltexpA2.tim", dir + "pltexp/pltexpA2_6.sto", "block-2", -100, 3, -9.47935},
+    {dir + "storm/stormG2.cor", dir + "storm/stormG2.tim", dir + "storm/stormG2_8.sto", "storm-8", 0, 33, 15535235.73},
+  };
+  for (auto test : cases) {
+    auto core_and_tree = build_stochastic_tree(test.corefile, test.timefile, test.stochfile);
+    auto & tree = core_and_tree.second;
+    auto core = core_and_tree.first;
+    ProximalIPMMasterProblem master_solver {5, 30, 2}; 
+    auto res = benders_l_shaped(core_and_tree.first, core_and_tree.second, {}, test.sub_lb, master_solver, 1e-3, 500);
+    REQUIRE(std::fabs(res.result - test.expected_result) < 1e-3);
+    REQUIRE(res.iter == test.expected_iter_count);
+  }
+}
+
+TEST_CASE("test-solve-l-shaped-ipm-level-set-stabilisation", "[highs-benders]") {
+  auto dir = std::string(HIGHS_DIR) + "/check/instances/stoch/";
+  struct SmpsTestCase {
+    std::string corefile, timefile, stochfile, note;
+    double sub_lb;
+    int expected_iter_count;
+    double expected_result;
+  };
+  std::vector<SmpsTestCase> cases {
+    {dir + "fxm/fxm.cor", dir + "fxm/fxm2.tim", dir + "fxm/fxm2_6.sto", "indep-2", 0, 24, 18417.066},
+    {dir + "pltexp/pltexpA2.cor", dir + "pltexp/pltexpA2.tim", dir + "pltexp/pltexpA2_6.sto", "block-2", -100, 1, -9.47935},
+    {dir + "storm/stormG2.cor", dir + "storm/stormG2.tim", dir + "storm/stormG2_8.sto", "storm-8", 0, 33, 15535235.73},
+  };
+  for (auto test : cases) {
+    auto core_and_tree = build_stochastic_tree(test.corefile, test.timefile, test.stochfile);
+    auto & tree = core_and_tree.second;
+    auto core = core_and_tree.first;
+    LevelSetIpmMasterProblem master_solver {0.49, 0.51}; 
+    auto res = benders_l_shaped(core_and_tree.first, core_and_tree.second, {}, test.sub_lb, master_solver, 1e-3, 500);
+    REQUIRE(std::fabs(res.result - test.expected_result) < 1e-3);
+    REQUIRE(res.iter == test.expected_iter_count);
+  }
 }
