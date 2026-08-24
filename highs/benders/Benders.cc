@@ -229,7 +229,6 @@ BendersIterationInfo solve_subproblem(Highs & subproblem, BendersIterationInfo i
   auto end =  subproblem.getRunTime();
   info.sub_time += end - start;
   info.was_subproblem_feasible = subproblem.getModelStatus() == HighsModelStatus::kOptimal;
-  // CsvLogger("/tmp/subvars.csv") << subproblem.getSolution().col_value;
   return info;
 }
 
@@ -272,17 +271,16 @@ std::vector<double> quick_master_solve(Highs & master) {
 }
 
 BendersRet benders(HighsLp & base_problem, std::set<HighsInt> const & master_variables, std::vector<double> const & starting_point, double subproblem_lb,
-   double eps, int max_iter, std::vector<OptionValue> const & masterOptions, MasterAdaptationParams params) { 
+   double eps, int max_iter) { 
   BendersProblems problems;
   decompose_problem(problems, base_problem, master_variables, subproblem_lb);
   // modify_master(problems.master);
-  apply_options(problems.master, masterOptions);
   return benders_loop(problems, master_variables, 
-    starting_point.empty() ? quick_master_solve(problems.master) : starting_point, eps, max_iter, params);
+    starting_point.empty() ? quick_master_solve(problems.master) : starting_point, eps, max_iter);
 }
 
 BendersRet benders_loop(BendersProblems & problems, std::set<HighsInt> const & master_variables,
-   std::vector<double> const & starting_point, double eps, int max_iter, MasterAdaptationParams params) { 
+   std::vector<double> const & starting_point, double eps, int max_iter) { 
   int no_master_rows = problems.master.getNumRow();
   BendersIterationInfo info;
   auto master_values = starting_point;
