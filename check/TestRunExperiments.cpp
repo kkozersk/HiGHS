@@ -210,79 +210,79 @@ std::vector<SmpsTestCase> xd_search {
 // }
 
 
-int multi_run(SmpsTestCase smps, bool aggregate, int max_scenarios, Start start, 
-  std::pair<std::vector<OptionValue>, MasterAdaptationParams> params) {
-  auto core_and_tree = build_stochastic_tree(smps.corefile, smps.timefile, smps.stochfile);
-  auto & tree = core_and_tree.second;
-  auto core = core_and_tree.first;
-  auto & stage_1st = tree.root->get_child(0);
-  auto & stage_2nd = stage_1st->get_child(0);
-  int no_scenarios = stage_1st->get_no_children();
-  if (no_scenarios > max_scenarios)
-    return 0;
-  smps.note = (aggregate ? "single-" : "multi-") + smps.note;
+// int multi_run(SmpsTestCase smps, bool aggregate, int max_scenarios, Start start, 
+//   std::pair<std::vector<OptionValue>, MasterAdaptationParams> params) {
+//   auto core_and_tree = build_stochastic_tree(smps.corefile, smps.timefile, smps.stochfile);
+//   auto & tree = core_and_tree.second;
+//   auto core = core_and_tree.first;
+//   auto & stage_1st = tree.root->get_child(0);
+//   auto & stage_2nd = stage_1st->get_child(0);
+//   int no_scenarios = stage_1st->get_no_children();
+//   if (no_scenarios > max_scenarios)
+//     return 0;
+//   smps.note = (aggregate ? "single-" : "multi-") + smps.note;
   
 
 
-  auto const & master_range = core.stage_submatrix.at(stage_1st->get_timestage());
-  int no_master_vars = master_range.col_idx_end - master_range.col_idx_begin;
-  int no_master_rows = master_range.row_idx_end - master_range.row_idx_begin;
+//   auto const & master_range = core.stage_submatrix.at(stage_1st->get_timestage());
+//   int no_master_vars = master_range.col_idx_end - master_range.col_idx_begin;
+//   int no_master_rows = master_range.row_idx_end - master_range.row_idx_begin;
 
-  auto const & sub_range = core.stage_submatrix.at(stage_2nd->get_timestage());
-  int no_sub_vars = sub_range.col_idx_end - sub_range.col_idx_begin;
-  int no_sub_rows = sub_range.row_idx_end - sub_range.row_idx_begin;
+//   auto const & sub_range = core.stage_submatrix.at(stage_2nd->get_timestage());
+//   int no_sub_vars = sub_range.col_idx_end - sub_range.col_idx_begin;
+//   int no_sub_rows = sub_range.row_idx_end - sub_range.row_idx_begin;
 
-  CsvLogger log ("/tmp/dataset.csv");
-  log << smps.note << no_scenarios << no_master_vars << no_master_rows << no_sub_vars << no_sub_rows;
-  log.newline();
+//   CsvLogger log ("/tmp/dataset.csv");
+//   log << smps.note << no_scenarios << no_master_vars << no_master_rows << no_sub_vars << no_sub_rows;
+//   log.newline();
 
-  // Highs highs;
-  // REQUIRE(build_stochastic_problem(highs, smps.corefile, smps.timefile, smps.stochfile));
-  // REQUIRE(highs.getNumCol() == no_master_vars + no_sub_vars * no_scenarios);
-  // REQUIRE(highs.getNumRow() == no_master_rows + no_sub_rows * no_scenarios);
-  // highs.run();
-  // auto expected = highs.getObjectiveValue();
+//   // Highs highs;
+//   // REQUIRE(build_stochastic_problem(highs, smps.corefile, smps.timefile, smps.stochfile));
+//   // REQUIRE(highs.getNumCol() == no_master_vars + no_sub_vars * no_scenarios);
+//   // REQUIRE(highs.getNumRow() == no_master_rows + no_sub_rows * no_scenarios);
+//   // highs.run();
+//   // auto expected = highs.getObjectiveValue();
   
-  std::vector<double> starting_point;
-  Highs highs2;
-  switch (start) {
-    case obj_start:
-      REQUIRE(build_stochastic_problem(highs2, smps.corefile, smps.timefile, smps.stochfile));
-      zero_costs(highs2); smps.note += "-obj_start";
-    break;
-    case feas_start:
-      smps.note += "-feas_start";
-    break;
-    case core_obj_start:
-      highs2.passModel(core); apply_options(highs2, params.first); smps.note += "-core_obj_start";
-    break;
-    case core_feas_start:
-      highs2.passModel(core); zero_costs(highs2); apply_options(highs2, params.first); smps.note += "-core_feas_start";
-    break;
-  }
-  highs2.run();
-  starting_point = highs2.getSolution().col_value;
-  if (start == feas_start) REQUIRE(starting_point.empty());
-  std::ofstream("/tmp/linking.csv", std::ios::app) << smps.note << ",";
-  std::ofstream("/tmp/iteration.csv", std::ios::app) << smps.note  << "," << std::endl;
-  std::ofstream("/tmp/cut_distances.csv", std::ios::app) << smps.note  << "," << std::endl;
-  std::ofstream("/tmp/ubd_lbd.csv", std::ios::app) << smps.note  << "," << std::endl;
-  std::ofstream("/tmp/ipm_stats.csv", std::ios::app) << smps.note  << "," << std::endl;
-  std::ofstream("/tmp/errors.csv", std::ios::app) << smps.note  << "," << std::endl;
-  std::ofstream ("/tmp/gammas.csv", std::ios::app) << smps.note  << "," << std::endl;
+//   std::vector<double> starting_point;
+//   Highs highs2;
+//   switch (start) {
+//     case obj_start:
+//       REQUIRE(build_stochastic_problem(highs2, smps.corefile, smps.timefile, smps.stochfile));
+//       zero_costs(highs2); smps.note += "-obj_start";
+//     break;
+//     case feas_start:
+//       smps.note += "-feas_start";
+//     break;
+//     case core_obj_start:
+//       highs2.passModel(core); apply_options(highs2, params.first); smps.note += "-core_obj_start";
+//     break;
+//     case core_feas_start:
+//       highs2.passModel(core); zero_costs(highs2); apply_options(highs2, params.first); smps.note += "-core_feas_start";
+//     break;
+//   }
+//   highs2.run();
+//   starting_point = highs2.getSolution().col_value;
+//   if (start == feas_start) REQUIRE(starting_point.empty());
+//   std::ofstream("/tmp/linking.csv", std::ios::app) << smps.note << ",";
+//   std::ofstream("/tmp/iteration.csv", std::ios::app) << smps.note  << "," << std::endl;
+//   std::ofstream("/tmp/cut_distances.csv", std::ios::app) << smps.note  << "," << std::endl;
+//   std::ofstream("/tmp/ubd_lbd.csv", std::ios::app) << smps.note  << "," << std::endl;
+//   std::ofstream("/tmp/ipm_stats.csv", std::ios::app) << smps.note  << "," << std::endl;
+//   std::ofstream("/tmp/errors.csv", std::ios::app) << smps.note  << "," << std::endl;
+//   std::ofstream ("/tmp/gammas.csv", std::ios::app) << smps.note  << "," << std::endl;
 
-  // auto opts =   getMasterOpts(use_simplex);
-  auto res = benders_l_shaped(core_and_tree.first, core_and_tree.second, starting_point, smps.sub_lb, 1e-3, max_iters, aggregate, params.first, params.second);
-  res.note(smps.expected, smps.note);
-  // if (smps.expected != kHighsInf) {
-  //   REQUIRE(smps.note == smps.note);
-  //   REQUIRE(no_scenarios == no_scenarios);
-  //   REQUIRE(std::fabs(res.result - smps.expected) < 1e-3);
-  // }
-  auto diff = smps.expected != kHighsInf ? std::fabs(res.result - smps.expected) : 0.0;
-  return diff < 1e-3 ? res.iter : max_iters;
+//   // auto opts =   getMasterOpts(use_simplex);
+//   auto res = benders_l_shaped(core_and_tree.first, core_and_tree.second, starting_point, smps.sub_lb, 1e-3, max_iters, aggregate, params.first, params.second);
+//   res.note(smps.expected, smps.note);
+//   // if (smps.expected != kHighsInf) {
+//   //   REQUIRE(smps.note == smps.note);
+//   //   REQUIRE(no_scenarios == no_scenarios);
+//   //   REQUIRE(std::fabs(res.result - smps.expected) < 1e-3);
+//   // }
+//   auto diff = smps.expected != kHighsInf ? std::fabs(res.result - smps.expected) : 0.0;
+//   return diff < 1e-3 ? res.iter : max_iters;
   
-}
+// }
 
 int multi_run2(SmpsTestCase smps, int max_scenarios, Start start, MasterProblem & master_solver) {
   auto core_and_tree = build_stochastic_tree(smps.corefile, smps.timefile, smps.stochfile);
