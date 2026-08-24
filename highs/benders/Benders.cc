@@ -346,12 +346,6 @@ std::tuple<double,int,double> count_ortho(std::vector<std::vector<double>> const
   return {mean(orthos), max_idx.first, max_idx.second};
 }
 
-void tighter(MasterAdaptationParams & params, Highs & master) {
-  params.no_optim_steps = std::min(params.no_optim_steps + params.delta_steps, params.max_steps);
-  master.setOptionValue("ipm_iteration_limit", params.no_optim_steps);
-      
-}
-
 void decrease_gap(double & acc, Highs & master, double div) {
     acc = std::max(acc / div, 1e-7);
     master.setOptionValue("optimality_tolerance", acc);
@@ -404,139 +398,30 @@ BendersRet benders_loop(BendersProblems & problems, std::set<HighsInt> const & m
   auto master_values = starting_point;
   int iter = 0;
   double UBD = kHighsInf, LBD = -kHighsInf;
-  bool any_objective_cuts = false;
-  std::vector<int> UBD_updates {};
-  std::vector<int> feasible_iters {};
-  std::vector<int> recentring_counts {};
-  std::vector<int> optim_counts {};
-  double acc = params.ipm_acc;
-  double feas = params.ipm_feas;
-  double rel_gap;
-  double last_gap = INFINITY;
-  double mean_orto, max_orto;
-  int max_orto_idx;
-  std::vector<bool> far_away, far_far_away;
-  std::vector<std::vector<double>> feas_cuts, obj_cuts;
-  std::vector<double> rhss;
-  std::vector<bool> was_feas;
-  // std::vector<int> type_shifts;
-  CsvLogger dist("/tmp/cut_distances.csv");
-  CsvLogger ubd_lbd("/tmp/ubd_lbd.csv");
-  CsvLogger xs("/tmp/xs.csv");
-  CsvLogger duals("/tmp/duals.csv");
-  // int oscillation_count = 0;
-  // int d_osci_count = 0;
-  // int big_oscil_count = 0;
-  int streak = 0;
-  bool last_optim = false;
-  bool first_optim = false;
-  // int cut_type_shift = 0;
   while (UBD - LBD > eps && !info.was_error && iter++ < max_iter) {
     bool was_feasible = true;
     info = solve_subproblem(problems.subproblem, info, master_variables, master_values);
     if (info.was_subproblem_feasible) {
-      if (iter == 1) first_optim = true;
-      streak++;
-      was_feas.push_back(was_feasible);
-      // if (any_objective_cuts) decrease_gap(acc, problems.master, 2);
-      if (streak > 1) decrease_gap(acc, problems.master, 2.5);
-      if (streak > 0) decrease_feas(feas, problems.master, 5);
       double solution_cost = calculate_solution_cost(problems.master, problems.subproblem, master_variables, master_values);
-      feasible_iters.push_back(iter);
-      if (solution_cost < UBD) UBD_updates.push_back(iter);
       UBD = std::min(UBD, solution_cost);
       if (UBD - LBD <= eps) break;
-      // CsvLogger("/tmp/v_mults.csv") << problems.subproblem.getSolution().row_dual;
       auto cut = form_cut(problems.subproblem, master_variables, master_values, CutType::Objective);
       add_nonzero_row(problems.master, cut.rhs, kHighsInf, cut.coefficients);
-      // auto cut = add_cut(problems.master, problems.subproblem, master_variables, master_values, CutType::Objective);
-      auto un = unravel(cut.coefficients);
-      auto dat = count_ortho(obj_cuts, un);
-      mean_orto = std::get<0>(dat);
-      max_orto_idx = std::get<1>(dat);
-      max_orto = std::get<2>(dat);
-      obj_cuts.push_back(un);
-      rhss.push_back(cut.rhs);
-      CsvLogger("/tmp/aggregate2.csv") << cut.rhs << un;
-      // if (!any_objective_cuts) {
-      //   any_objective_cuts = true;
-      //   unfreeze_mu(problems.master, master_variables);
-      // }
     }
     else {
-      streak = 0;
       was_feasible = false;
-      was_feas.push_back(was_feasible);
       info = solve_feasibility_subproblem(problems.feas_subproblem, info, master_variables, master_values);
-      // CsvLogger("/tmp/v_mults.csv") << problems.subproblem.getSolution().row_dual;
       auto cut = form_cut(problems.feas_subproblem, master_variables, master_values, CutType::Feasibility);
       add_nonzero_row(problems.master, cut.rhs, kHighsInf, cut.coefficients);
-      // auto cut = add_cut(problems.master, problems.feas_subproblem, master_variables, master_values, CutType::Feasibility);
-      auto un = unravel(cut.coefficients);
-      auto dat = count_ortho(feas_cuts, un);
-      mean_orto = std::get<0>(dat);
-      max_orto_idx = std::get<1>(dat);
-      max_orto = std::get<2>(dat);
-      feas_cuts.push_back(un);
-      rhss.push_back(cut.rhs);
-      CsvLogger("/tmp/aggregate2.csv") << cut.rhs << un;
       
     }
-    // if (iter > 1 && !was_feasible && last_optim)
-    //   cut_type_shift = 1;
-    // else if (iter > 1 && was_feasible && !last_optim)
-    //   cut_type_shift = 2;
-    // else cut_type_shift = 0;
-    // type_shifts.push_back(cut_type_shift);
-    last_optim = was_feasible;
-    if (std::isfinite(max_orto) && std::fabs(max_orto) > 0.99) {
-      // decrease_gap(acc, problems.master,  streak > 1 ? 2.5 : 10);
-      // decrease_gap(acc, problems.master,  was_feasible ? 5 : 10);
-    }
-    // if (info.was_error) break;
     info = solve_master(problems.master, info);
-    recentring_counts.push_back(recentring_count);
-    optim_counts.push_back(optim_count);
     if (problems.master.getModelStatus() != HighsModelStatus::kOptimal && problems.master.getModelStatus() != HighsModelStatus::kUnknown)
       assert(1 == 0);
     master_values = problems.master.getSolution().col_value;
-    // xs << cut_type_shift << master_values;
-    xs << master_values;
-    auto d = problems.master.getSolution().row_dual;
     problems.master.getDualObjectiveValue(LBD);
-    save_iteration_data(LBD, UBD, acc, feas, was_feasible, mean_orto, max_orto_idx, max_orto);
-    ubd_lbd << UBD << LBD << was_feasible; ubd_lbd.newline();
-    auto row_sol = problems.master.getSolution().row_value;
-        std::vector<int> ind(problems.master.getNumCol());
-    std::vector<double> val(problems.master.getNumCol(), 0);
-    int num_nz;
-    far_away.push_back(false);
-    for (int i = 0; i < problems.master.getNumRow() - no_master_rows; ++i) {
-        problems.master.getModel().lp_.a_matrix_.getRow(no_master_rows + i, num_nz, ind.data(), val.data());
-        double norm_a = norm(val);
-        // double norm = 0;
-        // for (int i = 0; i < num_nz; ++i) norm += val.at(i) * val.at(i);
-        // norm = std::sqrt(norm);
-        auto distance = (row_sol.at(no_master_rows + i) - rhss.at(i)) / norm_a;
-        bool oscillation = far_away.at(i) && distance < 1 && d.at(no_master_rows + i) * norm_a > 1e-4; 
-        dist.log_with_note(std::round(100 * distance) / 100., oscillation ? "(OSC)" : "");
-        duals.log_with_note(d.at(no_master_rows + i) * norm_a, (oscillation ? "(OSC)" : ""));
-        far_away.at(i) = distance >= 1;  
-        // oscillation_count += oscillation;
-      }
-    dist.newline();
-    duals.newline();
   }
-  xs.newline();
-  duals.newline();
-  dist.log_predicate(was_feas, "obj", "feas");
-  // for (int i = 0; i < problems.master.getNumRow() - no_master_rows; ++i) {
-  //     dist << (was_feas.at(i) ? "obj" : "feas");
-  // }
-  // dist << type_shifts << oscillation_count;
-  dist.newline();
-  ubd_lbd.newline();
-  return {UBD-LBD, UBD, info, iter, first_optim, UBD_updates, feasible_iters, recentring_counts, optim_counts, params};
+  return {UBD-LBD, UBD, info, iter};
 }
 
 inline bool all(std::vector<bool> const & v) { return std::all_of(v.begin(), v.end(), [](bool x) { return x; }); }
