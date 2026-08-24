@@ -774,7 +774,7 @@ TEST_CASE("test-solve-l-shaped-pltexpA", "[highs-benders]") {
   auto core_and_tree = build_stochastic_tree(base + ".cor", base + ".tim", base + "_6.sto");
   auto & tree = core_and_tree.second;
   auto core = core_and_tree.first;
-  StandardMasterProblem master_solver {}; 
+  StandardMasterProblem master_solver {};  
   auto res = benders_l_shaped(core_and_tree.first, core_and_tree.second, {}, -100, master_solver, 1e-3, 500);
   REQUIRE(std::fabs(res.result - -9.47935) < 1e-3);
   REQUIRE(res.iter == 1);
@@ -785,7 +785,7 @@ TEST_CASE("test-solve-l-shaped-storm", "[highs-benders]") {
   auto core_and_tree = build_stochastic_tree(base + ".cor", base + ".tim", base + "_8.sto");
   auto & tree = core_and_tree.second;
   auto core = core_and_tree.first;
-  StandardMasterProblem master_solver {}; 
+  StandardMasterProblem master_solver {};  
   auto res = benders_l_shaped(core_and_tree.first, core_and_tree.second, {}, 0, master_solver, 1e-3, 500);
   REQUIRE(std::fabs(res.result - 15535235.73) < 1e-3);
   REQUIRE(res.iter == 29);

@@ -167,7 +167,7 @@ std::set<HighsInt> discover_master_variables(std::vector<std::string> const & va
 std::set<HighsInt> discover_master_variables(std::vector<std::string> const & variable_names, std::string const & master_name_pattern);
 BendersIterationInfo solve_feasibility_subproblem(Highs & subproblem, BendersIterationInfo info, std::set<HighsInt> const & master_variables, std::vector<double> const & master_values);
 BendersIterationInfo solve_subproblem(Highs & subproblem, BendersIterationInfo info, std::set<HighsInt> const & master_variables, std::vector<double> const & master_values);
-BendersIterationInfo solve_master(Highs & master, BendersIterationInfo info);
+// BendersIterationInfo solve_master(Highs & master, BendersIterationInfo info);
 double calculate_solution_cost(Highs const & master, double subproblem_cost, std::set<HighsInt> const & master_variables, std::vector<double> const & master_values);
 double calculate_solution_cost(Highs const & master, Highs const & subproblem, std::set<HighsInt> const & master_variables, std::vector<double> const & master_values);
 BendersRet benders(HighsLp & base_problem, std::set<HighsInt> const & master_variables, std::vector<double> const & starting_point, double subproblem_lb, double eps=1e-3, int max_iter=1e2);
@@ -199,7 +199,9 @@ class MasterProblem {
   protected:
   double master_time = 0;
   Highs master {};
+  bool error = false;
   int num_mu;
+  void solve_problem_with_logging(Highs & problem);
   static void add_cut_to_problem(Highs & problem, CutData const & cut, std::string const & name);
   public:
   virtual void pass_model(HighsModel const & model, int no_mu=1) {master.passModel(model); num_mu = no_mu;};

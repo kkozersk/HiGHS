@@ -232,13 +232,13 @@ BendersIterationInfo solve_subproblem(Highs & subproblem, BendersIterationInfo i
   return info;
 }
 
-BendersIterationInfo solve_master(Highs & master, BendersIterationInfo info) {
-  auto start = master.getRunTime();
-  info.was_error = info.was_error || master.run() == HighsStatus::kError;
-  auto end =  master.getRunTime();
-  info.master_time += end - start;
-  return info;
-}
+// BendersIterationInfo solve_master(Highs & master, BendersIterationInfo info) {
+//   auto start = master.getRunTime();
+//   info.was_error = info.was_error || master.run() == HighsStatus::kError;
+//   auto end =  master.getRunTime();
+//   info.master_time += end - start;
+//   return info;
+// }
 
 double calculate_solution_cost(Highs const & master, double subproblem_cost, std::set<HighsInt> const & master_variables, std::vector<double> const & master_values) {
   auto const & master_costs = master.getLp().col_cost_;
@@ -437,9 +437,8 @@ void MasterProblem::add_cut(CutData const & cut, int iter) {
 
 bool StandardMasterProblem::solve(double UBD, double LBD, double eps, double solution_cost) {
   BendersIterationInfo info;
-  info = solve_master(master, info);
-  master_time += info.master_time;
-  return !info.was_error;
+  solve_problem_with_logging(master);
+  return !error;
 }
 
 bool ProximalIPMMasterProblem::solve(double UBD, double LBD, double eps, double solution_cost) {
@@ -451,9 +450,7 @@ bool ProximalIPMMasterProblem::solve(double UBD, double LBD, double eps, double 
       optim_steps = std::min(optim_steps + 1, max_optim_steps);
       master.setOptionValue("ipm_iteration_limit", optim_steps);
     }
-    BendersIterationInfo info;
-    info = solve_master(master, info);
-    master_time += info.master_time;
+    solve_problem_with_logging(master);
     return true;
     // return !info.was_error; //TODO better status checking
 }
@@ -512,7 +509,7 @@ std::pair<NonZeroVector, double> LevelSetQpMasterProblem::create_distance_costs(
 bool LevelSetQpMasterProblem::solve(double UBD, double LBD, double eps, double solution_cost) {
   auto distance_costs = create_distance_costs(); //TODO ugly placement  
   BendersIterationInfo info;
-    info = solve_master(master, info);
+    solve_problem_with_logging(master);
     LBD = master.getObjectiveValue();
     double real_improvement = prev_UBD-solution_cost; 
     prev_UBD = UBD;
@@ -530,7 +527,7 @@ bool LevelSetQpMasterProblem::solve(double UBD, double LBD, double eps, double s
       level_set_master.changeColsCost(distance_costs.first.number_of_nonzeros, distance_costs.first.nonzero_indices.data(), distance_costs.first.nonzero_values.data());
       level_set_master.changeObjectiveOffset(distance_costs.second);
       
-      info = solve_master(level_set_master, info);
+      solve_problem_with_logging(level_set_master);
       if (info.was_error) {
           if (++error_counter > 5) omega = 1.0;
           gamma = orig_gamma;
@@ -555,8 +552,7 @@ void LevelSetIpmMasterProblem::pass_model(HighsModel const & model, int no_mu) {
 
 
 bool LevelSetIpmMasterProblem::solve(double UBD, double LBD, double eps, double solution_cost) {
-    BendersIterationInfo info;
-    info = solve_master(master, info);
+    solve_problem_with_logging(master);
     LBD = master.getObjectiveValue();
     if ((in_level = is_in_level(UBD, LBD, eps))) {
       if (UBD < kHighsInf) {
@@ -564,10 +560,9 @@ bool LevelSetIpmMasterProblem::solve(double UBD, double LBD, double eps, double 
         double target_u = LBD + gamma_u * (UBD-LBD);
         level_set_master.changeRowBounds(level_set_constraint, target_l, target_u);
       }
-      info = solve_master(level_set_master, info);
+      solve_problem_with_logging(level_set_master);
     }
-    master_time += info.master_time;
-    return !info.was_error;
+    return !error;
 }
 //TODO delete BendersInfo
 
@@ -588,16 +583,23 @@ void ProximalIPMMasterProblem::pass_model(HighsModel const & model, int no_mu) {
 
 std::vector<double> MasterProblem::starting_point() {
   BendersIterationInfo info;
-  info = solve_master(master, info);
+  solve_problem_with_logging(master);
   master_time = info.master_time;
   if (master.getModelStatus() != HighsModelStatus::kUnbounded) // TODO what if imprecise?
     return master.getSolution().col_value;
   auto copy_costs = master.getLp().col_cost_;
   std::vector<double> zeros (master.getNumCol(), 0);
   master.changeColsCost(0, master.getNumCol()-1, zeros.data());
-  info = solve_master(master, info);
+  solve_problem_with_logging(master);
   master_time = info.master_time;
   master.changeColsCost(0, master.getNumCol()-1, copy_costs.data());
   return master.getSolution().col_value; 
   //TODO what if error?
+}
+
+void MasterProblem::solve_problem_with_logging(Highs & problem) {
+  auto start = master.getRunTime();
+  error = problem.run() == HighsStatus::kError;
+  auto end =  master.getRunTime();
+  master_time += end - start;
 }
