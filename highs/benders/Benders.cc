@@ -40,27 +40,24 @@ void fix_variable(Highs & problem, HighsInt variable_index, double value) {
 }
 
 bool fix_master_variables(Highs & subproblem, std::set<HighsInt> const & master_variables, std::vector<double> const & master_values) {
-  // int master_index = 0;
   subproblem.changeColsBounds(
     master_variables.size(), 
     set_to_vector(master_variables).data(),
     master_values.data(),
     master_values.data()
   );
-  // for (auto subproblem_index : master_variables)
-  //   fix_variable(subproblem, subproblem_index, master_values.at(master_index++));
   return true;
 }
 
-void save_master_variables(Highs & subproblem, std::set<HighsInt> const & master_variables, std::vector<double> const & master_values) {
-  std::vector<double> result;
-  std::vector<double> x (subproblem.getNumCol(), 0);
-  int master_index = 0;
-  for (auto subproblem_index : master_variables) {
-    x.at(subproblem_index) = master_values.at(master_index++);
-  }
-  subproblem.getLp().a_matrix_.product(result, x);
-}
+// void save_master_variables(Highs & subproblem, std::set<HighsInt> const & master_variables, std::vector<double> const & master_values) {
+//   std::vector<double> result;
+//   std::vector<double> x (subproblem.getNumCol(), 0);
+//   int master_index = 0;
+//   for (auto subproblem_index : master_variables) {
+//     x.at(subproblem_index) = master_values.at(master_index++);
+//   }
+//   subproblem.getLp().a_matrix_.product(result, x);
+// }
 
 std::set<HighsInt> sequence_complement(std::set<HighsInt> const & set, HighsInt max_number) {
   std::set<HighsInt> complement;
@@ -157,22 +154,6 @@ void decompose_problem(BendersProblems & problems, HighsLp & base_problem, std::
   decompose_problem(problems, base_problem, master_variables, row_division, subproblem_lb);
 }
 
-std::set<HighsInt> index_set_union(std::set<HighsInt> const & a, std::set<HighsInt> const & b) {
-  auto avec = set_to_vector(a);
-  auto bvec = set_to_vector(b);
-  std::set<HighsInt> a_union_b;
-  std::set_union(avec.begin(), avec.end(), bvec.begin(), bvec.end(), std::inserter(a_union_b, a_union_b.begin()));
-  return a_union_b;
-}
-
-std::set<HighsInt> index_set_intersection(std::set<HighsInt> const & a, std::set<HighsInt> const & b) {
-  auto avec = set_to_vector(a);
-  auto bvec = set_to_vector(b);
-  std::set<HighsInt> a_union_b;
-  std::set_intersection(avec.begin(), avec.end(), bvec.begin(), bvec.end(), std::inserter(a_union_b, a_union_b.begin()));
-  return a_union_b;
-}
-
 std::vector<double> get_master_multipliers(Highs const & subproblem, std::set<HighsInt> const & master_variables) {
   auto const & reduced_costs = subproblem.getSolution().col_dual;
   std::vector<double> master_multipliers;
@@ -230,13 +211,6 @@ std::set<HighsInt> discover_master_variables(std::vector<std::string> const & va
   return discover_master_variables(variable_names, std::regex(master_name_pattern));
 }
 
-std::vector<double> get_dual_costs(HighsLp const & lp) {
-  std::vector<double> dual_prices (lp.num_row_);
-  for (int i = 0; i < lp.num_row_; ++i)
-    dual_prices[i] = lp.row_upper_.at(i) < kHighsInf ? lp.row_upper_.at(i) : lp.row_lower_.at(i);
-  return dual_prices;
-}
-
 BendersIterationInfo solve_feasibility_subproblem(Highs & subproblem, BendersIterationInfo info, std::set<HighsInt> const & master_variables, std::vector<double> const & master_values) {
   // assert(1==0);
   fix_master_variables(subproblem, master_variables, master_values);
@@ -249,7 +223,7 @@ BendersIterationInfo solve_feasibility_subproblem(Highs & subproblem, BendersIte
 
 BendersIterationInfo solve_subproblem(Highs & subproblem, BendersIterationInfo info, std::set<HighsInt> const & master_variables, std::vector<double> const & master_values) {
   fix_master_variables(subproblem, master_variables, master_values);
-  save_master_variables(subproblem, master_variables, master_values);
+  // save_master_variables(subproblem, master_variables, master_values);
   auto start = subproblem.getRunTime();
   info.was_error = info.was_error || subproblem.run() == HighsStatus::kError;
   auto end =  subproblem.getRunTime();
@@ -290,84 +264,9 @@ double calculate_solution_cost(Highs const & master, Highs const & subproblem, s
 //   return benders(base_problem, master_variables, starting_point);
 // }
 
-void save_ubd_lbd(double lbd, double ubd, double acc) {
-  CsvLogger log("/tmp/bounds.csv");
-  log << lbd << ubd << ubd-lbd << (ubd-lbd)/(1 + std::fabs(ubd) + std::fabs(lbd)) << acc;
-  log.newline();
-}
-
-void save_iteration_data(double lbd, double ubd, double acc, double feas, bool feasible, double mean_orto, int max_orto_idx, double max_orto) {
-  auto status = feasible ? "optimal cut" : "feasibility cut";
-  CsvLogger log("/tmp/iteration.csv");
-  log << lbd << ubd << ubd-lbd << acc << feas << status << mean_orto << max_orto << max_orto_idx;
-  log.newline();
-}
-
-void save_iteration_data(double lbd, double ubd, double acc, 
-  std::vector<bool> feasible, std::vector<std::tuple<double, int, double>> ortho) {
-  CsvLogger log("/tmp/iteration.csv");
-
-  log << lbd << ubd << ubd-lbd << acc;
-  for (int i = 0; i < feasible.size(); ++i) {
-    std::string status = feasible.at(i) ? "optimal cut" : "feasibility cut";
-    auto mean_ortho = std::get<0>(ortho.at(i));
-    auto max_ortho_idx = std::get<1>(ortho.at(i));
-    auto max_ortho = std::get<2>(ortho.at(i));
-    log << status  << mean_ortho << max_ortho << max_ortho_idx;
-  }  
-  log.newline();  
-}
-
-inline double norm(std::vector<double> const & vec) { 
-  return std::sqrt(std::inner_product(vec.begin(), vec.end(), vec.begin(), 0.)); 
-}
-
-inline double ortho(std::vector<double> const & vec1, std::vector<double> const & vec2) {
-  auto delim = norm(vec1) * norm(vec2);
-  return delim == 0 ? 
-    0 : std::inner_product(vec1.begin(), vec1.end(), vec2.begin(), 0.) / delim;
-}
-inline double mean(std::vector<double> const & vec) {
-  return vec.size() == 0 ? 0 : std::accumulate(vec.begin(), vec.end(), 0.) / vec.size();
-}
-inline std::pair<int, double> max_abs(std::vector<double> const & vec) {
-  if (vec.empty()) return {-1, -INFINITY};
-  auto max = std::max_element(vec.begin(), vec.end(), [](double x, double y) { return fabs(x) < fabs(y);});
-  return {std::distance(vec.begin(), max), *max};
-}
-
-std::tuple<double,int,double> count_ortho(std::vector<std::vector<double>> const & cuts, std::vector<double> const & new_cut) {
-  std::vector<double> orthos;
-  std::transform(cuts.begin(), cuts.end(), std::back_inserter(orthos), 
-    [&new_cut](std::vector<double> const & cut){return ortho(new_cut, cut);});
-  auto s1 = orthos.size();
-  auto s2 = cuts.size();
-  auto max_idx = max_abs(orthos);
-  return {mean(orthos), max_idx.first, max_idx.second};
-}
-
-void decrease_gap(double & acc, Highs & master, double div) {
-    acc = std::max(acc / div, 1e-7);
-    master.setOptionValue("optimality_tolerance", acc);
-    master.setOptionValue("ipm_optimality_tolerance", acc);
-    if (acc <= 1e-7) {
-      master.setOptionValue("solver", kSimplexString);
-      master.setOptionValue("dual_feasibility_tolerance", 1e-8);
-      master.setOptionValue("primal_feasibility_tolerance", 1e-8);
-    }
-      
-}
-
-void decrease_feas(double & feas, Highs & master, double div) {
-    feas = std::max(feas / div, 1e-8);
-    master.setOptionValue("dual_feasibility_tolerance", feas);
-    master.setOptionValue("primal_feasibility_tolerance", feas);
-}
-
 std::vector<double> quick_master_solve(Highs & master) {
   master.run();
   auto st = master.getModelStatus();
-  CsvLogger ("/tmp/xs.csv") << master.getSolution().col_value;
   // TOOD -- asssert on error?
   return master.getSolution().col_value;
 }
@@ -380,15 +279,6 @@ BendersRet benders(HighsLp & base_problem, std::set<HighsInt> const & master_var
   apply_options(problems.master, masterOptions);
   return benders_loop(problems, master_variables, 
     starting_point.empty() ? quick_master_solve(problems.master) : starting_point, eps, max_iter, params);
-}
-
-std::vector<double> unravel(NonZeroVector const & vec) {
-  if (vec.number_of_nonzeros == 0) return {};
-  auto max_idx = *std::max_element(vec.nonzero_indices.begin(), vec.nonzero_indices.end());
-  std::vector<double> result(1+max_idx, 0);
-  for (int i = 0; i < vec.number_of_nonzeros; ++i)
-    result.at(vec.nonzero_indices.at(i)) = vec.nonzero_values.at(i);
-  return result;
 }
 
 BendersRet benders_loop(BendersProblems & problems, std::set<HighsInt> const & master_variables,
@@ -423,8 +313,6 @@ BendersRet benders_loop(BendersProblems & problems, std::set<HighsInt> const & m
   }
   return {UBD-LBD, UBD, info, iter};
 }
-
-inline bool all(std::vector<bool> const & v) { return std::all_of(v.begin(), v.end(), [](bool x) { return x; }); }
 
 // BendersRet multi_benders_loop(MultiBendersProblems & problems, std::set<HighsInt> const & master_variables,
 //                      std::vector<double> const & starting_point, double eps, int max_iter, MasterAdaptationParams params) { 
