@@ -103,43 +103,9 @@ void create_subproblem(Highs & subproblem, HighsLp const & base_problem, std::se
   subproblem.setOptionValue("log_to_console", false);
 }
 
-// void add_nonzero_col(Highs & problem, double col_cost, double col_lower, double col_upper, NonZeroVector const & col_vector) {
-//   problem.addCol(col_cost, 0, kHighsInf, col_vector.number_of_nonzeros, col_vector.nonzero_indices.data(), col_vector.nonzero_values.data());
-// }
-
 void create_feasibility_subproblem(Highs & feas_subproblem, HighsLp const & base_problem, std::set<HighsInt> const & master_variables, std::set<HighsInt> const & mixed_rows, std::set<HighsInt> const & master_only_rows) {
   auto a = construct_extension_matrix(base_problem, mixed_rows);
   create_feasibility_subproblem(feas_subproblem, base_problem, master_variables, mixed_rows, master_only_rows, a);
-  // feas_subproblem.passModel(base_problem);
-  // feas_subproblem.changeObjectiveOffset(0);
-  // std::vector<double> zeros(base_problem.num_col_, 0);
-  // feas_subproblem.changeColsCost(0, base_problem.num_col_ - 1, zeros.data());
-  // HighsSparseMatrix a; a.num_row_ = base_problem.num_row_;
-  // int counter = 0;
-  // int row;
-  // double row_val;
-  // for (auto i : mixed_rows) {
-  //   if (base_problem.row_lower_.at(i) > -kHighsInf) {
-  //     counter++;
-  //     row = i;
-  //     row_val = 1;
-  //     a.addVec(1, &row, &row_val);
-  //   }
-  //   if (base_problem.row_upper_.at(i) < kHighsInf) {
-  //     counter++;
-  //     row = i;
-  //     row_val = -1;
-  //     a.addVec(1, &row, &row_val);   
-  //   }
-  // }
-  // std::vector<double> costs(counter, 1);
-  // std::vector<double> lb(counter, 0);
-  // std::vector<double> ub(counter, kHighsInf);
-  // feas_subproblem.addCols(counter, costs.data(), lb.data(), ub.data(),
-  //   a.numNz(), a.start_.data(), a.index_.data(), a.value_.data()
-  // );
-  // std::vector<int> to_delete = set_to_vector(master_only_rows);
-  // feas_subproblem.deleteRows(to_delete.size(), to_delete.data());
 }
 
 HighsSparseMatrix construct_extension_matrix(HighsLp const & base_problem, std::set<HighsInt> const & mixed_rows) {
@@ -251,24 +217,6 @@ Cut form_cut(Highs const & subproblem, std::set<HighsInt> const & master_variabl
 
   return {nonzero_multipliers, rhs};
 }
-
-// std::pair<std::vector<double>, double> add_cut(Highs & master, CutData const & cut, std::set<HighsInt> const & master_variables, std::vector<double> const & master_values, CutType cut_type, int subproblem_no) {
-//   auto old_value_multiple = std::inner_product(cut.master_multipliers.begin(), cut.master_multipliers.end(), master_values.begin(), 0.0);
-//   auto nonzero_multipliers = create_nonzero_vector(cut.master_multipliers);
-//   if (cut_type == CutType::Objective) nonzero_multipliers = add_mu_entry(nonzero_multipliers, master_variables.size() + subproblem_no);
-//   auto rhs  = cut.dual_objective + old_value_multiple;
-//   add_nonzero_row(master, rhs, kHighsInf, nonzero_multipliers);
-//   CsvLogger log("/tmp/cut_log.csv");
-//   log.log_with_note(rhs, " <=") << cut.master_multipliers;
-//   return {cut.master_multipliers, rhs};
-// }
-
-// std::pair<std::vector<double>, double> add_cut(Highs & master, Highs const & subproblem, std::set<HighsInt> const & master_variables, std::vector<double> const & master_values, CutType cut_type, int subproblem_no) {
-//   double dual_objective;
-//   subproblem.getDualObjectiveValue(dual_objective);
-//   auto multipliers = get_master_multipliers(subproblem, master_variables);
-//   return add_cut(master, {multipliers, dual_objective}, master_variables, master_values, cut_type, subproblem_no);
-// }
 
 std::set<HighsInt> discover_master_variables(std::vector<std::string> const & variable_names, std::regex const & master_name_pattern) {
   std::set<HighsInt> master_variables;
@@ -401,11 +349,6 @@ std::tuple<double,int,double> count_ortho(std::vector<std::vector<double>> const
 void tighter(MasterAdaptationParams & params, Highs & master) {
   params.no_optim_steps = std::min(params.no_optim_steps + params.delta_steps, params.max_steps);
   master.setOptionValue("ipm_iteration_limit", params.no_optim_steps);
-  // if (params.no_optim_steps >= params.max_steps) {
-  //     master.setOptionValue("solver", kSimplexString);
-  //     master.setOptionValue("dual_feasibility_tolerance", 1e-8);
-  //     master.setOptionValue("primal_feasibility_tolerance", 1e-8);
-  //   }
       
 }
 
@@ -434,19 +377,6 @@ std::vector<double> quick_master_solve(Highs & master) {
   // TOOD -- asssert on error?
   return master.getSolution().col_value;
 }
-
-// void modify_master(Highs & master) {
-    
-//     master.setOptionValue("solver", used_solver);
-//     master.setOptionValue("optimality_tolerance", ipm_acc);
-//     master.setOptionValue("ipm_optimality_tolerance", ipm_acc);
-//     master.setOptionValue("run_crossover", kHighsOffString);
-//     master.setOptionValue("max_centring_steps", 1000);
-//     master.setOptionValue("presolve", kHighsOnString);
-//     master.setOptionValue("centring_gamma", 1-1e-5);
-//     master.setOptionValue("dual_feasibility_tolerance", ipm_feas);
-//     master.setOptionValue("primal_feasibility_tolerance", ipm_feas);
-// }
 
 BendersRet benders(HighsLp & base_problem, std::set<HighsInt> const & master_variables, std::vector<double> const & starting_point, double subproblem_lb,
    double eps, int max_iter, std::vector<OptionValue> const & masterOptions, MasterAdaptationParams params) { 
