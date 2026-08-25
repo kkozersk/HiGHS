@@ -434,6 +434,7 @@ struct HighsOptionsStruct {
   bool use_original_HFactor_logic;
   //  bool allow_pdlp_cleanup;
   bool run_centring;
+  bool refine_with_ipx;
   HighsInt max_centring_steps;
   double centring_ratio_tolerance;
   double fixed_mu;
@@ -598,6 +599,7 @@ struct HighsOptionsStruct {
         use_original_HFactor_logic(false),
         //        allow_pdlp_cleanup(false),
         run_centring(false),
+        refine_with_ipx(true),
         max_centring_steps(0),
         centring_ratio_tolerance(0.0),
         fixed_mu(0.0),
@@ -1595,6 +1597,11 @@ class HighsOptions : public HighsOptionsStruct {
                              advanced, &run_centring, false);
     records.push_back(record_bool);
 
+    record_bool =
+        new OptionRecordBool("refine_with_ipx", "Perform ipx refinement or not",
+                             advanced, &refine_with_ipx, true);
+    records.push_back(record_bool);
+    
     /*
     record_bool = new OptionRecordBool("allow_pdlp_cleanup",
                                        "Allow PDLP to be used to clean up "

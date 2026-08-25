@@ -493,6 +493,7 @@ HighsStatus solveLpHipo(const HighsOptions& options, HighsTimer& timer,
   hipo_options.max_iter =
       options.ipm_iteration_limit - highs_info.ipm_iteration_count;
   hipo_options.max_recentring_iter = options.max_centring_steps;
+  hipo_options.refine_with_ipx = options.refine_with_ipx;
   hipo_options.frozen_mu = options.fixed_mu;
   hipo_options.centring_gamma = options.centring_gamma;
   hipo_options.recentring_step = options.recentring_step;

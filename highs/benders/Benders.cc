@@ -545,6 +545,7 @@ void LevelSetIpmMasterProblem::pass_model(HighsModel const & model, int no_mu) {
   level_set_master.setOptionValue("centring_gamma", 1-1e-5);
   level_set_master.setOptionValue("recentring_step", 1.0);
   level_set_master.setOptionValue("ipm_iteration_limit", 0);
+  level_set_master.setOptionValue("refine_with_ipx", false);
 }
 
 
@@ -572,6 +573,7 @@ void ProximalIPMMasterProblem::pass_model(HighsModel const & model, int no_mu) {
   master.setOptionValue("centring_gamma", 1-1e-5);
   master.setOptionValue("max_centring_steps", 20);
   master.setOptionValue("recentring_step", 1.0);
+  master.setOptionValue("refine_with_ipx", false);
   // master.setOptionValue("primal_feasibility_tolerance", 1e-8);
   // master.setOptionValue("dual_feasibility_tolerance", 1e-8);
 }

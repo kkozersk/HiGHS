@@ -46,7 +46,7 @@ struct Options {
   double feasibility_tol = kIpmTolDefault;
   double optimality_tol = kIpmTolDefault;
   double crossover_tol = kIpmTolDefault;
-  bool refine_with_ipx = false;
+  bool refine_with_ipx = true;
   double time_limit = -1.0;
   Int block_size = 0;
   double frozen_mu = 0.5;
