@@ -11,7 +11,7 @@
 #include <vector>
 #include "Filereader.h"
 #include "FilereaderMps.h"
-#include "HighsLp.h"
+#include "lp_data/HighsLp.h"
 #include "lp_data/HStruct.h"
 #include "model/HighsModel.h"
 #include "lp_data/HighsOptions.h"
