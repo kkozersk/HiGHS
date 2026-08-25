@@ -1,4 +1,6 @@
-#ifdef HIPO
+#include <cmath>
+#include <iostream>
+#include <vector>
 
 #include "HCheckConfig.h"
 #include "Highs.h"
@@ -11,38 +13,34 @@
 #include "parallel/HighsParallel.h"
 #include "simplex/SimplexConst.h"
 
-// Example for using HiPO from its C++ interface. The program solves the Netlib
-// problem afiro.
-
-// #include <unistd.h>
-
-#include <cmath>
-#include <iostream>
-#include <numeric>
-#include <vector>
-
 const bool dev_run = false;
 
-TEST_CASE("test-hipo-afiro", "[highs_hipo]") {
-  // Test that hipo runs and finds correct solution for afiro
-
-  std::string model = "afiro.mps";
-  const double expected_obj = -464.753;
-
-  Highs highs;
+void runHipoTest(
+    Highs& highs, const std::string& model, const double expected_obj,
+    const HighsModelStatus& expected_model_status = HighsModelStatus::kOptimal,
+    const std::string& presolve = kHighsOnString) {
   highs.setOptionValue("output_flag", dev_run);
   highs.setOptionValue("solver", kHipoString);
   highs.setOptionValue("timeless_log", kHighsOnString);
+  highs.setOptionValue("presolve", presolve);
 
   std::string filename = std::string(HIGHS_DIR) + "/check/instances/" + model;
   highs.readModel(filename);
 
   HighsStatus status = highs.run();
   REQUIRE(status == HighsStatus::kOk);
+  REQUIRE(highs.getModelStatus() == expected_model_status);
 
-  const double actual_obj = highs.getObjectiveValue();
-  REQUIRE(std::abs(actual_obj - expected_obj) < 0.001);
+  if (expected_model_status == HighsModelStatus::kOptimal) {
+    const double actual_obj = highs.getObjectiveValue();
+    REQUIRE(std::abs(actual_obj - expected_obj) / std::abs(expected_obj) <
+            1e-4);
+  }
+}
 
+TEST_CASE("test-hipo-afiro", "[highs_hipo]") {
+  Highs highs;
+  runHipoTest(highs, "afiro.mps", -464.753);
   highs.resetGlobalScheduler(true);
 }
 
@@ -50,37 +48,21 @@ TEST_CASE("test-hipo-deterministic", "[highs_hipo]") {
   // Test that hipo finds the exact same solution if run twice
 
   std::string model = "80bau3b.mps";
-  std::string filename = std::string(HIGHS_DIR) + "/check/instances/" + model;
+  const double expected_obj = 9.8722e5;
 
   HighsInt iter_1, iter_2;
   HighsSolution solution_1, solution_2;
 
-  {
-    Highs highs;
-    highs.setOptionValue("output_flag", dev_run);
-    highs.setOptionValue(kSolverString, kHipoString);
-    highs.setOptionValue(kParallelString, kHighsOnString);
-    highs.setOptionValue(kRunCrossoverString, kHighsOffString);
-    highs.readModel(filename);
-    HighsStatus status = highs.run();
-    REQUIRE(status == HighsStatus::kOk);
-    solution_1 = highs.getSolution();
-    iter_1 = highs.getInfo().ipm_iteration_count;
-    highs.resetGlobalScheduler(true);
-  }
-  {
-    Highs highs;
-    highs.setOptionValue("output_flag", dev_run);
-    highs.setOptionValue(kSolverString, kHipoString);
-    highs.setOptionValue(kParallelString, kHighsOnString);
-    highs.setOptionValue(kRunCrossoverString, kHighsOffString);
-    highs.readModel(filename);
-    HighsStatus status = highs.run();
-    REQUIRE(status == HighsStatus::kOk);
-    solution_2 = highs.getSolution();
-    iter_2 = highs.getInfo().ipm_iteration_count;
-    highs.resetGlobalScheduler(true);
-  }
+  Highs highs;
+  highs.setOptionValue(kRunCrossoverString, kHighsOffString);
+
+  runHipoTest(highs, model, expected_obj);
+  solution_1 = highs.getSolution();
+  iter_1 = highs.getInfo().ipm_iteration_count;
+
+  runHipoTest(highs, model, expected_obj);
+  solution_2 = highs.getSolution();
+  iter_2 = highs.getInfo().ipm_iteration_count;
 
   REQUIRE(iter_1 == iter_2);
   REQUIRE(solution_1.value_valid == solution_2.value_valid);
@@ -91,16 +73,27 @@ TEST_CASE("test-hipo-deterministic", "[highs_hipo]") {
   REQUIRE(solution_1.row_dual == solution_2.row_dual);
 }
 
+HighsLp get_dummy_lp_with_lb_ub(std::vector<double> const & lb, std::vector<double> const & ub) {
+  REQUIRE(lb.size() == ub.size());
+  HighsLp lp;
+  lp.num_col_ = lb.size();
+  lp.num_row_ = 0;
+  lp.col_lower_ = lb;
+  lp.col_upper_ = ub;
+  lp.col_cost_ = std::vector<double>(lb.size(), 0);
+  lp.a_matrix_.num_col_ = lb.size();
+  lp.a_matrix_.num_row_ = 0;
+  lp.a_matrix_.format_ = MatrixFormat::kRowwise;
+  lp.a_matrix_.index_ = {};
+  lp.a_matrix_.value_ = {};
+  lp.a_matrix_.start_ = {0};
+  return lp;
+}
+
 TEST_CASE("test-is-centred-solutions", "[highs_hipo]") {
   hipo::Model model;
-  std::vector<double> zeros(4, 0);
-  std::vector<hipo::Int> dummy_matrix (5,0);
-  std::vector<double> lb {0, 0, -INFINITY, -INFINITY};
-  std::vector<double> ub {2, INFINITY, 3.5, INFINITY};
-  std::vector<char> dummy_cons {'<'};
-  auto res = model.init(4, 0, zeros.data(), zeros.data(), lb.data(), ub.data(),
-     dummy_matrix.data(), dummy_matrix.data(), zeros.data(), dummy_cons.data(), 0);
-  REQUIRE(res == 0);
+  auto lp = get_dummy_lp_with_lb_ub({0, 0, -INFINITY, -INFINITY}, {2, INFINITY, 3.5, INFINITY});
+  REQUIRE(model.init(lp, {}) == 0);
   std::vector<double>
       xl {1, 1.5, 0, 0},
       zl {1, 1, 0, 0},
@@ -119,14 +112,9 @@ TEST_CASE("test-is-centred-solutions", "[highs_hipo]") {
 
 TEST_CASE("test-eps-centring", "[highs_hipo]") {
   hipo::Model model;
-  std::vector<double> zeros(4, 0);
-  std::vector<hipo::Int> dummy_matrix (5,0);
-  std::vector<double> lb {0, 0, 0, 0};
-  std::vector<double> ub {INFINITY, INFINITY, INFINITY, INFINITY};
   std::vector<char> dummy_cons {'<'};
-  auto res = model.init(4, 0, zeros.data(), zeros.data(), lb.data(), ub.data(),
-     dummy_matrix.data(), dummy_matrix.data(), zeros.data(), dummy_cons.data(), 0);
-  REQUIRE(res == 0);
+  auto lp = get_dummy_lp_with_lb_ub({0, 0, 0, 0}, {INFINITY, INFINITY, INFINITY, INFINITY});
+  REQUIRE(model.init(lp, {}) == 0);
   auto eps = 1e-8;
   std::vector<double>
       xl (4,eps),
@@ -140,14 +128,8 @@ TEST_CASE("test-eps-centring", "[highs_hipo]") {
 
 TEST_CASE("test-no-bound-centring", "[highs_hipo]") {
   hipo::Model model;
-  std::vector<double> zeros(4, 0);
-  std::vector<hipo::Int> dummy_matrix (5,0);
-  std::vector<double> lb {-INFINITY, -INFINITY, -INFINITY, -INFINITY};
-  std::vector<double> ub {INFINITY, INFINITY, INFINITY, INFINITY};
-  std::vector<char> dummy_cons {'<'};
-  auto res = model.init(4, 0, zeros.data(), zeros.data(), lb.data(), ub.data(),
-     dummy_matrix.data(), dummy_matrix.data(), zeros.data(), dummy_cons.data(), 0);
-  REQUIRE(res == 0);
+  auto lp = get_dummy_lp_with_lb_ub({-INFINITY, -INFINITY, -INFINITY, -INFINITY}, {INFINITY, INFINITY, INFINITY, INFINITY});
+  REQUIRE(model.init(lp, {}) == 0);
   std::vector<double>
       xl (4,0),
       zl (4,0),
@@ -160,14 +142,8 @@ TEST_CASE("test-no-bound-centring", "[highs_hipo]") {
 
 TEST_CASE("test-is-centred-fixed-vars", "[highs_hipo]") {
   hipo::Model model;
-  std::vector<double> zeros(4, 0);
-  std::vector<hipo::Int> dummy_matrix (5,0);
-  std::vector<double> lb {0, 0, -INFINITY, 3};
-  std::vector<double> ub {2, INFINITY, 3.5, 3};
-  std::vector<char> dummy_cons {'<'};
-  auto res = model.init(4, 0, zeros.data(), zeros.data(), lb.data(), ub.data(),
-     dummy_matrix.data(), dummy_matrix.data(), zeros.data(), dummy_cons.data(), 0);
-  REQUIRE(res == 0);
+  auto lp = get_dummy_lp_with_lb_ub({0, 0, -INFINITY, 3}, {2, INFINITY, 3.5, 3});
+  REQUIRE(model.init(lp, {}) == 0);
   std::vector<double>
       xl {1, 1.5, 0, 0},
       zl {1, 1, 0, 0},
@@ -335,4 +311,60 @@ TEST_CASE("test-recentring-afiro", "[highs_hipo]") {
   
 }
 
-#endif
+TEST_CASE("test-hipo-options", "[highs_hipo]") {
+  // test all combinations of options for hipo
+
+  std::string model = "adlittle.mps";
+  const double expected_obj = 2.2549e5;
+  Highs highs;
+
+  std::vector<std::string> orders = {kHighsChooseString, kHipoMetisString,
+                                     kHipoAmdString, kHipoRcmString};
+  std::vector<std::string> systems = {kHighsChooseString, kHipoNormalEqString,
+                                      kHipoAugmentedString};
+  std::vector<std::string> parallels = {kHighsOnString, kHighsOffString,
+                                        kHighsChooseString};
+  std::vector<std::string> partypes = {kHipoTreeString, kHipoNodeString,
+                                       kHipoBothString};
+
+  for (auto& order : orders) {
+    highs.setOptionValue(kHipoOrderingString, order);
+    for (auto& system : systems) {
+      highs.setOptionValue(kHipoSystemString, system);
+      for (auto& parallel : parallels) {
+        highs.setOptionValue(kParallelString, parallel);
+        for (auto& partype : partypes) {
+          highs.setOptionValue(kHipoParallelString, partype);
+          runHipoTest(highs, model, expected_obj);
+        }
+      }
+    }
+  }
+
+  highs.resetGlobalScheduler(true);
+}
+
+TEST_CASE("test-hipo-qp", "[highs_hipo]") {
+  Highs highs;
+  runHipoTest(highs, "qptestnw.lp", -6.4500);
+  runHipoTest(highs, "qjh.lp", -5.2500);
+  runHipoTest(highs, "primal1.mps", -3.501296e-2);
+  highs.resetGlobalScheduler(true);
+}
+
+TEST_CASE("test-hipo-infeas", "[highs_hipo]") {
+  const HighsModelStatus expected_status = HighsModelStatus::kInfeasible;
+  Highs highs;
+  runHipoTest(highs, "bgetam.mps", 0, expected_status, "off");
+  runHipoTest(highs, "forest6.mps", 0, expected_status, "off");
+  runHipoTest(highs, "klein1.mps", 0, expected_status, "off");
+  highs.resetGlobalScheduler(true);
+}
+
+TEST_CASE("test-hipo-freevar", "[highs_hipo]") {
+  const HighsModelStatus expected_status = HighsModelStatus::kOptimal;
+  Highs highs;
+  runHipoTest(highs, "perold.mps", -9.381e3, expected_status, "on");
+  runHipoTest(highs, "perold.mps", -9.381e3, expected_status, "off");
+  highs.resetGlobalScheduler(true);
+}

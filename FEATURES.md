@@ -1,48 +1,158 @@
+Patch release v1.15.1 fixes:
+
+Apache release binaries not including HiPO fixed in [PR #3112](https://github.com/ERGO-Code/HiGHS/pull/3112).
+
+Build for users with C++20 fixed in [PR #3114](https://github.com/ERGO-Code/HiGHS/pull/3114).
+
+OpenBLAS setup issue affecting performance fixed in [PR #3122](https://github.com/ERGO-Code/HiGHS/pull/3122).
+
+Values passed for string option values (except for file names) are
+converted to lower case [PR #3108](https://github.com/ERGO-Code/HiGHS/pull/3108).
+
+---
+
+
+The highlights of v1.15 are the first variant of the parallel MIP solver
+and the addition of HiPO in Python.
+
 ## Code changes
 
-HiPO is out! Our new factorisation-based interior point solver, developed by Filippo Zanetti, is officially integrated in HiGHS! HiPO is multi-threaded and will improve the performance on many large instances. Metis and BLAS are required for HiPO. In this version, HiPO will be available when HiGHS is built from source with CMake. It can be accessed from C++, C and will also be available when HiGHS is called from JuMP. In a future release, HiPO will be available from Python, C# and more.
+Following [PR #2886](https://github.com/ERGO-Code/HiGHS/pull/2886), our
+prototype multithreaded MIP solver is available, refactoring
+the worker/node-search logic of the branch-and-cut solver to run
+across multiple threads. This is the first release of the parallel MIP
+solver.
 
-Forcing column reduction now checks the bound on the column dual rather than whether the dual row activity is zero fixing [#2409](https://github.com/ERGO-Code/HiGHS/issues/2409)
+A fix to the parallel scheduler was merged in
+[PR #3087](https://github.com/ERGO-Code/HiGHS/pull/3087).
 
-Now handling correctly the case where an infeasible MIP has a feasible relaxation, so no ray is computed fixing [#2415](https://github.com/ERGO-Code/HiGHS/issues/2415)
+Following [PR #2994](https://github.com/ERGO-Code/HiGHS/pull/2994),
+HiPO can now be used to solve LPs and QPs from `highspy`, with
+documentation added in
+[PR #3024](https://github.com/ERGO-Code/HiGHS/pull/3024) and
+[PR #3060](https://github.com/ERGO-Code/HiGHS/pull/3060). HiPO
+performance was further improved by faster handling of free variables
+([PR #3013](https://github.com/ERGO-Code/HiGHS/pull/3013)) and faster
+triangular solves
+([PR #3014](https://github.com/ERGO-Code/HiGHS/pull/3014)).
 
-Fixed minor bug exposed by [#2441](https://github.com/ERGO-Code/HiGHS/issues/2441) in `Highs::setSolution()` for a sparse user solution when the moidel is empty, and only clearing the dual data before solving with modified objective in `Highs::multiobjectiveSolve()` so that user-supplied solution is not cleared.
+Prompted by [#2957](https://github.com/ERGO-Code/HiGHS/issues/2957),
+square Hessians that are only slightly asymmetric are now accepted by
+`Highs::qFormatOk`, rather than being rejected outright
+([PR #2965](https://github.com/ERGO-Code/HiGHS/pull/2965),
+[PR #2984](https://github.com/ERGO-Code/HiGHS/pull/2984) and
+[PR #3003](https://github.com/ERGO-Code/HiGHS/pull/3003)). Identification
+of non-convexity in the QP solvers was also improved, with extended
+documentation added in
+[PR #3056](https://github.com/ERGO-Code/HiGHS/pull/3056), and a further
+bug affecting some QPs was fixed in
+[PR #3069](https://github.com/ERGO-Code/HiGHS/pull/3069). QP hot start
+was added in [PR #3089](https://github.com/ERGO-Code/HiGHS/pull/3089).
 
-The irreducible infeasibility system (IIS) facility now detects infeasibility due to bounds on constraint activity values (implied by variable bounds) being incompatible with constraint bounds. A `kIisStrategyLight mode` for the `iis_strategy` option has been introduced so that only infeasibility due to incompatible variable/constraint bounds and constraint activity values is checked for. The LP corresponding to any known IIS is now formed and held as a data member of the `HighsIis` class. It can be obtained as a const reference using `Highs::getIisLp()`, and written to a file using `Highs::writeIisModel(const std::string& filename = "")`
+Following [PR #2982](https://github.com/ERGO-Code/HiGHS/pull/2982),
+several bugs in the computation of an Irreducible Infeasible Subsystem
+(IIS) via `Highs::getIis` were fixed.
 
-Prompted by [#2463](https://github.com/ERGO-Code/HiGHS/issues/2463), the HiGHS solution and basis files now match data to any column and row names in the model, only assuming that the data are aligned with column and row indices if there are no names in the model. This requires a new version (v2) of the HiGHS basis file. Basis files from v1 are still read, but deprecated. Now, when writing out a model, basis or solution, column and row names are added to the model - previously they were created temporarily and inconsistentyly on the fly. If the model has existing names, then distinctive names are created to replace any blank names, but names with spaces or duplicate names yield an error status return.
+Following [PR #3046](https://github.com/ERGO-Code/HiGHS/pull/3046),
+zero-cost singleton columns are no longer fixed to an infinite bound
+during `HPresolve::dualFixing`, and the size of shifts applied during
+reduced-cost fixing was reduced in
+[PR #2986](https://github.com/ERGO-Code/HiGHS/pull/2986). Strengthened
+variable bounds found during presolve are now retained
+([PR #3010](https://github.com/ERGO-Code/HiGHS/pull/3010)), a bug in
+the computation of the fractional value of a variable with finite
+lower and upper bounds was fixed
+([PR #3005](https://github.com/ERGO-Code/HiGHS/pull/3005)), and the
+handling of infeasibilities for semi-continuous and semi-integer
+variables was corrected
+([PR #3018](https://github.com/ERGO-Code/HiGHS/pull/3018)).
 
-Refactored strong branching to minimize duplicated code
+Following [PR #3042](https://github.com/ERGO-Code/HiGHS/pull/3042),
+parallel simplex is no longer used when solving the LP relaxations
+that arise within the MIP solver, since it isn't safe to do so when
+the MIP solver is itself running in parallel.
 
-Only for LPs is there a choice of solver. Previously, when setting the `solver` option to anything other than "choose", any incumbent model was solved as an LP, using that LP solver. This has caused confusiuon for users, and is unnecessary now that there is the `solve_relaxation` option. Now, if the incumbent model is a QP or MIP, it is solved as such (unless `solve_relaxation` is true for a MIP), and the value of the `solver` option only determines what solver is used to solve an LP. If the value of `solver` is "choose", then HiGHS will use what it expects to be the best solver for the problem; if value of `solver` is "ipm", then HiGHS will use what it expects to be the better IPM solver (of HiPO and IPX) for the problem; if value of `solver` is "hipo", then HiGHS will use the HiPO IPM solver (if available in the build); if value of `solver` is "ipx", then HiGHS will use the IPX IPM solver; if value of `solver` is "pdlp", then HiGHS will use the PDLP first-order solver. The option `mip_lp_solver` has been introduced to define which LP solver is used when solving LPs in the MIP solver for which an advanced basis is not known - typically the "root node" LP. Note that The PDLP solver cannot be used to solve such LPs, since it does not yield a basic solution. If an interior point solver fails to obtain a basic solution, the simplex solver will then be used. The option `mip_ipm_solver` has been introduced to define which IPM solver is used when solving LPs in the MIP solver for which IPM is mandatory - typically the analytic centre calculation. When LPs are to be solved by an IPM solver, the HiPO solver is used (if available in the build) unless IPX has been specified explicitly. 
+Following [PR #2971](https://github.com/ERGO-Code/HiGHS/pull/2971),
+`highspy` now supports scalar division, and significant improvements
+were made to `highspy`'s static typing in
+[PR #2983](https://github.com/ERGO-Code/HiGHS/pull/2983). Context
+manager support was added to `highspy` in
+[PR #3093](https://github.com/ERGO-Code/HiGHS/pull/3093).
 
-As per [#2487](https://github.com/ERGO-Code/HiGHS/issues/2487), trivial heuristics now run before feasibility jump (FJ), and FJ will use any existing incumbent. FJ will clip any finite variable values in the incumbent to lower and upper bounds, and falls back to the existing logic (lower bound if finite, else upper bound if finite, else 0) for any infinite values in the incumbent.
+Following [PR #3039](https://github.com/ERGO-Code/HiGHS/pull/3039),
+`Highs::setBasis` and `Highs::setLogicalBasis` have been implemented,
+and additional methods were added to the C# wrapper in
+[PR #3041](https://github.com/ERGO-Code/HiGHS/pull/3041).
 
-Prompted by [#2460](https://github.com/ERGO-Code/HiGHS/issues/2460), the options `user_objective_scale` and `user_bound_scale` apply uniform (power-of-two) scaling to the objective and bounds of a model, and now respect the following restrictions
-- For a MIP, column bounds cannot be scaled, so the scaling is achieved by scaling the cost and constraint matrix column
-- For a QP, Hessian entries must be scaled down (up) when bounds are scaled up (down) so that all terms in the objective are scaled by a constant.
+Prompted by [#3044](https://github.com/ERGO-Code/HiGHS/issues/3044),
+a further bug was fixed in
+[PR #3092](https://github.com/ERGO-Code/HiGHS/pull/3092), and
+[PR #3091](https://github.com/ERGO-Code/HiGHS/pull/3091) corrects the
+re-checking of an implied bound, fixing
+[#3090](https://github.com/ERGO-Code/HiGHS/issues/3090).
 
-Formerly the options `user_cost_scale` and `user_bound_scale` allowed uniform (power-of-two) scaling to the costs and bounds of an LP. The option `user_cost_scale` is now replaced by `user_objective_scale`.
+Following [PR #2981](https://github.com/ERGO-Code/HiGHS/pull/2981),
+C-heap memory leaks in solver state cleanup were fixed, and
+[PR #3081](https://github.com/ERGO-Code/HiGHS/pull/3081) fixes a bug
+in column stuffing.
 
-After HiGHS determines and logs the coefficient ranges and warns about extreme values, it recommends values of `user_objective_scale` and `user_bound_scale` if
-- All the objective coefficients (bound values) are smaller than the "excessively small constant" `kExcessivelySmallObjectiveCoefficient` (`kExcessivelySmallBoundValue`) - both of which are 1e-4 - suggesting that they are scaled up so that the largest value becomes (just over) the excessively small constant. Since the smallest value can be arbitrarily small, scaling so that this becomes (just over) the small constant is inadvisable, as the largest value could then be scaled up to an extremely large value.
-- All the objective coefficients (bound values) are larger than the "excessively large constant" `kExcessivelyLargeObjectiveCoefficient` (`kExcessivelyLargeBoundValue`) - both of which are 1e6 - suggesting that they are scaled down so that the largest value becomes (just over) the excessively large constant.
+Following [PR #3016](https://github.com/ERGO-Code/HiGHS/pull/3016),
+`Highs::presolve()` now logs and returns failure appropriately when
+called inconsistently with the state of the incumbent model.
 
-The recommended objective scaling is determined with respect to the recommended bound scaling
-Users can obtain the recommended values of `user_objective_scale` and `user_bound_scale` by calling `Highs::getObjectiveBoundScaling`
+Prompted by [#3007](https://github.com/ERGO-Code/HiGHS/issues/3007), a
+potential typo in `FactorHiGHSSolver::chooseNla()` was corrected, and
+several other minor fixes were collected in
+[PR #3017](https://github.com/ERGO-Code/HiGHS/pull/3017) and
+[PR #3004](https://github.com/ERGO-Code/HiGHS/pull/3004) (the latter
+for `HighsCliqueTable`).
 
-The irreducible infeasibility system (IIS) facility now detects infeasibility due to bounds on constraint activity values being incompatible with constraint bounds. A `kIisStrategyLight` mode for the `iis_strategy` option has been introduced so that only infeasibility due to incompatible variable/constraint bounds and constraint activity values is checked for. The model corresponding to any known IIS is now formed and held as a data member of the `HighsIis` class. The `HighsIis` class is available via `highspy`, and its data members are available via the C API.
-
-Prompted by [#2463](https://github.com/ERGO-Code/HiGHS/issues/2463), when HiGHS writes out a solution or basis for a model without column or row names, it creates names. This avoids a mis-match between the ordering of variables when such a model is written out as a .lp file, and then this and a solution or a basis is read in.
-
-Prompted by [#2528](https://github.com/ERGO-Code/HiGHS/issues/2528), the logging for the HiGHS interior point method (IPM) solvers and PDLP solver has been standardised, and logging has been added to the IPM solver during time-consuming computational phases.
-
-Prompted by [#2557](https://github.com/ERGO-Code/HiGHS/issues/2557), `Highs::getFixedLp` has been added so that, after solving a MIP, the LP with discrete variables fixed at their optimal values can be formed, allowing it to be passed to HiGHS and solved as an LP. 
-
-Prompted by [#2581](https://github.com/ERGO-Code/HiGHS/issues/2581), the QP example in `call_highs_from_csharp.cs` has been corrected
-
-Prompted by [#2582](https://github.com/ERGO-Code/HiGHS/issues/2582), the C API constants are declared `static const` to prevent multiple definition linker errors
+Following [PR #3057](https://github.com/ERGO-Code/HiGHS/pull/3057),
+lines in HiGHS options files that contain only spaces are now ignored,
+and the text of the first line containing an error is printed in the
+resulting message.
 
 ## Build changes
 
-The Bazel build now supports building with Cuda with an optional parameter `cupdlp_gpu`.
+The Python build has been updated and an additional python package is
+available. The HiPO dependencies are linked via the optional
+`highspy-extras`, e.g. Metis, for all platforms, and OpenBLAS, for
+Windows and Linux. The `highspy-extras` package is automatically
+consumed by `highspy` and does not need to be imported manually. Note,
+that `highspy-extras` is distributed under the Apache 2.0 license, due
+to the dependencies' licensing.
+
+On Linux, `libblas` is no longer supported, in favour of OpenBLAS. MKL
+support would be considered at a later stage.
+
+Prompted by [#3000](https://github.com/ERGO-Code/HiGHS/issues/3000),
+[PR #3027](https://github.com/ERGO-Code/HiGHS/pull/3027) fixes a
+recent `alpine:edge` compilation issue.
+
+Following [PR #3025](https://github.com/ERGO-Code/HiGHS/pull/3025),
+all remaining thread sanitizer data race warnings are cleared.
+
+GPU support was added for local Python pip installs in
+[PR #3071](https://github.com/ERGO-Code/HiGHS/pull/3071) and the BLAS
+library used by HiPO is now checked at runtime
+([PR #3080](https://github.com/ERGO-Code/HiGHS/pull/3080)).
+
+The `cibuildwheel` workflow and `pyproject` configuration were updated
+to `cibuildwheel` 4.0.0
+([PR #3061](https://github.com/ERGO-Code/HiGHS/pull/3061)), and the
+NuGet publishing workflow now uses trusted publishing rather than an
+API key
+([PR #3062](https://github.com/ERGO-Code/HiGHS/pull/3062),
+following [PR #2959](https://github.com/ERGO-Code/HiGHS/pull/2959)).
+
+The macOS GitHub Actions build times were significantly improved in
+[PR #3033](https://github.com/ERGO-Code/HiGHS/pull/3033), and the C#
+wrapper build was fixed to statically link the MSVC STL and correctly
+install on win32
+([PR #3070](https://github.com/ERGO-Code/HiGHS/pull/3070)).
+
+Following [PR #3001](https://github.com/ERGO-Code/HiGHS/pull/3001),
+the install location of the readme and license files was corrected,
+and explicit `-fexceptions` copts were added to the Bazel config
+([PR #3072](https://github.com/ERGO-Code/HiGHS/pull/3072) and
+[PR #3075](https://github.com/ERGO-Code/HiGHS/pull/3075)).
