@@ -677,7 +677,6 @@ void fillInIpxData(const HighsLp& lp, ipx::Int& num_col, ipx::Int& num_row,
 
   std::vector<HighsInt> general_bounded_rows;
   std::vector<HighsInt> free_rows;
-
   for (HighsInt row = 0; row < num_row; row++)
     if (lp.row_lower_[row] < lp.row_upper_[row] &&
         lp.row_lower_[row] > -kHighsInf && lp.row_upper_[row] < kHighsInf)
@@ -689,7 +688,6 @@ void fillInIpxData(const HighsLp& lp, ipx::Int& num_col, ipx::Int& num_row,
   const HighsInt num_slack = general_bounded_rows.size();
 
   fillInRhsAndConstraints(lp, rhs, constraint_type);
-
   std::vector<HighsInt> reduced_rowmap(lp.num_row_, -1);
   if (free_rows.size() > 0) {
     HighsInt counter = 0;
@@ -708,9 +706,7 @@ void fillInIpxData(const HighsLp& lp, ipx::Int& num_col, ipx::Int& num_row,
   }
   num_row -= free_rows.size();
   num_col += num_slack;
-
   std::vector<HighsInt> sizes(num_col, 0);
-
   for (HighsInt col = 0; col < lp.num_col_; col++)
     for (HighsInt k = lp.a_matrix_.start_[col];
          k < lp.a_matrix_.start_[col + 1]; k++) {
@@ -723,7 +719,6 @@ void fillInIpxData(const HighsLp& lp, ipx::Int& num_col, ipx::Int& num_row,
   Ap.resize(num_col + 1);
   Ai.reserve(nnz + num_slack);
   Ax.reserve(nnz + num_slack);
-
   // Set starting points of original and newly introduced columns.
   Ap[0] = 0;
   for (HighsInt col = 0; col < lp.num_col_; col++) {
@@ -739,12 +734,10 @@ void fillInIpxData(const HighsLp& lp, ipx::Int& num_col, ipx::Int& num_row,
       Ax.push_back(lp.a_matrix_.value_[k]);
     }
   }
-
   for (HighsInt k = 0; k < num_slack; k++) {
     Ai.push_back((ipx::Int)general_bounded_rows[k]);
     Ax.push_back(-1);
   }
-
   // Column bound vectors.
   col_lb.resize(num_col);
   col_ub.resize(num_col);
@@ -764,7 +757,6 @@ void fillInIpxData(const HighsLp& lp, ipx::Int& num_col, ipx::Int& num_row,
     col_lb[lp.num_col_ + slack] = lp.row_lower_[row];
     col_ub[lp.num_col_ + slack] = lp.row_upper_[row];
   }
-
   offset = HighsInt(lp.sense_) * lp.offset_;
   obj.resize(num_col);
   for (HighsInt col = 0; col < lp.num_col_; col++) {

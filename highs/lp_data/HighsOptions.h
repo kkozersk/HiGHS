@@ -1718,9 +1718,9 @@ class HighsOptions : public HighsOptionsStruct {
 
     record_int =
         new OptionRecordInt("max_centring_steps",
-                            "Maximum number of steps to use (default = 5) "
+                            "Maximum number of steps to use (default = 0) "
                             "when computing the analytic centre",
-                            advanced, &max_centring_steps, 0, 5, kHighsIInf);
+                            advanced, &max_centring_steps, 0, 0, kHighsIInf);
     records.push_back(record_int);
 
     record_double = new OptionRecordDouble(

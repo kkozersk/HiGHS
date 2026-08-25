@@ -252,8 +252,9 @@ void Solver::recentring() {
   auto it = iter_;
   auto st = info_.status;
   double frozen_mu = options_.frozen_mu > 0 ? options_.frozen_mu : it_->computeMu();
-  bool recentring_success;
-  for (Int i = 0; i < options_.max_recentring_iter; ++i) {
+  bool recentring_success = false;
+  Int i = 0;
+  for (; i < options_.max_recentring_iter; ++i) {
     it_->mu = frozen_mu;
     recentring_success = isFeasible() && isWellCentered();
     if (recentring_success || prepareIter(true) || predictor(false)) break;
@@ -1403,8 +1404,11 @@ bool Solver::failed() const { return statusIsFailed(); }
 
 bool isWellCentered(double mu, double gamma, Model const & model, VecRef xl, VecRef zl, VecRef xu, VecRef zu) {
   double xz_lb = mu * gamma, xz_ub = mu / gamma;
+  auto const & free_vars = model.freeVars();
   for (Int i = 0; i < model.n(); ++i) {
-    if(model.hasLb(i) && model.lb(i) == model.ub(i))
+    if (model.hasLb(i) && model.lb(i) == model.ub(i))
+      continue;
+    if (std::find(free_vars.begin(), free_vars.end(), i) != free_vars.end())
       continue;
     if (model.hasLb(i) && !is_between(xl[i] * zl[i], xz_lb, xz_ub))
       return false;

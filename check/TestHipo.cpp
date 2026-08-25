@@ -77,22 +77,25 @@ HighsLp get_dummy_lp_with_lb_ub(std::vector<double> const & lb, std::vector<doub
   REQUIRE(lb.size() == ub.size());
   HighsLp lp;
   lp.num_col_ = lb.size();
-  lp.num_row_ = 0;
+  lp.num_row_ = 1;
   lp.col_lower_ = lb;
   lp.col_upper_ = ub;
   lp.col_cost_ = std::vector<double>(lb.size(), 0);
+  lp.row_lower_ = {1};
+  lp.row_upper_ = {1};
   lp.a_matrix_.num_col_ = lb.size();
-  lp.a_matrix_.num_row_ = 0;
+  lp.a_matrix_.num_row_ = 1;
   lp.a_matrix_.format_ = MatrixFormat::kRowwise;
-  lp.a_matrix_.index_ = {};
-  lp.a_matrix_.value_ = {};
-  lp.a_matrix_.start_ = {0};
+  lp.a_matrix_.index_ = {0};
+  lp.a_matrix_.value_ = {1};
+  lp.a_matrix_.start_ = {0,1};
+  lp.ensureColwise();
   return lp;
 }
 
 TEST_CASE("test-is-centred-solutions", "[highs_hipo]") {
   hipo::Model model;
-  auto lp = get_dummy_lp_with_lb_ub({0, 0, -INFINITY, -INFINITY}, {2, INFINITY, 3.5, INFINITY});
+  auto lp = get_dummy_lp_with_lb_ub({0, 0, -kHighsInf, -kHighsInf}, {2, kHighsInf, 3.5, kHighsInf});
   REQUIRE(model.init(lp, {}) == 0);
   std::vector<double>
       xl {1, 1.5, 0, 0},
@@ -126,6 +129,7 @@ TEST_CASE("test-eps-centring", "[highs_hipo]") {
   REQUIRE(hipo::isWellCentered(mu, gamma, model, xl, zl, xu, zu));
 }
 
+// TODO centredness check might fail for free vars, because of the initial bounds
 TEST_CASE("test-no-bound-centring", "[highs_hipo]") {
   hipo::Model model;
   auto lp = get_dummy_lp_with_lb_ub({-INFINITY, -INFINITY, -INFINITY, -INFINITY}, {INFINITY, INFINITY, INFINITY, INFINITY});
@@ -170,9 +174,9 @@ bool inexact_vector_comparison(std::vector<double> const & a, std::vector<double
 }
 
 TEST_CASE("test-centring-procedure", "[highs_hipo]") {
-  std::vector<HighsInt> csr_index {0, 0};
+  std::vector<HighsInt> csr_index {0, 1};
   std::vector<double> csr_values {1, 1};
-  std::vector<HighsInt> csr_starts {0, 1, 2};
+  std::vector<HighsInt> csr_starts {0, 2};
   HighsLp lp;
   lp.offset_ = 0;
   lp.num_col_ = 2;
@@ -182,7 +186,7 @@ TEST_CASE("test-centring-procedure", "[highs_hipo]") {
   lp.col_cost_ = {1, 1};
   lp.row_lower_ = {-INFINITY};
   lp.row_upper_ = {1};
-  lp.a_matrix_.format_ = MatrixFormat::kColwise;
+  lp.a_matrix_.format_ = MatrixFormat::kRowwise;
   lp.a_matrix_.start_ = csr_starts;
   lp.a_matrix_.index_ = csr_index;
   lp.a_matrix_.value_ = csr_values;
@@ -193,13 +197,15 @@ TEST_CASE("test-centring-procedure", "[highs_hipo]") {
   highs.passModel(lp);
   highs.setOptionValue("output_flag", dev_run);
   highs.setOptionValue("solver", kHipoString);
+  highs.setOptionValue("max_centring_steps", 100);
   highs.setOptionValue("timeless_log", kHighsOnString);
   highs.setOptionValue("ipm_iteration_limit", 0);
   highs.setOptionValue("presolve", kHighsOffString);
+  highs.setOptionValue("run_crossover", kHighsOffString);
+  highs.setOptionValue("refine_with_ipx", false);
   highs.setOptionValue("fixed_mu", 0.5);
-  highs.setOptionValue("centring_gamma", 1);
+  highs.setOptionValue("centring_gamma", 1e-8);
   highs.run();
-  // REQUIRE( == HighsStatus::kOk);
   auto solution = highs.getSolution();
   REQUIRE(inexact_vector_comparison(solution.col_value, {0.25, 0.25}));
   REQUIRE(inexact_vector_comparison(solution.col_dual, {2, 2}));
@@ -230,11 +236,15 @@ TEST_CASE("test-centring-procedure-with-slack", "[highs_hipo]") {
   highs.passModel(lp);
   highs.setOptionValue("output_flag", dev_run);
   highs.setOptionValue("solver", kHipoString);
+  highs.setOptionValue("max_centring_steps", 100);
   highs.setOptionValue("timeless_log", kHighsOnString);
   highs.setOptionValue("ipm_iteration_limit", 0);
   highs.setOptionValue("presolve", kHighsOffString);
+  highs.setOptionValue("run_crossover", kHighsOffString);
+  highs.setOptionValue("refine_with_ipx", false);
   highs.setOptionValue("fixed_mu", 0.5);
-  highs.setOptionValue("centring_gamma", 1);
+  highs.setOptionValue("centring_gamma", 1e-8);
+
   highs.run();
   // REQUIRE( == HighsStatus::kOk);
   auto solution = highs.getSolution();
@@ -267,11 +277,14 @@ TEST_CASE("test-centring-procedure-fixed-var", "[highs_hipo]") {
   highs.passModel(lp);
   highs.setOptionValue("output_flag", dev_run);
   highs.setOptionValue("solver", kHipoString);
+  highs.setOptionValue("max_centring_steps", 100);
   highs.setOptionValue("timeless_log", kHighsOnString);
   highs.setOptionValue("ipm_iteration_limit", 0);
   highs.setOptionValue("presolve", kHighsOffString);
+  highs.setOptionValue("run_crossover", kHighsOffString);
+  highs.setOptionValue("refine_with_ipx", false);
   highs.setOptionValue("fixed_mu", 0.5);
-  highs.setOptionValue("centring_gamma", 1);
+  highs.setOptionValue("centring_gamma", 1e-8);
   highs.run();
   // REQUIRE( == HighsStatus::kOk);
   auto solution = highs.getSolution();
@@ -290,6 +303,7 @@ TEST_CASE("test-recentring-afiro", "[highs_hipo]") {
   highs.setOptionValue("solver", kHipoString);
   highs.setOptionValue("timeless_log", kHighsOnString);
   highs.setOptionValue("ipm_iteration_limit", 5);
+  highs.setOptionValue("max_centring_steps", 10);
   highs.setOptionValue("presolve", kHighsOffString);
   double gamma = 0.5;
   highs.setOptionValue("centring_gamma", gamma);
