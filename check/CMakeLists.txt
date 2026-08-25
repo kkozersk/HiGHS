@@ -29,8 +29,9 @@ if ((NOT FAST_BUILD OR ALL_TESTS) AND NOT (BUILD_EXTRA_UNIT_ONLY))
   # Make test executable
   set(TEST_SOURCES
       TestBenders.cpp
-      #TestHipo.cpp
-      #TestSMPS.cpp
+	  TestRunExperiments.cpp
+      TestHipo.cpp
+      TestSMPS.cpp
       TestMain.cpp
   )
   set(OPT_LEVEL_CHANGED OFF)
