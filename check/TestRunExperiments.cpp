@@ -172,12 +172,20 @@ int multi_run(SmpsTestCase smps, int max_scenarios, MasterProblem & master_solve
 
 
 // TEST_CASE("test-read2", "[highs-benders]") {
-//     for (auto r : training) {
-//     //   ProximalIPMMasterProblem master_solver {5, 30, 2};
-//       // LevelSetIpmMasterProblem master_solver {0.49, 0.51};
-//       // LevelSetQpMasterProblem master_solver {0.5, 0.9};
-//       StandardMasterProblem master_solver {}; 
-//       multi_run(r, 1e5, master_solver);
-//     }
-     
+//   for (auto r : training) {
+//     StandardMasterProblem master_solver {}; 
+//     multi_run(r, 1e5, master_solver);
+//   }
+//   for (auto r : training) {
+//     ProximalIPMMasterProblem master_solver {5, 30, 2};
+//     multi_run(r, 1e5, master_solver);
+//   }
+//   for (auto r : training) {
+//     LevelSetIpmMasterProblem master_solver {0.49, 0.51};
+//     multi_run(r, 1e5, master_solver);
+//   }
+//   for (auto r : training) {
+//     LevelSetQpMasterProblem master_solver {0.5, 0.9};
+//     multi_run(r, 1e5, master_solver);
+//   }
 // }
