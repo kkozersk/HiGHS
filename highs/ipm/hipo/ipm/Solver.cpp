@@ -53,7 +53,7 @@ void Solver::setOptions(const HighsOptions& highs_options) {
   options_.ordering = highs_options.hipo_ordering;
   options_.block_size = highs_options.hipo_block_size;
   
-  options_.max_recentring_iter = highs_options.max_centring_steps;
+  options_.max_recentring_iter = highs_options.max_centring_steps_hipo;
   options_.refine_with_ipx = highs_options.refine_with_ipx;
   options_.frozen_mu = highs_options.fixed_mu;
   options_.centring_gamma = highs_options.centring_gamma;

@@ -469,6 +469,7 @@ struct HighsOptionsStruct {
   bool run_centring;
   bool refine_with_ipx;
   HighsInt max_centring_steps;
+  HighsInt max_centring_steps_hipo;
   double centring_ratio_tolerance;
   double fixed_mu;
   double centring_gamma;
@@ -643,6 +644,7 @@ struct HighsOptionsStruct {
         run_centring(false),
         refine_with_ipx(true),
         max_centring_steps(0),
+        max_centring_steps_hipo(0),
         centring_ratio_tolerance(0.0),
         fixed_mu(0.0),
         centring_gamma(0.1),
@@ -1718,9 +1720,16 @@ class HighsOptions : public HighsOptionsStruct {
 
     record_int =
         new OptionRecordInt("max_centring_steps",
-                            "Maximum number of steps to use (default = 0) "
+                            "Maximum number of steps to use (default = 5) "
                             "when computing the analytic centre",
-                            advanced, &max_centring_steps, 0, 0, kHighsIInf);
+                            advanced, &max_centring_steps, 0, 5, kHighsIInf);
+    records.push_back(record_int);
+
+    record_int =
+        new OptionRecordInt("max_centring_steps_hipo",
+                            "Maximum number of steps to use (default = 0) "
+                            "when computing the analytic centre in HiPO",
+                            advanced, &max_centring_steps_hipo, 0, 0, kHighsIInf);
     records.push_back(record_int);
 
     record_double = new OptionRecordDouble(

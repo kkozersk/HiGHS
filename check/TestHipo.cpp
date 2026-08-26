@@ -197,7 +197,7 @@ TEST_CASE("test-centring-procedure", "[highs_hipo]") {
   highs.passModel(lp);
   highs.setOptionValue("output_flag", dev_run);
   highs.setOptionValue("solver", kHipoString);
-  highs.setOptionValue("max_centring_steps", 100);
+  highs.setOptionValue("max_centring_steps_hipo", 100);
   highs.setOptionValue("timeless_log", kHighsOnString);
   highs.setOptionValue("ipm_iteration_limit", 0);
   highs.setOptionValue("presolve", kHighsOffString);
@@ -236,7 +236,7 @@ TEST_CASE("test-centring-procedure-with-slack", "[highs_hipo]") {
   highs.passModel(lp);
   highs.setOptionValue("output_flag", dev_run);
   highs.setOptionValue("solver", kHipoString);
-  highs.setOptionValue("max_centring_steps", 100);
+  highs.setOptionValue("max_centring_steps_hipo", 100);
   highs.setOptionValue("timeless_log", kHighsOnString);
   highs.setOptionValue("ipm_iteration_limit", 0);
   highs.setOptionValue("presolve", kHighsOffString);
@@ -277,7 +277,7 @@ TEST_CASE("test-centring-procedure-fixed-var", "[highs_hipo]") {
   highs.passModel(lp);
   highs.setOptionValue("output_flag", dev_run);
   highs.setOptionValue("solver", kHipoString);
-  highs.setOptionValue("max_centring_steps", 100);
+  highs.setOptionValue("max_centring_steps_hipo", 100);
   highs.setOptionValue("timeless_log", kHighsOnString);
   highs.setOptionValue("ipm_iteration_limit", 0);
   highs.setOptionValue("presolve", kHighsOffString);
@@ -303,7 +303,7 @@ TEST_CASE("test-recentring-afiro", "[highs_hipo]") {
   highs.setOptionValue("solver", kHipoString);
   highs.setOptionValue("timeless_log", kHighsOnString);
   highs.setOptionValue("ipm_iteration_limit", 5);
-  highs.setOptionValue("max_centring_steps", 10);
+  highs.setOptionValue("max_centring_steps_hipo", 10);
   highs.setOptionValue("presolve", kHighsOffString);
   double gamma = 0.5;
   highs.setOptionValue("centring_gamma", gamma);

@@ -540,7 +540,7 @@ bool LevelSetQpMasterProblem::solve(double UBD, double LBD, double eps, double s
 void LevelSetIpmMasterProblem::pass_model(HighsModel const & model, int no_mu) {
   LevelSetMasterProblem::pass_model(model, no_mu);
   level_set_master.setOptionValue("solver", kHipoString);
-  level_set_master.setOptionValue("max_centring_steps", 100);
+  level_set_master.setOptionValue("max_centring_steps_hipo", 100);
   level_set_master.setOptionValue("run_crossover", kHighsOffString);
   level_set_master.setOptionValue("centring_gamma", 1-1e-5);
   level_set_master.setOptionValue("recentring_step", 1.0);
@@ -571,7 +571,7 @@ void ProximalIPMMasterProblem::pass_model(HighsModel const & model, int no_mu) {
   master.setOptionValue("solver", kHipoString);
   master.setOptionValue("run_crossover", kHighsOffString);
   master.setOptionValue("centring_gamma", 1-1e-5);
-  master.setOptionValue("max_centring_steps", 20);
+  master.setOptionValue("max_centring_steps_hipo", 20);
   master.setOptionValue("recentring_step", 1.0);
   master.setOptionValue("refine_with_ipx", false);
   // master.setOptionValue("primal_feasibility_tolerance", 1e-8);
