@@ -100,44 +100,17 @@ class CsvLogger : public std::ofstream {
 struct  BendersRet {
   double result;
   int iter;
-  std::vector<int> UBD_iters;
-  std::vector<int> feas_iters;
-  std::vector<int> recentring_steps;
-  std::vector<int> optim_steps;
   double gap;
   double master_time;
   double sub_time;
-  bool first_optim;
   bool was_error = false;
-  BendersRet(double gap=0, double res=kHighsInf, BendersIterationInfo info={}, int iter=-1, bool first_optim = false, std::vector<int> UBD_iters= std::vector<int>{}, std::vector<int> feas_iters= std::vector<int>{},
-     std::vector<int> recentring_steps = {}, std::vector<int> optim_steps = {})
-    : master_time(info.master_time), sub_time(info.sub_time), result(res), iter(iter), first_optim(first_optim),
-     UBD_iters(UBD_iters), feas_iters(feas_iters), recentring_steps(recentring_steps), optim_steps(optim_steps),
-     gap(gap) {}
-  void note(double expected, std::string problem) {
-    CsvLogger of("/tmp/results.csv");
-    auto last_imp = UBD_iters.empty() ? -1 : UBD_iters.back();
-    
-    double rec_sum = std::accumulate(recentring_steps.begin(), recentring_steps.end(), 0.);
-    double rec_mean = recentring_steps.empty() ? 0 : rec_sum / recentring_steps.size();
-    int max_rec = recentring_steps.empty() ? 0 : *std::max_element(recentring_steps.begin(), recentring_steps.end());
-    
-    double opt_sum = std::accumulate(optim_steps.begin(), optim_steps.end(), 0.);
-    double opt_mean = optim_steps.empty() ? 0 : opt_sum / optim_steps.size();
-    int max_opt = optim_steps.empty() ? 0 : *std::max_element(optim_steps.begin(), optim_steps.end());
-
-    of << problem << result << result - expected  << gap << iter << last_imp << (int) feas_iters.size() 
-       << rec_mean << max_rec << opt_mean << max_opt << master_time << sub_time << first_optim << was_error;
+  BendersRet(double gap=0, double res=kHighsInf, BendersIterationInfo info={}, int iter=-1)
+    : master_time(info.master_time), sub_time(info.sub_time), result(res), iter(iter), gap(gap) {}
+  void note(double expected, std::string const & problem, std::string const & logfile) {
+    CsvLogger of(logfile);
+    of << problem << result << result - expected  << gap << iter << master_time << sub_time;
     of.newline();
-
-    auto fp = std::fopen("/tmp/exac_results.csv", "a");
-    fprintf(fp, "%s,%.3f\n", problem.c_str(), result);
-    fclose(fp);
   }
-  bool operator==(BendersRet const & ret) const {
-    std::cout << result << " " << ret.result << " " << std::abs(result - ret.result) << " "  << iter << " " << ret.iter << std::endl;
-    return std::abs(result - ret.result) < 1e-3 && (iter == ret.iter || ret.iter == -1);
-     }
   std::string operator()() const { return std::to_string(result) + " " + std::to_string(iter);}
 };
 

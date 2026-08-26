@@ -164,7 +164,7 @@ int multi_run(SmpsTestCase smps, int max_scenarios, MasterProblem & master_solve
   int no_sub_rows = sub_range.row_idx_end - sub_range.row_idx_begin;
 
   auto res = benders_l_shaped(core_and_tree.first, core_and_tree.second, {}, smps.sub_lb, master_solver, 1e-3, max_iters);
-  res.note(smps.expected, smps.note);
+  res.note(smps.expected, smps.note, "/tmp/results.csv");
   auto diff = smps.expected != kHighsInf ? std::fabs(res.result - smps.expected) : 0.0;
   return diff < 1e-3 ? res.iter : max_iters;
   
