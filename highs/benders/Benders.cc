@@ -473,6 +473,8 @@ HighsHessian LevelSetQpMasterProblem::create_level_set_hessian(int num_master_va
 void LevelSetMasterProblem::pass_model(HighsModel const & model, int no_mu) {
   MasterProblem::pass_model(model, no_mu);
   level_set_master.passModel(model);
+  level_set_master.setOptionValue("output_flag", false);
+  level_set_master.setOptionValue("log_to_console", false);
   add_nonzero_row(level_set_master, -kHighsInf, kHighsInf, {model.lp_.col_cost_}, "LEVEL");
   level_set_constraint = level_set_master.getNumRow() - 1;
   std::vector<double> zeros (level_set_master.getNumCol(), 0);

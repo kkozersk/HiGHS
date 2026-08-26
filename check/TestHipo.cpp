@@ -210,6 +210,7 @@ TEST_CASE("test-centring-procedure", "[highs_hipo]") {
   REQUIRE(inexact_vector_comparison(solution.col_value, {0.25, 0.25}));
   REQUIRE(inexact_vector_comparison(solution.col_dual, {2, 2}));
   REQUIRE(inexact_vector_comparison(solution.row_dual, {-1}));
+  highs.resetGlobalScheduler(true);
 }
 
 TEST_CASE("test-centring-procedure-with-slack", "[highs_hipo]") {
@@ -251,6 +252,7 @@ TEST_CASE("test-centring-procedure-with-slack", "[highs_hipo]") {
   REQUIRE(inexact_vector_comparison(solution.col_value, {0.25, 0.25, 0.5}));
   REQUIRE(inexact_vector_comparison(solution.col_dual, {2, 2, 1}));
   REQUIRE(inexact_vector_comparison(solution.row_dual, {-1}));
+  highs.resetGlobalScheduler(true);
 }
 
 TEST_CASE("test-centring-procedure-fixed-var", "[highs_hipo]") {
@@ -292,6 +294,7 @@ TEST_CASE("test-centring-procedure-fixed-var", "[highs_hipo]") {
   REQUIRE(inexact_vector_comparison(solution.col_value, {0.25, 0.25, 3}));
   REQUIRE(inexact_vector_comparison(solution.col_dual, {2, 2, 0}));
   REQUIRE(inexact_vector_comparison(solution.row_dual, {-1}));
+  highs.resetGlobalScheduler(true);
 }
 
 TEST_CASE("test-recentring-afiro", "[highs_hipo]") {

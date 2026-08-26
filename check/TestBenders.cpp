@@ -13,57 +13,6 @@
 
 const double inf = kHighsInf;
 
-
-std::pair<int, int> core_size(std::string corefile) {
-  FilereaderMps mps;
-  HighsModel model;
-  REQUIRE(mps.readModelFromFile(HighsOptions(), corefile, model) == FilereaderRetcode::kOk);
-  Highs highs;
-  highs.passModel(model);
-  return {highs.getNumCol(), highs.getNumRow()};
-}
-
-void run(std::string corefile, std::string timefile, std::string stochfile, std::string note, double subproblem_lb) {
-  Highs highs;
-  auto core_and_tree = build_stochastic_tree(corefile, timefile, stochfile);
-  auto & tree = core_and_tree.second;
-  auto core = core_and_tree.first;
-  auto & stage_1st = tree.root->get_child(0);
-  auto & stage_2nd = stage_1st->get_child(0);
-  int no_scenarios = stage_1st->get_no_children();
-  REQUIRE(build_stochastic_problem(highs, corefile, timefile, stochfile));
-  auto const & master_range = core.stage_submatrix.at(stage_1st->get_timestage());
-  int no_master_vars = master_range.col_idx_end - master_range.col_idx_begin;
-  int no_master_rows = master_range.row_idx_end - master_range.row_idx_begin;
-
-  auto const & sub_range = core.stage_submatrix.at(stage_2nd->get_timestage());
-  int no_sub_vars = sub_range.col_idx_end - sub_range.col_idx_begin;
-  int no_sub_rows = sub_range.row_idx_end - sub_range.row_idx_begin;
-  // REQUIRE(highs.getNumCol() == no_master_vars + no_sub_vars * no_subs);
-  // REQUIRE(highs.getNumRow() == no_master_rows + no_sub_rows * no_subs);
-  highs.run();
-  auto expected = highs.getObjectiveValue();
-  auto lp = highs.getModel().lp_;
-  // lp.ensureRowwise();
-  std::set<int> master_vars;
-  for (int i = 0; i < no_master_vars; ++i) master_vars.emplace(i);
-  Highs highs2;
-  // highs2.passModel(lp);
-  // highs2.passModel(core_and_tree.first);
-  // zero_costs(highs);
-  // modify(highs2);
-  // highs2.run();
-  // std::vector<double> starting_point;
-  auto starting_point = highs2.getSolution().col_value;
-
-  // auto opts = getMasterOpts();
-  // auto res = benders(lp, master_vars, starting_point, subproblem_lb, 1e-3, max_iters, opts.first, opts.second);
-  // res.note(0, note);
-  // res.note(expected, note);
-  // REQUIRE(std::fabs(res.result - expected) < 1e-3);
-}
-
-
 HighsLp get_simple_test_problem() {
   /*
     Problem
@@ -577,6 +526,7 @@ TEST_CASE("test-get-multipliers", "[highs-benders]") {
   subproblem.getDualRay(has_dual_ray, dual_ray);
   REQUIRE(has_dual_ray);
   REQUIRE(std::vector<double>(dual_ray, dual_ray + 5) == std::vector<double> {-1, 0, 0, 0, 0});
+  Highs().resetGlobalScheduler(true);
 }
 
 //void decompose_problem( double subproblem_lb) {
@@ -628,6 +578,7 @@ TEST_CASE("test-add-objective-cut", "[highs-benders]") {
   expected.a_matrix_.num_col_ = 2;
   REQUIRE(new_master.equalButForNames(expected));
   REQUIRE(new_master.num_row_ == num_row + 1);
+  Highs().resetGlobalScheduler(true);
 }
 
 TEST_CASE("test-create_nonzero-vector", "[highs-benders]") {
@@ -716,7 +667,7 @@ TEST_CASE("test-solve-simple-system", "[highs-benders]") {
   auto res = benders(lp, {0}, {2}, -1e3);
   REQUIRE(std::abs(res.result- expected) < 1e-3);
   REQUIRE(res.iter == 3);
-
+  Highs().resetGlobalScheduler(true);
 }
 
 TEST_CASE("test-solve-simple-system-2", "[highs-benders]") {
@@ -730,6 +681,7 @@ TEST_CASE("test-solve-simple-system-2", "[highs-benders]") {
   auto res = benders(lp, std::set<HighsInt>{0, 2}, {2, 0}, -1e3);
   REQUIRE(std::abs(res.result- expected) < 1e-3);
   REQUIRE(res.iter == 3);
+  Highs().resetGlobalScheduler(true);
 }
 
 TEST_CASE("test-solve-second-system", "[highs-benders]") {
@@ -743,6 +695,7 @@ TEST_CASE("test-solve-second-system", "[highs-benders]") {
   auto res = benders(lp, {0, 1, 2}, {0, 0, 0}, -1e3);
   REQUIRE(std::abs(res.result- expected) < 1e-3);
   REQUIRE(res.iter == 4);
+  Highs().resetGlobalScheduler(true);
 }
 
 TEST_CASE("test-solve-afiro", "[highs-benders]") {
@@ -756,6 +709,7 @@ TEST_CASE("test-solve-afiro", "[highs-benders]") {
   auto res = benders(lp, {0, 1, 2, 3, 4, 5, 6, 7}, std::vector<double> (8, 0), -1e3);
   REQUIRE(std::abs(res.result- expected) < 1e-3);
   REQUIRE(res.iter == 7);
+  Highs().resetGlobalScheduler(true);
 }
 
 TEST_CASE("test-solve-l-shaped-no-stabilisation", "[highs-benders]") {
@@ -779,6 +733,7 @@ TEST_CASE("test-solve-l-shaped-no-stabilisation", "[highs-benders]") {
     auto res = benders_l_shaped(core_and_tree.first, core_and_tree.second, {}, test.sub_lb, master_solver, 1e-3, 500);
     REQUIRE(std::fabs(res.result - test.expected_result) < 1e-3);
     REQUIRE(res.iter == test.expected_iter_count);
+    Highs().resetGlobalScheduler(true);
   }
 }
 
@@ -804,6 +759,7 @@ TEST_CASE("test-solve-l-shaped-quad-stabilisation", "[highs-benders]") {
     REQUIRE(std::fabs(res.result - test.expected_result) < 1e-3);
     REQUIRE(res.iter == test.expected_iter_count);
   }
+  Highs().resetGlobalScheduler(true);
 }
 
 TEST_CASE("test-solve-l-shaped-prox-stabilisation", "[highs-benders]") {
@@ -828,6 +784,7 @@ TEST_CASE("test-solve-l-shaped-prox-stabilisation", "[highs-benders]") {
     REQUIRE(std::fabs(res.result - test.expected_result) < 1e-3);
     REQUIRE(res.iter == test.expected_iter_count);
   }
+  Highs().resetGlobalScheduler(true);
 }
 
 TEST_CASE("test-solve-l-shaped-ipm-level-set-stabilisation", "[highs-benders]") {
@@ -852,4 +809,5 @@ TEST_CASE("test-solve-l-shaped-ipm-level-set-stabilisation", "[highs-benders]") 
     REQUIRE(std::fabs(res.result - test.expected_result) < 1e-3);
     REQUIRE(res.iter == test.expected_iter_count);
   }
+  Highs().resetGlobalScheduler(true);
 }

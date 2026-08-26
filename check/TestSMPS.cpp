@@ -2471,6 +2471,7 @@ TEST_CASE("test-smps-indep-fxm-read", "[highs-smps]") {
     REQUIRE(highs.getModelStatus() == HighsModelStatus::kOptimal);
     // TODO invalid res?
     REQUIRE(std::abs(highs.getObjectiveValue() - 18416) < 2);
+    highs.resetGlobalScheduler(true);
     // REQUIRE(highs.getObjectiveValue()  == 0);
   }
   {
@@ -2521,6 +2522,7 @@ TEST_CASE("test-smps-indep-fxm-read", "[highs-smps]") {
     REQUIRE(highs.getModelStatus() == HighsModelStatus::kOptimal);
     // TODO invalid res?
     REQUIRE(std::abs(highs.getObjectiveValue() - 18416) < 2);
+    highs.resetGlobalScheduler(true);
   }
   
   {
@@ -2538,6 +2540,7 @@ TEST_CASE("test-smps-indep-fxm-read", "[highs-smps]") {
     // TODO invalid res?
     REQUIRE(std::abs(highs.getObjectiveValue() - 18616) < 2);
     // REQUIRE(highs.getObjectiveValue() == 0);
+    highs.resetGlobalScheduler(true);
   }
   {
     auto instance = std::string(HIGHS_DIR) + "/check/instances/stoch/fxm/fxm";
@@ -2571,6 +2574,7 @@ TEST_CASE("test-smps-indep-fxm-read", "[highs-smps]") {
     // REQUIRE(std::vector<double> {(double) highs.getNumCol(), (double) highs.getNumRow(), highs.getObjectiveValue()} == std::vector<double> {});
     REQUIRE(std::abs(highs.getObjectiveValue() - 18438) < 2);
     // REQUIRE(highs.getObjectiveValue() == 0);
+    highs.resetGlobalScheduler(true);
   }
   // TOO Long
   // {
@@ -2740,6 +2744,7 @@ TEST_CASE("test-smps-block-pltexp-read", "[highs-smps]") {
     REQUIRE(highs.run() == HighsStatus::kOk);
     REQUIRE(highs.getModelStatus() == HighsModelStatus::kOptimal);
     REQUIRE(std::abs(highs.getObjectiveValue() - (-9.479354)) < 1e-6);
+    highs.resetGlobalScheduler(true);
   }
   {
     auto instance = std::string(HIGHS_DIR) + "/check/instances/stoch/pltexp/pltexpA2";
@@ -2770,6 +2775,7 @@ TEST_CASE("test-smps-block-pltexp-read", "[highs-smps]") {
     REQUIRE(highs.run() == HighsStatus::kOk);
     REQUIRE(highs.getModelStatus() == HighsModelStatus::kOptimal);
     REQUIRE(std::abs(highs.getObjectiveValue() - (-9.663308)) < 1e-6);
+    highs.resetGlobalScheduler(true);
   }
   {
     auto instance = std::string(HIGHS_DIR) + "/check/instances/stoch/pltexp/pltexpA3";
@@ -2800,6 +2806,7 @@ TEST_CASE("test-smps-block-pltexp-read", "[highs-smps]") {
     REQUIRE(highs.run() == HighsStatus::kOk);
     REQUIRE(highs.getModelStatus() == HighsModelStatus::kOptimal);
     REQUIRE(std::abs(highs.getObjectiveValue() - (-13.969368)) < 1e-6);
+    highs.resetGlobalScheduler(true);
   }
   {
     auto instance = std::string(HIGHS_DIR) + "/check/instances/stoch/pltexp/pltexpA3";
@@ -2830,6 +2837,7 @@ TEST_CASE("test-smps-block-pltexp-read", "[highs-smps]") {
     REQUIRE(highs.run() == HighsStatus::kOk);
     REQUIRE(highs.getModelStatus() == HighsModelStatus::kOptimal);
     REQUIRE(std::abs(highs.getObjectiveValue() - (-14.267458)) < 1e-6);
+    highs.resetGlobalScheduler(true);
   }
 }
 
