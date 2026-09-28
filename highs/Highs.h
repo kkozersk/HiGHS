@@ -1656,10 +1656,11 @@ class Highs {
                                const HighsBasis& basis);
 
   PresolveComponent presolve_;
+  public:
   HighsPresolveStatus runPresolve(const bool force_lp_presolve,
                                   const bool force_presolve = false);
   HighsPostsolveStatus runPostsolve();
-
+  private:
   HighsStatus openWriteFile(const std::string& filename,
                             const std::string& method_name, FILE*& file,
                             HighsFileType& file_type) const;

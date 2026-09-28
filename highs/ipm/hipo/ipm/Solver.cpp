@@ -98,7 +98,7 @@ void Solver::reset() {
   it_.reset();
 }
 
-void Solver::solve() {
+void Solver::solve(WorkingPoint const & starting_point) {
   if (!model_.ready()) {
     info_.status = kStatusBadModel;
     return;
@@ -117,14 +117,14 @@ void Solver::solve() {
 
   printInfo();
 
-  runIpm();
+  runIpm(starting_point);
   refineWithIpx();
   it_->finalResiduals(info_);
   printSummary();
 }
 
-void Solver::runIpm() {
-  if (initialise()) return;
+void Solver::runIpm(WorkingPoint const & starting_point) {
+  if (initialise(starting_point)) return;
 
   while (iter_ < options_.max_iter) {
     if (prepareIter()) break;
@@ -139,7 +139,7 @@ void Solver::runIpm() {
   terminate();
 }
 
-bool Solver::initialise() {
+bool Solver::initialise(WorkingPoint const & starting_point) {
   // Prepare ipm for execution.
   // Return true if an error occurred.
 
@@ -170,8 +170,7 @@ bool Solver::initialise() {
 
   // decide number of correctors to use
   maxCorrectors();
-
-  if (startingPoint()) return true;
+  if (starting_point.is_setup ? use_starting_point(starting_point): startingPoint()) return true;
 
   it_->residual1234();
   it_->computeMu();
@@ -1140,8 +1139,6 @@ bool Solver::checkTermination() {
   bool feasible = it_->pinf < options_.feasibility_tol &&
                   it_->dinf < options_.feasibility_tol;
   bool optimal = it_->pdgap < options_.optimality_tol;
-  double xd = it_->pdgap;
-  double mu = it_->mu;
   bool terminate = false;
 
   if (feasible && optimal) {
@@ -1405,6 +1402,7 @@ bool Solver::failed() const { return statusIsFailed(); }
 bool isWellCentered(double mu, double gamma, Model const & model, VecRef xl, VecRef zl, VecRef xu, VecRef zu) {
   double xz_lb = mu * gamma, xz_ub = mu / gamma;
   auto const & free_vars = model.freeVars();
+  // assert(free_vars.empty());
   for (Int i = 0; i < model.n(); ++i) {
     if (model.hasLb(i) && model.lb(i) == model.ub(i))
       continue;

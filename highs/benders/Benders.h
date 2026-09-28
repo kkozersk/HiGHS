@@ -10,7 +10,7 @@
 #include "lp_data/HighsLp.h"
 #include "io/SMPS.h"
 #include "util/HighsSparseMatrix.h"
-
+#include "ipm/hipo/ipm/Solver.h"
 
 struct RowDivision {
   std::set<HighsInt> master_rows;
@@ -165,7 +165,8 @@ inline std::vector<HighsInt> set_to_vector(std::set<HighsInt> const & set) {
 inline bool is_close(double UBD, double LBD, double eps) {
   double absgap = UBD-LBD;
   double relgap = UBD < kHighsInf ? (UBD-LBD)/(1+std::fabs(UBD)) : kHighsInf;
-  return absgap < 10*eps || relgap < 10*eps;
+  // return absgap < 10*eps || relgap < 10*eps;
+  return relgap <= 10*eps;
 }
 
 class MasterProblem {
@@ -184,27 +185,26 @@ class MasterProblem {
   virtual ~MasterProblem() {};
   virtual bool solve(double UBD, double LBD, double eps, double solution_cost) = 0;
   virtual void add_cut(CutData const & cut, int iter);
-  double getLBD() const { double lbd; master.getDualObjectiveValue(lbd); return lbd; } // TODO might not work for MILP?
+  virtual double getLBD() const { double lbd; master.getDualObjectiveValue(lbd); return lbd; } // TODO might not work for MILP?
   double get_master_time() const { return master_time; }
   virtual std::vector<double> getMasterValues() const { return master.getSolution().col_value; }
   std::vector<double> starting_point();
 };
 
-BendersRet benders_l_shaped(SmpsCoreStructure & core, StochasticTree & tree, 
-  std::vector<double> const & starting_point, double subproblem_lb, MasterProblem & master_solver,
-  double eps=1e-3, int max_iter=1e2
-);
-
 class BendersAlgorithm {
+  public:
+  enum GAP {ABSGAP, RELGAP};
+  private:
   double LBD = -kHighsInf, UBD = kHighsInf;
-  double eps = 1e-3;
-  int max_iter = 500;
+  double eps;
+  int max_iter;
+  GAP gap_type;
   bool error = false;
   int iter = 0;
   protected:
   // bool signalize_error() { error = true; }
   public: 
-  BendersAlgorithm(double eps=1e-3, int max_iter=500) : eps(eps), max_iter(max_iter) {}
+  BendersAlgorithm(double eps=1e-3, int max_iter=500, GAP gap_type=ABSGAP) : eps(eps), max_iter(max_iter), gap_type(gap_type) {}
   virtual ~BendersAlgorithm() {};
   BendersRet virtual benders_loop(MultiBendersProblems & problems, std::set<HighsInt> const & master_variables,
                      std::vector<double> const & starting_point, MasterProblem & master_solver);
@@ -217,9 +217,14 @@ class BendersAlgorithm {
   double get_abs_gap() const { return UBD - LBD; }
   double get_rel_gap() const { return UBD == kHighsInf ? kHighsInf : (UBD-LBD)/(1 + std::fabs(UBD)); }
   // double is_close() const { return get_abs_gap() <= 10 * eps || get_rel_gap() <= 10 * eps;  }
-  double is_gap_closed() const { return get_abs_gap() <= eps; }
+  double is_gap_closed() const { return (gap_type == ABSGAP ? get_abs_gap() : get_rel_gap())<= eps; }
   bool was_error() const { return error; }
 };
+
+BendersRet benders_l_shaped(SmpsCoreStructure & core, StochasticTree & tree, 
+  std::vector<double> const & starting_point, double subproblem_lb, MasterProblem & master_solver,
+  double eps=1e-3, int max_iter=1e2, BendersAlgorithm::GAP gap_type = BendersAlgorithm::GAP::ABSGAP
+);
 
 class StandardMasterProblem : public MasterProblem {
   public:
@@ -229,16 +234,31 @@ class StandardMasterProblem : public MasterProblem {
 
 class ProximalIPMMasterProblem : public MasterProblem {
   int optim_steps;
-  int max_optim_steps;
   int increment_every_n_iter;
   int feas_iter_counter;
+  double centring;
+  bool in_proximal = false;
+  std::vector<double> solution;
   public:
-  ProximalIPMMasterProblem(int starting_optim_steps = 5, int max_optim_steps = 15, int increment_every_n_iter=2):
-    optim_steps(starting_optim_steps), max_optim_steps(max_optim_steps),
-    increment_every_n_iter(increment_every_n_iter), feas_iter_counter(0) 
+  ProximalIPMMasterProblem(int starting_optim_steps = 5, int increment_every_n_iter=2, double centring=1e-5):
+    optim_steps(starting_optim_steps), increment_every_n_iter(increment_every_n_iter), feas_iter_counter(0), centring(centring) 
     {}
-  void pass_model(HighsModel const & model, int num_mu=1);
+  // void pass_model(HighsModel const & model, int num_mu=1);
   bool solve(double UBD, double LBD, double eps, double solution_cost); 
+  std::vector<double> getMasterValues() const {return in_proximal ? solution : MasterProblem::getMasterValues(); }
+};
+
+class PrimalDualMasterProblem : public MasterProblem {
+  bool in_proximal = false;
+  std::vector<double> solution;
+  hipo::Solver::WorkingPoint working_point {};
+  double m_LBD = -kHighsInf;
+  public:
+  PrimalDualMasterProblem() {};
+  // void pass_model(HighsModel const & model, int num_mu=1);
+  bool solve(double UBD, double LBD, double eps, double solution_cost); 
+  std::vector<double> getMasterValues() const {return in_proximal ? solution : MasterProblem::getMasterValues(); }
+  virtual double getLBD() const { return m_LBD > -kHighsInf ? m_LBD : MasterProblem::getLBD(); } // TODO might not work for MILP?
 };
 
 class LevelSetMasterProblem : public MasterProblem {

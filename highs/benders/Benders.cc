@@ -10,8 +10,7 @@
 #include "lp_data/HighsStatus.h"
 #include "lp_data/HighsLpUtils.h"
 #include "ipm/hipo/ipm/Solver.h"
-#include "io/HMPSIO.h"
-
+#include "ipm/IpxWrapper.h"
 
 HighsInt find_row_index(std::vector<HighsInt> const & csr_starts, HighsInt index) {
   auto pointer = std::upper_bound(csr_starts.begin(), csr_starts.end(), index);
@@ -324,7 +323,7 @@ BendersRet benders(HighsLp & base_problem, std::set<HighsInt> const & master_var
 // }
 
 BendersRet benders_l_shaped(SmpsCoreStructure & core, StochasticTree & tree, 
-  std::vector<double> const & starting_point, double subproblem_lb, MasterProblem & master_solver, double eps, int max_iter) {
+  std::vector<double> const & starting_point, double subproblem_lb, MasterProblem & master_solver, double eps, int max_iter, BendersAlgorithm::GAP gap_type) {
   assert(core.is_valid() && tree.root != nullptr && core.stage_submatrix.size() == 2 && tree.root->get_no_children() == 1);
   auto & stage_1st = tree.root->get_child(0);
   int no_subproblems = stage_1st->get_no_children();
@@ -345,7 +344,7 @@ BendersRet benders_l_shaped(SmpsCoreStructure & core, StochasticTree & tree,
     create_subproblem(problems.subproblems.at(i), base_sub_lp, master_variables, row_division.master_only_rows);
     create_feasibility_subproblem(problems.feas_subproblems.at(i), base_sub_lp, master_variables, row_division.mixed_rows, row_division.master_only_rows, a);
   }
-  BendersAlgorithm benders(eps, max_iter);
+  BendersAlgorithm benders(eps, max_iter, gap_type);
   return benders.benders_loop(problems, master_variables, {}, master_solver);
 }
 
@@ -378,7 +377,7 @@ BendersRet  BendersAlgorithm::benders_loop(
       BendersIterationInfo info;
       info.master_time = master_solver.get_master_time();
       info.sub_time = sub_time;
-      BendersRet ret {UBD-LBD, UBD, info, iter};
+      BendersRet ret {get_rel_gap(), UBD, info, iter};
       ret.was_error = error;
       return ret;
     }
@@ -441,14 +440,29 @@ bool StandardMasterProblem::solve(double UBD, double LBD, double eps, double sol
 }
 
 bool ProximalIPMMasterProblem::solve(double UBD, double LBD, double eps, double solution_cost) {
+    in_proximal = true;
+    master.setOptionValue("optimality_tolerance", 1e-6);
+    master.setOptionValue("ipm_optimality_tolerance", 1e-6);
+    master.setOptionValue("ipm_iteration_limit", optim_steps);
+    master.setOptionValue("solver", kHipoString);
+    master.setOptionValue("run_crossover", kHighsOffString);
+    master.setOptionValue("centring_gamma", centring);
+    master.setOptionValue("max_centring_steps_hipo", 100);
+    master.setOptionValue("recentring_step", 1.0);
+    master.setOptionValue("refine_with_ipx", false);
     if (is_close(UBD, LBD, eps)) {
+      in_proximal = false;
       master.setOptionValue("solver", kSimplexString);
-      master.setOptionValue("ipm_optimality_tolerance", 1e-8);
+      master.setOptionValue("optimality_tolerance", 1e-8);
+      solve_problem_with_logging(master);
+      return true;
     }
-    if (solution_cost < kHighsInf && feas_iter_counter++ % increment_every_n_iter == 0) {
-      optim_steps = std::min(optim_steps + 1, max_optim_steps);
-      master.setOptionValue("ipm_iteration_limit", optim_steps);
+    if (solution_cost < kHighsInf && ++feas_iter_counter % increment_every_n_iter == 0) {
+      master.setOptionValue("ipm_iteration_limit", ++optim_steps);
     }
+    solve_problem_with_logging(master);
+    solution = master.getSolution().col_value;
+    master.setOptionValue("optimality_tolerance", 1e-8);
     solve_problem_with_logging(master);
     return true;
     // return !info.was_error; //TODO better status checking
@@ -486,6 +500,8 @@ void LevelSetMasterProblem::pass_model(HighsModel const & model, int no_mu) {
 void LevelSetQpMasterProblem::pass_model(HighsModel const & model, int no_mu) {
   LevelSetMasterProblem::pass_model(model, no_mu);
   level_set_master.passHessian(create_level_set_hessian(model.lp_.num_col_ - no_mu, no_mu));
+  // level_set_master.setOptionValue("solver", kQpAsmString);
+  level_set_master.setOptionValue("solver", kHipoString);
 }
 
 void LevelSetMasterProblem::add_cut(CutData const & cut, int iter) {
@@ -565,20 +581,9 @@ bool LevelSetIpmMasterProblem::solve(double UBD, double LBD, double eps, double 
     return !error;
 }
 
-void ProximalIPMMasterProblem::pass_model(HighsModel const & model, int no_mu) {
-  MasterProblem::pass_model(model, no_mu);
-  master.setOptionValue("optimality_tolerance", 1e-6);
-  master.setOptionValue("ipm_optimality_tolerance", 1e-6);
-  master.setOptionValue("ipm_iteration_limit", optim_steps);
-  master.setOptionValue("solver", kHipoString);
-  master.setOptionValue("run_crossover", kHighsOffString);
-  master.setOptionValue("centring_gamma", 1-1e-5);
-  master.setOptionValue("max_centring_steps_hipo", 20);
-  master.setOptionValue("recentring_step", 1.0);
-  master.setOptionValue("refine_with_ipx", false);
-  // master.setOptionValue("primal_feasibility_tolerance", 1e-8);
-  // master.setOptionValue("dual_feasibility_tolerance", 1e-8);
-}
+// void ProximalIPMMasterProblem::pass_model(HighsModel const & model, int no_mu) {
+//   MasterProblem::pass_model(model, no_mu);
+// }
 
 std::vector<double> MasterProblem::starting_point() {
   solve_problem_with_logging(master);
@@ -594,8 +599,85 @@ std::vector<double> MasterProblem::starting_point() {
 }
 
 void MasterProblem::solve_problem_with_logging(Highs & problem) {
-  auto start = master.getRunTime();
+  auto start = problem.getRunTime();
   error = problem.run() == HighsStatus::kError;
-  auto end =  master.getRunTime();
+  auto end =  problem.getRunTime();
   master_time += end - start;
 }
+
+bool PrimalDualMasterProblem::solve(double UBD, double LBD, double eps, double solution_cost) {
+    in_proximal = true;
+    double D = 1;
+    auto tolerance = UBD < kHighsInf && LBD > -kHighsInf ? D * (UBD-LBD)/(1+std::fabs(UBD)) : 1.;
+    master.setOptionValue("optimality_tolerance", tolerance);
+    master.setOptionValue("ipm_optimality_tolerance", tolerance);
+    master.setOptionValue("solver", kHipoString);
+    master.setOptionValue("run_crossover", kHighsOffString);
+    master.setOptionValue("centring_gamma", 1e-5);
+    master.setOptionValue("max_centring_steps_hipo", 100);
+    master.setOptionValue("recentring_step", 1.0);
+    master.setOptionValue("refine_with_ipx", false);
+    master.setOptionValue("presolve", kHighsOffString);
+    if (is_close(UBD, LBD, eps)) {
+      in_proximal = false;
+      master.setOptionValue("solver", kSimplexString);
+      master.setOptionValue("presolve", kHighsOnString);
+      master.setOptionValue("optimality_tolerance", 1e-8);
+      solve_problem_with_logging(master);
+      master.getDualObjectiveValue(m_LBD);
+      return true;
+    }
+    HighsTimer timer;
+    HighsBasis basis = master.getBasis();
+    HighsSolution stabilised_solution = master.getSolution();
+    HighsModelStatus status = master.getModelStatus();
+    HighsInfo info = master.getInfo();
+    //TODO time!
+    // TODO error
+    HighsCallback callback(&master);
+    auto lp = master.getLp();
+    lp.a_matrix_.ensureColwise();
+    timer.start();
+    auto start = timer.read();
+    hipo::Solver::WorkingPoint point;
+    assert(!point.is_setup);
+    auto ret = solveHipo(master.getOptions(), timer, lp, HighsHessian {}, basis, stabilised_solution, status, info, callback, point);
+    auto end =  timer.read();
+    if (ret == HighsStatus::kError) { assert(1==0); error = true; return false;}
+    assert(end - start > 0);
+    master_time += end - start;
+    // double dobj;
+    // computeDualObjectiveValue(master.getModel(), stabilised_solution, dobj);
+    // double pobj = computeObjectiveValue(lp, stabilised_solution);
+    // double pdgap = std::abs(pobj - dobj) / (1.0 + 0.5 * std::abs(pobj + dobj));
+    // CsvLogger("/tmp/gaps.csv") << std::vector<double> {tolerance, pdgap};
+
+    stabilised_solution.row_dual = {};
+    master.setSolution(stabilised_solution);
+    
+
+    // solve_problem_with_logging(master);
+    solution = master.getSolution().col_value;
+    // solution = stabilised_solution.col_value;
+    
+    // master.setOptionValue("presolve", kHighsOnString);
+    master.setOptionValue("optimality_tolerance", 1e-6);
+    master.setOptionValue("ipm_optimality_tolerance", 1e-6);
+    master.setOptionValue("max_centring_steps_hipo", 0);
+    // solve_problem_with_logging(master);
+    assert(point.is_setup);
+    start = timer.read();
+    // point = {};
+    ret = solveHipo(master.getOptions(), timer, lp, HighsHessian {}, basis, stabilised_solution, status, info, callback, point);
+    end =  timer.read();
+    if (ret == HighsStatus::kError) {assert(1 == 0); error = true; return false;}
+    assert(end - start > 0);
+    master_time += end - start;
+    // master.setSolution(stabilised_solution);
+    computeDualObjectiveValue(master.getModel(), stabilised_solution, m_LBD);
+    // solve_problem_with_logging(master);
+    return true;
+    // return !info.was_error; //TODO better status checking
+}
+
+//TODO reuse old problem

@@ -73,6 +73,19 @@ class Solver {
   double gamma_corrector_ = kGammaCorrector;
 
  public:
+  struct WorkingPoint {
+    std::vector<double> x;
+    std::vector<double> xl;
+    std::vector<double> xu;
+    std::vector<double> y;
+    std::vector<double> zl;
+    std::vector<double> zu;
+    bool is_setup;
+    WorkingPoint() : is_setup(false) {}
+    WorkingPoint(std::vector<double> const & x, std::vector<double> const & xl, std::vector<double> const & xu,
+      std::vector<double> const & y, std::vector<double> const & zl, std::vector<double> const & zu):
+      x(x), xl(xl), xu(xu), y(y), zl(zl), zu(zu), is_setup(true) {}
+  };
   // ===================================================================================
   // Load an LP or QP:
   //
@@ -96,7 +109,7 @@ class Solver {
   // ===================================================================================
   // Solve the LP or QP
   // ===================================================================================
-  void solve();
+  void solve(WorkingPoint const & starting_point = {});
 
   // ===================================================================================
   // Extract information
@@ -122,10 +135,24 @@ class Solver {
     this->ipx_lps_.setTimerOffset(offset);
   }
 
+  WorkingPoint get_working_point() const {
+    return {it_->x, it_->xl, it_->xu, it_->y, it_->zl, it_->zu};
+  }
+
+
  private:
+  bool use_starting_point(WorkingPoint const & starting_point) {
+    it_->x = starting_point.x;
+    it_->xl = starting_point.xl;
+    it_->xu = starting_point.xu;
+    it_->y = starting_point.y;
+    it_->zl = starting_point.zl;
+    it_->zu = starting_point.zu;
+    return false; //TODO check the passed value?
+  }
   // Functions to run the various stages of the ipm
-  void runIpm();
-  bool initialise();
+  void runIpm(WorkingPoint const & starting_point);
+  bool initialise(WorkingPoint const & starting_point);
   void terminate();
   bool prepareIter(bool recentring=false);
   bool predictor(bool use_specialized_sigma=true);

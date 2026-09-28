@@ -442,24 +442,52 @@ HighsStatus solveHipo(const HighsOptions& options, HighsTimer& timer,
   // then a basis and primal+dual solution are obtained.
   //
   //
-  // Indicate that there is no valid primal solution, dual solution or basis
+  // Create solver instance
+  hipo::Solver hipo{};
+  setupHipo(hipo, timer);
+  return solveHipo(options, timer, lp, Q, highs_basis, highs_solution, model_status, 
+              highs_info, callback, hipo);
+
+}
+
+void setupHipo(hipo::Solver & hipo, HighsTimer& timer) {
+  // force openblas to run in serial, for determinism and better performance
+  // no-op if openblas is not used
+  HighsExtras::blas::openblas_set_num_threads(1);
+
+  
+  // This creates ipx::LpSolver ipx_lps_, in case HiPO has to switch
+  // to IPX, so use the current HiGHS time as an offset for the
+  // ipx_lps.control_ elapsed time
+  hipo.setIpxTimerOffset(timer.read());
+}
+
+HighsStatus solveHipo(const HighsOptions& options, HighsTimer& timer,
+                    const HighsLp& lp, const HighsHessian& H,
+                    HighsBasis& highs_basis, HighsSolution& highs_solution,
+                    HighsModelStatus& model_status, HighsInfo& highs_info,
+                    HighsCallback& callback, hipo::Solver::WorkingPoint & working_point) {
+  
+  hipo::Solver hipo{};
+  setupHipo(hipo, timer);
+  auto status =  solveHipo(options, timer, lp, H, highs_basis, highs_solution, model_status, 
+              highs_info, callback, hipo, working_point);
+  working_point = hipo.get_working_point();
+  return status;
+}
+
+HighsStatus solveHipo(const HighsOptions& options, HighsTimer& timer,
+                      const HighsLp& lp, const HighsHessian& Q,
+                      HighsBasis& highs_basis, HighsSolution& highs_solution,
+                      HighsModelStatus& model_status, HighsInfo& highs_info,
+                      HighsCallback& callback, hipo::Solver & hipo,
+                      hipo::Solver::WorkingPoint const & starting_point) {
+    // Indicate that there is no valid primal solution, dual solution or basis
   highs_basis.valid = false;
   highs_solution.value_valid = false;
   highs_solution.dual_valid = false;
   // Indicate that no imprecise solution has (yet) been found
   resetModelStatusAndHighsInfo(model_status, highs_info);
-
-  // force openblas to run in serial, for determinism and better performance
-  // no-op if openblas is not used
-  HighsExtras::blas::openblas_set_num_threads(1);
-
-  // Create solver instance
-  hipo::Solver hipo{};
-  // This creates ipx::LpSolver ipx_lps_, in case HiPO has to switch
-  // to IPX, so use the current HiGHS time as an offset for the
-  // ipx_lps.control_ elapsed time
-  hipo.setIpxTimerOffset(timer.read());
-
   if (options.kkt_tolerance != kDefaultKktTolerance) {
     highsLogUser(options.log_options, HighsLogType::kInfo,
                  "IpxWrapper: feasibility_tol = %g; optimality_tol = %g; "
@@ -467,18 +495,15 @@ HighsStatus solveHipo(const HighsOptions& options, HighsTimer& timer,
                  options.kkt_tolerance, 1e-1 * options.kkt_tolerance,
                  1e-1 * options.kkt_tolerance);
   }
-
   hipo.setOptions(options);
   hipo.setTimer(timer);
   hipo.setCallback(callback);
-
   // Load the problem
   hipo::Int load_status = hipo.load(lp, Q);
   if (load_status) {
     model_status = HighsModelStatus::kSolveError;
     return HighsStatus::kError;
   }
-
   // This information about the problem loaded into HiPO is needed for later
   HighsInt num_row, num_col;
   hipo.getOriginalDims(num_row, num_col);
@@ -486,7 +511,7 @@ HighsStatus solveHipo(const HighsOptions& options, HighsTimer& timer,
   std::vector<char> constraints;
   fillInRhsAndConstraints(lp, rhs, constraints);
 
-  hipo.solve();
+  hipo.solve(starting_point);
 
   // const bool report_solve_data =
   //    kHighsAnalysisLevelSolverSummaryData & options.highs_analysis_level;
