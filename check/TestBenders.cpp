@@ -779,7 +779,7 @@ TEST_CASE("test-solve-l-shaped-prox-stabilisation", "[highs-benders]") {
     auto core_and_tree = build_stochastic_tree(test.corefile, test.timefile, test.stochfile);
     auto & tree = core_and_tree.second;
     auto core = core_and_tree.first;
-    ProximalIPMMasterProblem master_solver {5, 30, 2}; 
+    ProximalIPMMasterProblem master_solver {5, 2}; 
     auto res = benders_l_shaped(core_and_tree.first, core_and_tree.second, {}, test.sub_lb, master_solver, 1e-3, 500);
     REQUIRE(std::fabs(res.result - test.expected_result) < 1e-3);
     REQUIRE(res.iter == test.expected_iter_count);
