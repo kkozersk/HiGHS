@@ -14,6 +14,7 @@
 #include <cassert>
 
 #include "HighsExternalApi.h"
+#include "hipo/ipm/Model.h"
 #include "lp_data/HighsOptions.h"
 #include "lp_data/HighsSolution.h"
 
@@ -466,12 +467,11 @@ HighsStatus solveHipo(const HighsOptions& options, HighsTimer& timer,
                     const HighsLp& lp, const HighsHessian& H,
                     HighsBasis& highs_basis, HighsSolution& highs_solution,
                     HighsModelStatus& model_status, HighsInfo& highs_info,
-                    HighsCallback& callback, hipo::Solver::WorkingPoint & working_point) {
-  
+                    HighsCallback& callback, hipo::Solver::WorkingPoint & working_point, hipo::Model const & model) {
   hipo::Solver hipo{};
   setupHipo(hipo, timer);
   auto status =  solveHipo(options, timer, lp, H, highs_basis, highs_solution, model_status, 
-              highs_info, callback, hipo, working_point);
+              highs_info, callback, hipo, working_point, model);
   working_point = hipo.get_working_point();
   return status;
 }
@@ -481,7 +481,7 @@ HighsStatus solveHipo(const HighsOptions& options, HighsTimer& timer,
                       HighsBasis& highs_basis, HighsSolution& highs_solution,
                       HighsModelStatus& model_status, HighsInfo& highs_info,
                       HighsCallback& callback, hipo::Solver & hipo,
-                      hipo::Solver::WorkingPoint const & starting_point) {
+                      hipo::Solver::WorkingPoint const & starting_point, hipo::Model const & model) {
     // Indicate that there is no valid primal solution, dual solution or basis
   highs_basis.valid = false;
   highs_solution.value_valid = false;
@@ -499,7 +499,7 @@ HighsStatus solveHipo(const HighsOptions& options, HighsTimer& timer,
   hipo.setTimer(timer);
   hipo.setCallback(callback);
   // Load the problem
-  hipo::Int load_status = hipo.load(lp, Q);
+  hipo::Int load_status = model.ready() ? hipo.passModel(model) : hipo.load(lp, Q);
   if (load_status) {
     model_status = HighsModelStatus::kSolveError;
     return HighsStatus::kError;

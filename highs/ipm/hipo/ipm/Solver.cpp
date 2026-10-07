@@ -4,6 +4,7 @@
 #include <cmath>
 #include <iostream>
 
+#include "hipo/ipm/Status.h"
 #include "ipm/IpxWrapper.h"
 #include "ipm/hipo/auxiliary/Logger.h"
 #include "lp_data/HighsSolution.h"
@@ -16,6 +17,12 @@ Int Solver::load(const HighsLp& lp, const HighsHessian& Q) {
     logger_.printInfo("Error with model\n");
     return kStatusBadModel;
   }
+  return kStatusOk;
+}
+
+Int Solver::passModel(const Model& model) {
+  if (!model.ready()) return kStatusBadModel;
+  model_ = model;
   return kStatusOk;
 }
 
@@ -126,6 +133,7 @@ void Solver::solve(WorkingPoint const & starting_point) {
 void Solver::runIpm(WorkingPoint const & starting_point) {
   if (initialise(starting_point)) return;
 
+  // recentring();
   while (iter_ < options_.max_iter) {
     if (prepareIter()) break;
     if (predictor()) break;
@@ -247,6 +255,7 @@ bool Solver::isFeasible() const {
 }
 
 void Solver::recentring() {
+  logger_.print("=== Started recentring\n");
   sigma_ = 1;
   auto it = iter_;
   auto st = info_.status;
@@ -266,6 +275,7 @@ void Solver::recentring() {
       info_.status = recentring_success ? kStatusImprecise : kStatusUnknown;
   }
  
+  logger_.print("=== Stopped recentring\n");
   // if (st == kStatusSolved)
   
 }
@@ -1415,4 +1425,66 @@ bool isWellCentered(double mu, double gamma, Model const & model, VecRef xl, Vec
   }
   return true;
 }
+
+void Solver::WorkingPoint::undo_scaling(Model const & model) {
+    for (int i = 0; i < x.size(); ++i) { 
+      x.at(i) *= model.colScale(i);
+      xl.at(i) *= model.colScale(i);
+      xu.at(i) *= model.colScale(i);
+      zl.at(i) /= model.colScale(i);
+      zu.at(i) /= model.colScale(i);
+    }
+    for (int i = 0; i < y.size(); ++i) {
+      y.at(i) *= model.rowScale(i);
+    }
+    std::vector<int> ineq_idx;
+    for (int i = 0; i < model.m(); ++i) {
+      if (model.constraint(i) != '=') ineq_idx.push_back(i);
+    }
+    int nonslack_vars = model.n() - ineq_idx.size();
+    for (int i = nonslack_vars; i < x.size(); ++i ) { 
+       x.at(i) /= model.rowScale(ineq_idx.at(i - nonslack_vars)); 
+       xl.at(i) /= model.rowScale(ineq_idx.at(i - nonslack_vars)); 
+       xu.at(i) /= model.rowScale(ineq_idx.at(i - nonslack_vars)); 
+    }
+}
+
+void Solver::WorkingPoint::apply_scaling(Model const & model) {
+    for (int i = 0; i < x.size(); ++i) { 
+      x.at(i) /= model.colScale(i);
+      xl.at(i) /= model.colScale(i);
+      xu.at(i) /= model.colScale(i);
+      zl.at(i) *= model.colScale(i);
+      zu.at(i) *= model.colScale(i);
+    }
+    for (int i = 0; i < y.size(); ++i) {
+      y.at(i) /= model.rowScale(i);
+    }
+    std::vector<int> ineq_idx;
+    for (int i = 0; i < model.m(); ++i) {
+      if (model.constraint(i) != '=') ineq_idx.push_back(i);
+    }
+    int nonslack_vars = model.n() - ineq_idx.size();
+    for (int i = nonslack_vars; i < x.size(); ++i ) { 
+       x.at(i) *= model.rowScale(ineq_idx.at(i - nonslack_vars)); 
+       xl.at(i) *= model.rowScale(ineq_idx.at(i - nonslack_vars)); 
+       xu.at(i) *= model.rowScale(ineq_idx.at(i - nonslack_vars)); 
+    }
+}
+
+void Solver::WorkingPoint::push_back(double new_x, double new_xl, double new_xu, double new_y, double new_zl, double new_zu) {  
+    x.push_back(new_x);
+    xl.push_back(new_xl);
+    xu.push_back(new_xu);
+    y.push_back(new_y);
+    zl.push_back(new_zl);
+    zu.push_back(new_zu);
+}
+
+void Solver::WorkingPoint::shift_x(int i, double delta_x) {
+    x.at(i) +=  delta_x;
+    xl.at(i) += delta_x; 
+    xu.at(i) -= delta_x; 
+}
+
 }  // namespace hipo

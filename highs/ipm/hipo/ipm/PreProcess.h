@@ -34,6 +34,7 @@ struct PreprocessAction {
   virtual void undo(PreprocessorPoint& point, const Model& model,
                     const Iterate& it) const = 0;
   virtual void print(std::stringstream& stream) const = 0;
+  virtual std::unique_ptr<PreprocessAction> copy() const = 0;
 };
 
 struct PreprocessEmptyRows : public PreprocessAction {
@@ -44,6 +45,7 @@ struct PreprocessEmptyRows : public PreprocessAction {
   void undo(PreprocessorPoint& point, const Model& model,
             const Iterate& it) const override;
   void print(std::stringstream& stream) const override;
+  std::unique_ptr<PreprocessAction> copy() const override { return std::unique_ptr<PreprocessAction>(new PreprocessEmptyRows(*this)); }
 };
 
 struct PreprocessFixedVars : public PreprocessAction {
@@ -62,6 +64,7 @@ struct PreprocessFixedVars : public PreprocessAction {
   void undo(PreprocessorPoint& point, const Model& model,
             const Iterate& it) const override;
   void print(std::stringstream& stream) const override;
+  std::unique_ptr<PreprocessAction> copy() const override { return std::unique_ptr<PreprocessAction>(new PreprocessFixedVars(*this)); }
 };
 
 struct PreprocessScaling : public PreprocessAction {
@@ -71,6 +74,7 @@ struct PreprocessScaling : public PreprocessAction {
   void undo(PreprocessorPoint& point, const Model& model,
             const Iterate& it) const override;
   void print(std::stringstream& stream) const override;
+  std::unique_ptr<PreprocessAction> copy() const override { return std::unique_ptr<PreprocessAction>(new PreprocessScaling(*this)); }
 };
 
 struct PreprocessFormulation : public PreprocessAction {
@@ -78,6 +82,7 @@ struct PreprocessFormulation : public PreprocessAction {
   void undo(PreprocessorPoint& point, const Model& model,
             const Iterate& it) const override;
   void print(std::stringstream& stream) const override;
+  std::unique_ptr<PreprocessAction> copy() const override { return std::unique_ptr<PreprocessAction>(new PreprocessFormulation(*this)); }
 };
 
 struct PreprocessFreeVars : public PreprocessAction {
@@ -87,6 +92,7 @@ struct PreprocessFreeVars : public PreprocessAction {
   void undo(PreprocessorPoint& point, const Model& model,
             const Iterate& it) const override;
   void print(std::stringstream& stream) const override;
+  std::unique_ptr<PreprocessAction> copy() const override { return std::unique_ptr<PreprocessAction>(new PreprocessFreeVars(*this)); }
 };
 
 struct Preprocessor {
@@ -96,6 +102,9 @@ struct Preprocessor {
   void undo(PreprocessorPoint& point, const Model& model,
             const Iterate& it) const;
   void print(std::stringstream& log_stream) const;
+  Preprocessor() {};
+  Preprocessor(Preprocessor const & other) { for (auto const & ptr : other.stack) stack.push_back(ptr->copy()); };
+  Preprocessor const & operator=(Preprocessor const & other) { for (auto const & ptr : other.stack) stack.push_back(ptr->copy()); return *this; };
 };
 
 }  // namespace hipo

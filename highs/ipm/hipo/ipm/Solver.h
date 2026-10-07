@@ -85,6 +85,10 @@ class Solver {
     WorkingPoint(std::vector<double> const & x, std::vector<double> const & xl, std::vector<double> const & xu,
       std::vector<double> const & y, std::vector<double> const & zl, std::vector<double> const & zu):
       x(x), xl(xl), xu(xu), y(y), zl(zl), zu(zu), is_setup(true) {}
+    void apply_scaling(Model const & model);
+    void undo_scaling(Model const & model);
+    void push_back(double new_x, double new_xl, double new_xu, double new_y, double new_zl, double new_zu);
+    void shift_x(int i, double delta_x);
   };
   // ===================================================================================
   // Load an LP or QP:
@@ -98,6 +102,8 @@ class Solver {
   //  >= : add slack -inf <= s_i <=    0
   // ===================================================================================
   Int load(const HighsLp& lp, const HighsHessian& Q);
+
+  Int passModel(const Model& lp);
 
   // ===================================================================================
   // Specify options, callback and timer.

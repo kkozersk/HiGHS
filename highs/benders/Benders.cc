@@ -7,6 +7,7 @@
 #include <regex>
 #include "HConst.h"
 #include "HighsOptions.h"
+#include "hipo/ipm/Model.h"
 #include "lp_data/HighsStatus.h"
 #include "lp_data/HighsLpUtils.h"
 #include "ipm/hipo/ipm/Solver.h"
@@ -605,6 +606,14 @@ void MasterProblem::solve_problem_with_logging(Highs & problem) {
   master_time += end - start;
 }
 
+void PrimalDualMasterProblem::pass_model(HighsModel const & model, int num_mu) {
+  MasterProblem::pass_model(model, num_mu);
+  int num_fixed_vars = 0;
+  for (int i = 0; i < model.lp_.num_col_; ++i) if (model.lp_.col_lower_.at(i) == model.lp_.col_upper_.at(i)) ++num_fixed_vars;
+  mu_idx = model.lp_.num_col_ - num_fixed_vars - 1; //TODO works only with num_mu = 1
+  assert(mu_idx > 0);
+}
+
 bool PrimalDualMasterProblem::solve(double UBD, double LBD, double eps, double solution_cost) {
     in_proximal = true;
     double D = 1;
@@ -632,16 +641,40 @@ bool PrimalDualMasterProblem::solve(double UBD, double LBD, double eps, double s
     HighsSolution stabilised_solution = master.getSolution();
     HighsModelStatus status = master.getModelStatus();
     HighsInfo info = master.getInfo();
-    //TODO time!
     // TODO error
     HighsCallback callback(&master);
-    auto lp = master.getLp();
-    lp.a_matrix_.ensureColwise();
     timer.start();
+    hipo::Model new_model = hipo::Model {};
+    auto lp = master.getLp();
+    lp.ensureColwise();
+    new_model.init(lp, {});
+    if (working_point.is_setup) {
+      auto lp = master.getLp(); lp.ensureRowwise();
+      working_point.undo_scaling(model);
+      double old_mu = working_point.x.at(mu_idx);
+      assert(std::fabs(old_mu - solution.back()) < 1e-3);
+      auto & a = lp.a_matrix_;
+      // newly added cut is: cnewT x + mu + new_slack = dnew, new_slack <= 0
+      double dnew = lp.row_lower_.back();
+      double infeas_eps = 1e-4;
+      double cnewTxold = 0;
+      for (HighsInt iEl = a.start_[a.num_row_ - 1]; iEl < a.index_.size() - 1; iEl++)
+        cnewTxold +=  a.value_[iEl] * solution.at(a.index_[iEl]) ;
+      double new_mu = std::max(old_mu, dnew - cnewTxold + infeas_eps);
+      working_point.shift_x(mu_idx, new_mu - old_mu);
+      // working_point.x.at(mu_idx) = new_mu;
+      // working_point.xl.at(mu_idx) = new_mu - lp.col_lower_.back();
+      int no_cuts = lp.num_row_ - starting_num_row;
+      for (int i = working_point.x.size() - no_cuts + 1; i < working_point.x.size(); ++i )
+        working_point.shift_x(i, -(new_mu - old_mu));
+      double new_slack = dnew - cnewTxold - new_mu;
+      assert(new_slack < 0);
+      working_point.push_back(new_slack, working_point.xl.back(), -new_slack, 0, working_point.zl.back(), infeas_eps);
+      working_point.apply_scaling(new_model);
+    }
+    model = new_model;
     auto start = timer.read();
-    hipo::Solver::WorkingPoint point;
-    assert(!point.is_setup);
-    auto ret = solveHipo(master.getOptions(), timer, lp, HighsHessian {}, basis, stabilised_solution, status, info, callback, point);
+    auto ret = solveHipo(master.getOptions(), timer, lp, HighsHessian {}, basis, stabilised_solution, status, info, callback, working_point);
     auto end =  timer.read();
     if (ret == HighsStatus::kError) { assert(1==0); error = true; return false;}
     assert(end - start > 0);
@@ -665,10 +698,14 @@ bool PrimalDualMasterProblem::solve(double UBD, double LBD, double eps, double s
     master.setOptionValue("ipm_optimality_tolerance", 1e-6);
     master.setOptionValue("max_centring_steps_hipo", 0);
     // solve_problem_with_logging(master);
-    assert(point.is_setup);
+    // assert(point.is_setup);
+    CsvLogger("/tmp/ub.csv") << lp.col_upper_;
+    CsvLogger("/tmp/lb.csv") << lp.col_lower_;
+    auto store = working_point;
     start = timer.read();
     // point = {};
-    ret = solveHipo(master.getOptions(), timer, lp, HighsHessian {}, basis, stabilised_solution, status, info, callback, point);
+    ret = solveHipo(master.getOptions(), timer, lp, HighsHessian {}, basis, stabilised_solution, status, info, callback, working_point);
+    // ret = solveHipo(master.getOptions(), timer, lp, HighsHessian {}, basis, stabilised_solution, status, info, callback, point);
     end =  timer.read();
     if (ret == HighsStatus::kError) {assert(1 == 0); error = true; return false;}
     assert(end - start > 0);
@@ -676,6 +713,8 @@ bool PrimalDualMasterProblem::solve(double UBD, double LBD, double eps, double s
     // master.setSolution(stabilised_solution);
     computeDualObjectiveValue(master.getModel(), stabilised_solution, m_LBD);
     // solve_problem_with_logging(master);
+
+    working_point = store;
     return true;
     // return !info.was_error; //TODO better status checking
 }

@@ -176,11 +176,14 @@ class MasterProblem {
   bool error = false;
   int num_mu;
   void solve_problem_with_logging(Highs & problem);
+  int starting_num_row = 0;
   static void add_cut_to_problem(Highs & problem, CutData const & cut, std::string const & name);
   public:
   virtual void pass_model(HighsModel const & model, int no_mu=1) {
     master.passModel(model); num_mu = no_mu;  
+    starting_num_row = model.lp_.num_row_;
     master.setOptionValue("output_flag", false); master.setOptionValue("log_to_console", false);
+    // master.setOptionValue("output_flag", true); master.setOptionValue("log_to_console", true);
   };
   virtual ~MasterProblem() {};
   virtual bool solve(double UBD, double LBD, double eps, double solution_cost) = 0;
@@ -252,10 +255,12 @@ class PrimalDualMasterProblem : public MasterProblem {
   bool in_proximal = false;
   std::vector<double> solution;
   hipo::Solver::WorkingPoint working_point {};
+  hipo::Model model {};
   double m_LBD = -kHighsInf;
+  int mu_idx = -1;
   public:
   PrimalDualMasterProblem() {};
-  // void pass_model(HighsModel const & model, int num_mu=1);
+  void pass_model(HighsModel const & model, int num_mu=1);
   bool solve(double UBD, double LBD, double eps, double solution_cost); 
   std::vector<double> getMasterValues() const {return in_proximal ? solution : MasterProblem::getMasterValues(); }
   virtual double getLBD() const { return m_LBD > -kHighsInf ? m_LBD : MasterProblem::getLBD(); } // TODO might not work for MILP?

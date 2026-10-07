@@ -40,7 +40,7 @@ HighsStatus solveHipo(const HighsOptions& options, HighsTimer& timer,
                     const HighsLp& lp, const HighsHessian& H,
                     HighsBasis& highs_basis, HighsSolution& highs_solution,
                     HighsModelStatus& model_status, HighsInfo& highs_info,
-                    HighsCallback& callback, hipo::Solver::WorkingPoint & working_point);
+                    HighsCallback& callback, hipo::Solver::WorkingPoint & working_point, hipo::Model const & model = {});
 
 void setupHipo(hipo::Solver & hipo, HighsTimer& timer);
 
@@ -49,7 +49,7 @@ HighsStatus solveHipo(const HighsOptions& options, HighsTimer& timer,
                       HighsBasis& highs_basis, HighsSolution& highs_solution,
                       HighsModelStatus& model_status, HighsInfo& highs_info,
                       HighsCallback& callback, hipo::Solver & solver,
-                      hipo::Solver::WorkingPoint const & starting_point = {});
+                      hipo::Solver::WorkingPoint const & starting_point = {}, hipo::Model const & model = {});
 
 HighsStatus reportHipoStatus(const HighsOptions& options,
                              const hipo::Int status, const hipo::Solver& hipo);
