@@ -60,6 +60,7 @@ void Solver::setOptions(const HighsOptions& highs_options) {
   options_.ordering = highs_options.hipo_ordering;
   options_.block_size = highs_options.hipo_block_size;
   
+  options_.optimize_below_accuracy = highs_options.hipo_optimize_below_accuracy;
   options_.max_recentring_iter = highs_options.max_centring_steps_hipo;
   options_.refine_with_ipx = highs_options.refine_with_ipx;
   options_.frozen_mu = highs_options.fixed_mu;
@@ -875,11 +876,11 @@ bool Solver::startingPoint() {
 
 void Solver::sigmaAffine(bool use_specialized_sigma) {
   if (use_specialized_sigma) sigma_ = kSigmaAffine;
-
+  sigma_ = limit_sigma(sigma_);
   it_->data.back().sigma_aff = sigma_;
 }
 
-void Solver::sigmaCorrectors(bool use_specialized_sigma) {
+void Solver::sigmaCorrectors(bool use_specialized_sigma) { //TODO rename param
   if (!use_specialized_sigma) {
     sigma_ = 1.;
   }
@@ -894,8 +895,13 @@ void Solver::sigmaCorrectors(bool use_specialized_sigma) {
   } else {
     sigma_ = 0.9;
   }
+  sigma_ = limit_sigma(sigma_);
 
   it_->data.back().sigma = sigma_;
+}
+
+double Solver::limit_sigma(double sigma) {
+  return options_.optimize_below_accuracy || it_->pdgap == 0 ? sigma : clamp(sigma, options_.optimality_tol / it_->pdgap * (1-1e-8), 1.);
 }
 
 void Solver::residualsMcc() {

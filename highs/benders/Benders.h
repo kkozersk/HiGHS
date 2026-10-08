@@ -182,8 +182,8 @@ class MasterProblem {
   virtual void pass_model(HighsModel const & model, int no_mu=1) {
     master.passModel(model); num_mu = no_mu;  
     starting_num_row = model.lp_.num_row_;
-    master.setOptionValue("output_flag", false); master.setOptionValue("log_to_console", false);
-    // master.setOptionValue("output_flag", true); master.setOptionValue("log_to_console", true);
+    // master.setOptionValue("output_flag", false); master.setOptionValue("log_to_console", false);
+    master.setOptionValue("output_flag", true); master.setOptionValue("log_to_console", true);
   };
   virtual ~MasterProblem() {};
   virtual bool solve(double UBD, double LBD, double eps, double solution_cost) = 0;
@@ -258,6 +258,7 @@ class PrimalDualMasterProblem : public MasterProblem {
   hipo::Model model {};
   double m_LBD = -kHighsInf;
   int mu_idx = -1;
+  std::vector<bool> was_cut_objective {};
   public:
   PrimalDualMasterProblem() {};
   void pass_model(HighsModel const & model, int num_mu=1);

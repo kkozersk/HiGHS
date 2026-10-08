@@ -398,6 +398,7 @@ struct HighsOptionsStruct {
   std::string hipo_parallel_type;
   std::string hipo_ordering;
   HighsInt hipo_block_size;
+  bool hipo_optimize_below_accuracy;
 
   // Options for PDLP solver
   HighsInt pdlp_features_off;
@@ -583,6 +584,7 @@ struct HighsOptionsStruct {
         hipo_parallel_type(""),
         hipo_ordering(""),
         hipo_block_size(0),
+        hipo_optimize_below_accuracy(true),
         pdlp_features_off(0),
         pdlp_iteration_limit(0),
         pdlp_scaling_mode(0),
@@ -1345,6 +1347,12 @@ class HighsOptions : public HighsOptionsStruct {
         "hipo_block_size", "Block size for dense linear algebra within HiPO",
         advanced, &hipo_block_size, 0, 128, kHighsIInf);
     records.push_back(record_int);
+
+    record_bool =
+        new OptionRecordBool("hipo_optimize_below_accuracy",
+                               "Tells HiPO whether it should reach for a solution with optimal accuracy better than set",
+                               advanced, &hipo_optimize_below_accuracy, true);
+    records.push_back(record_bool);
 
     record_int = new OptionRecordInt(
         "pdlp_iteration_limit", "Iteration limit for PDLP solver", advanced,

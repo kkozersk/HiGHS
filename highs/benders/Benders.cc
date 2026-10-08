@@ -615,6 +615,7 @@ void PrimalDualMasterProblem::pass_model(HighsModel const & model, int num_mu) {
 }
 
 bool PrimalDualMasterProblem::solve(double UBD, double LBD, double eps, double solution_cost) {
+    was_cut_objective.push_back(solution_cost < kHighsInf);
     in_proximal = true;
     double D = 1;
     auto tolerance = UBD < kHighsInf && LBD > -kHighsInf ? D * (UBD-LBD)/(1+std::fabs(UBD)) : 1.;
@@ -627,6 +628,7 @@ bool PrimalDualMasterProblem::solve(double UBD, double LBD, double eps, double s
     master.setOptionValue("recentring_step", 1.0);
     master.setOptionValue("refine_with_ipx", false);
     master.setOptionValue("presolve", kHighsOffString);
+    master.setOptionValue("hipo_optimize_below_accuracy", false);
     if (is_close(UBD, LBD, eps)) {
       in_proximal = false;
       master.setOptionValue("solver", kSimplexString);
@@ -651,23 +653,29 @@ bool PrimalDualMasterProblem::solve(double UBD, double LBD, double eps, double s
     if (working_point.is_setup) {
       auto lp = master.getLp(); lp.ensureRowwise();
       working_point.undo_scaling(model);
+      double infeas_eps = 1e-4;
+      double new_slack;
       double old_mu = working_point.x.at(mu_idx);
       assert(std::fabs(old_mu - solution.back()) < 1e-3);
-      auto & a = lp.a_matrix_;
-      // newly added cut is: cnewT x + mu + new_slack = dnew, new_slack <= 0
-      double dnew = lp.row_lower_.back();
-      double infeas_eps = 1e-4;
-      double cnewTxold = 0;
-      for (HighsInt iEl = a.start_[a.num_row_ - 1]; iEl < a.index_.size() - 1; iEl++)
-        cnewTxold +=  a.value_[iEl] * solution.at(a.index_[iEl]) ;
-      double new_mu = std::max(old_mu, dnew - cnewTxold + infeas_eps);
-      working_point.shift_x(mu_idx, new_mu - old_mu);
-      // working_point.x.at(mu_idx) = new_mu;
-      // working_point.xl.at(mu_idx) = new_mu - lp.col_lower_.back();
-      int no_cuts = lp.num_row_ - starting_num_row;
-      for (int i = working_point.x.size() - no_cuts + 1; i < working_point.x.size(); ++i )
-        working_point.shift_x(i, -(new_mu - old_mu));
-      double new_slack = dnew - cnewTxold - new_mu;
+      if (solution_cost < kHighsInf) {
+        auto const & a = lp.a_matrix_;
+        // newly added cut is: cnewT x + mu + new_slack = dnew, new_slack <= 0
+        double dnew = lp.row_lower_.back();
+        double cnewTxold = 0;
+        for (HighsInt iEl = a.start_[a.num_row_ - 1]; iEl < a.index_.size() - 1; iEl++)
+          cnewTxold +=  a.value_[iEl] * solution.at(a.index_[iEl]) ;
+        double new_mu = std::max(old_mu, dnew - cnewTxold + infeas_eps);
+        working_point.shift_x(mu_idx, new_mu - old_mu);
+        int no_cuts = lp.num_row_ - starting_num_row;
+        for (int i = 0; i < no_cuts - 1; ++i ) {
+        // for (int i = working_point.x.size() - no_cuts + 1; i < working_point.x.size(); ++i ) {
+          int cut_idx = working_point.x.size() - no_cuts + 1 + i;
+          if (was_cut_objective.at(i)) working_point.shift_x(cut_idx, -(new_mu - old_mu));
+        }
+        new_slack = dnew - cnewTxold - new_mu;
+      } else {
+        new_slack = -infeas_eps;
+      }
       assert(new_slack < 0);
       working_point.push_back(new_slack, working_point.xl.back(), -new_slack, 0, working_point.zl.back(), infeas_eps);
       working_point.apply_scaling(new_model);
@@ -696,11 +704,10 @@ bool PrimalDualMasterProblem::solve(double UBD, double LBD, double eps, double s
     // master.setOptionValue("presolve", kHighsOnString);
     master.setOptionValue("optimality_tolerance", 1e-6);
     master.setOptionValue("ipm_optimality_tolerance", 1e-6);
+    master.setOptionValue("hipo_optimize_below_accuracy", true);
     master.setOptionValue("max_centring_steps_hipo", 0);
     // solve_problem_with_logging(master);
     // assert(point.is_setup);
-    CsvLogger("/tmp/ub.csv") << lp.col_upper_;
-    CsvLogger("/tmp/lb.csv") << lp.col_lower_;
     auto store = working_point;
     start = timer.read();
     // point = {};

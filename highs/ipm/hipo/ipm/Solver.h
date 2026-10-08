@@ -300,6 +300,7 @@ class Solver {
   // ===================================================================================
   void sigmaAffine(bool use_specialized_sigma);
   void sigmaCorrectors(bool use_specialized_sigma);
+  double limit_sigma(double sigma);
 
   // ===================================================================================
   // Compute the residuals for the computation of multiple centrality
@@ -376,6 +377,7 @@ class Solver {
 using VecRef = std::vector<double> const &;
 bool isWellCentered(double mu, double gamma, Model const & model, VecRef xl, VecRef zl, VecRef xu, VecRef zu); 
 
+inline double clamp(double val, double low, double high) { return high >= low ? std::max(low, std::min(val, high)) : high; }
 }  // namespace hipo
 
 #endif
