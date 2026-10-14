@@ -6,7 +6,9 @@
 #include <vector>
 #include <regex>
 #include "HConst.h"
+#include "HStruct.h"
 #include "HighsOptions.h"
+#include "HighsSolution.h"
 #include "hipo/ipm/Model.h"
 #include "lp_data/HighsStatus.h"
 #include "lp_data/HighsLpUtils.h"
@@ -327,7 +329,7 @@ BendersRet benders_l_shaped(SmpsCoreStructure & core, StochasticTree & tree,
   std::vector<double> const & starting_point, double subproblem_lb, MasterProblem & master_solver, double eps, int max_iter, BendersAlgorithm::GAP gap_type) {
   assert(core.is_valid() && tree.root != nullptr && core.stage_submatrix.size() == 2 && tree.root->get_no_children() == 1);
   auto & stage_1st = tree.root->get_child(0);
-  int no_subproblems = stage_1st->get_no_children();
+  unsigned int no_subproblems = stage_1st->get_no_children();
 
   std::set<HighsInt> master_variables;
   auto const & node_ranges = core.stage_submatrix.at(stage_1st->get_timestage());
@@ -564,6 +566,7 @@ void LevelSetIpmMasterProblem::pass_model(HighsModel const & model, int no_mu) {
   level_set_master.setOptionValue("centring_gamma", 1-1e-5);
   level_set_master.setOptionValue("recentring_step", 1.0);
   level_set_master.setOptionValue("ipm_iteration_limit", 0);
+  level_set_master.setOptionValue("fixed_mu", 1.);
   level_set_master.setOptionValue("refine_with_ipx", false);
 }
 
@@ -617,7 +620,6 @@ void PrimalDualMasterProblem::pass_model(HighsModel const & model, int num_mu) {
 bool PrimalDualMasterProblem::solve(double UBD, double LBD, double eps, double solution_cost) {
     was_cut_objective.push_back(solution_cost < kHighsInf);
     in_proximal = true;
-    double D = 1;
     auto tolerance = UBD < kHighsInf && LBD > -kHighsInf ? D * (UBD-LBD)/(1+std::fabs(UBD)) : 1.;
     master.setOptionValue("optimality_tolerance", tolerance);
     master.setOptionValue("ipm_optimality_tolerance", tolerance);

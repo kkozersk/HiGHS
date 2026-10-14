@@ -29,8 +29,8 @@ struct MultiBendersProblems {
   Highs master;
   std::vector<Highs> subproblems;
   std::vector<Highs> feas_subproblems;
-  MultiBendersProblems(unsigned long num_subproblems=1) : subproblems({num_subproblems}), feas_subproblems({num_subproblems})
-  {};
+  MultiBendersProblems(unsigned long num_subproblems=1) :
+     subproblems(num_subproblems), feas_subproblems(num_subproblems) {};
 };
 
 struct NonZeroVector {
@@ -105,7 +105,7 @@ struct  BendersRet {
   double sub_time;
   bool was_error = false;
   BendersRet(double gap=0, double res=kHighsInf, BendersIterationInfo info={}, int iter=-1)
-    : master_time(info.master_time), sub_time(info.sub_time), result(res), iter(iter), gap(gap) {}
+    : result(res), iter(iter), gap(gap), master_time(info.master_time), sub_time(info.sub_time) {}
   void note(double expected, std::string const & problem, std::string const & logfile) {
     CsvLogger of(logfile);
     of << problem << result << result - expected  << gap << iter << master_time << sub_time;
@@ -182,8 +182,8 @@ class MasterProblem {
   virtual void pass_model(HighsModel const & model, int no_mu=1) {
     master.passModel(model); num_mu = no_mu;  
     starting_num_row = model.lp_.num_row_;
-    // master.setOptionValue("output_flag", false); master.setOptionValue("log_to_console", false);
-    master.setOptionValue("output_flag", true); master.setOptionValue("log_to_console", true);
+    master.setOptionValue("output_flag", false); master.setOptionValue("log_to_console", false);
+    // master.setOptionValue("output_flag", true); master.setOptionValue("log_to_console", true);
   };
   virtual ~MasterProblem() {};
   virtual bool solve(double UBD, double LBD, double eps, double solution_cost) = 0;
@@ -259,8 +259,9 @@ class PrimalDualMasterProblem : public MasterProblem {
   double m_LBD = -kHighsInf;
   int mu_idx = -1;
   std::vector<bool> was_cut_objective {};
+  double D;
   public:
-  PrimalDualMasterProblem() {};
+  PrimalDualMasterProblem(double D) :D(D) {}
   void pass_model(HighsModel const & model, int num_mu=1);
   bool solve(double UBD, double LBD, double eps, double solution_cost); 
   std::vector<double> getMasterValues() const {return in_proximal ? solution : MasterProblem::getMasterValues(); }
