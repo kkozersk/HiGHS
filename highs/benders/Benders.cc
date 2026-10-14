@@ -341,7 +341,7 @@ BendersRet benders_l_shaped(SmpsCoreStructure & core, StochasticTree & tree,
   auto master_lp = modify_problem(core, *stage_1st);
   create_master_problem(master, master_lp, master_variables, row_division.subproblem_rows, subproblem_lb, 1);
   auto a = construct_extension_matrix(core, row_division.mixed_rows);
-  for (int i = 0; i < no_subproblems; ++i) {
+  for (unsigned int i = 0; i < no_subproblems; ++i) {
     auto & stage_2nd = stage_1st->get_child(i);
     auto base_sub_lp = modify_problem(core, *stage_2nd);
     create_subproblem(problems.subproblems.at(i), base_sub_lp, master_variables, row_division.master_only_rows);
@@ -399,7 +399,7 @@ BendersRet  BendersAlgorithm::benders_loop(
       double subproblem_costs = 0;
       bool all_feasible = true;
       BendersIterationInfo info;
-      for (int i = 0; i < subproblems.size(); ++i) { 
+      for (std::vector<Highs>::size_type i = 0; i < subproblems.size(); ++i) { 
         auto & subproblem = subproblems.at(i); //TODO: Unnecessary solution if infeasible
         auto & feas_subproblem = feas_subproblems.at(i);
         info = solve_subproblem(subproblem, info, master_variables, master_values);
@@ -664,7 +664,7 @@ bool PrimalDualMasterProblem::solve(double UBD, double LBD, double eps, double s
         // newly added cut is: cnewT x + mu + new_slack = dnew, new_slack <= 0
         double dnew = lp.row_lower_.back();
         double cnewTxold = 0;
-        for (HighsInt iEl = a.start_[a.num_row_ - 1]; iEl < a.index_.size() - 1; iEl++)
+        for (std::vector<HighsInt>::size_type iEl = a.start_[a.num_row_ - 1]; iEl < a.index_.size() - 1; iEl++)
           cnewTxold +=  a.value_[iEl] * solution.at(a.index_[iEl]) ;
         double new_mu = std::max(old_mu, dnew - cnewTxold + infeas_eps);
         working_point.shift_x(mu_idx, new_mu - old_mu);

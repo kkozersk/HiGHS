@@ -98,7 +98,7 @@ Timestage2Range SmpsCoreStructure::load_stage_submatrices(std::vector<TimeStageE
   auto const & row2index = row_name_hash.name2index;
   auto const & col2index = col_name_hash.name2index;
   Timestage2Range result;
-  for (int i = 0; i < timestage_indices.size(); ++i) {
+  for (std::vector<TimeStageEntry>::size_type i = 0; i < timestage_indices.size(); ++i) {
     auto const & current_stage = timestage_indices.at(i);
     
     auto row_begin_idx = current_stage.row_idx_name == objective_name_ ? 0 : row2index.at(current_stage.row_idx_name);
@@ -369,7 +369,7 @@ StochasticTree BlockStructure::constructTree() {
 
 bool str_to_dbl(std::string const & str, double & val) {
   int pos;
-  return sscanf(str.c_str(), "%lf%n", &val, &pos) == 1 && pos == str.length();
+  return sscanf(str.c_str(), "%lf%n", &val, &pos) == 1 && pos == static_cast<int>(str.length());
 }
 
 bool ScenarioStructure::is_new_scenario(Tokens const & tokens) const {
@@ -425,7 +425,7 @@ bool ScenarioStructure::read_from_file(std::istream & input) {
 }
 
 bool ScenarioStructure::construct_parent_mapping() {
-  for (int i = 0; i < scenarios.size(); ++i) {
+  for (std::vector<ScenarioModifications>::size_type i = 0; i < scenarios.size(); ++i) {
     auto const & scen = scenarios[i];
     name2scen_idx.emplace(scen.scenario_name, i);
     if (scen.parent_scenario != "ROOT" && name2scen_idx.find(scen.parent_scenario) == name2scen_idx.end())
@@ -523,7 +523,7 @@ RandomVector append_to_random_vector(RandomVector const & to_append, RandomVecto
 
 int find_csr_value_index(HighsSparseMatrix const & a, int col, int row) {
   assert(a.isRowwise());
-  for (int i = a.start_.at(row); i < a.start_.at(row+1); ++i)
+  for (auto i = a.start_.at(row); i < a.start_.at(row+1); ++i)
     if (a.index_.at(i) == col)
       return i; 
   return -1;
@@ -626,7 +626,7 @@ std::vector<LpIdxEntry> SmpsCoreStructure::annotate_lp_entries(std::vector<LpEnt
 }
 
 void SparseVector::set(unsigned index, double value) {
-  auto idx  = std::distance(nz_indices.begin(), std::find(nz_indices.begin(), nz_indices.end(), index));
+  std::vector<int>::size_type idx  = std::distance(nz_indices.begin(), std::find(nz_indices.begin(), nz_indices.end(), index));
   if (idx < nz_indices.size()) {
     if (value == 0.) {
       nz_indices.erase(nz_indices.begin() + idx);
@@ -643,11 +643,11 @@ void SparseVector::set(unsigned index, double value) {
 }
 
 double SparseVector::operator[](unsigned index) const {
-  auto idx  = std::distance(nz_indices.begin(), std::find(nz_indices.begin(), nz_indices.end(), index));
+  std::vector<int>::size_type idx  = std::distance(nz_indices.begin(), std::find(nz_indices.begin(), nz_indices.end(), index));
   return idx < nz_indices.size() ? nz_values.at(idx) : 0;
 }
 
-void SparseVector::truncate(int num_nz) {
+void SparseVector::truncate(std::vector<int>::size_type num_nz) {
   if (num_nz > nz_indices.size()) return;
   nz_indices.resize(num_nz);
   nz_values.resize(num_nz);

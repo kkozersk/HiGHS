@@ -1433,14 +1433,14 @@ bool isWellCentered(double mu, double gamma, Model const & model, VecRef xl, Vec
 }
 
 void Solver::WorkingPoint::undo_scaling(Model const & model) {
-    for (int i = 0; i < x.size(); ++i) { 
+    for (std::vector<double>::size_type i = 0; i < x.size(); ++i) { 
       x.at(i) *= model.colScale(i);
       xl.at(i) *= model.colScale(i);
       xu.at(i) *= model.colScale(i);
       zl.at(i) /= model.colScale(i);
       zu.at(i) /= model.colScale(i);
     }
-    for (int i = 0; i < y.size(); ++i) {
+    for (std::vector<double>::size_type i = 0; i < y.size(); ++i) {
       y.at(i) *= model.rowScale(i);
     }
     std::vector<int> ineq_idx;
@@ -1448,7 +1448,7 @@ void Solver::WorkingPoint::undo_scaling(Model const & model) {
       if (model.constraint(i) != '=') ineq_idx.push_back(i);
     }
     int nonslack_vars = model.n() - ineq_idx.size();
-    for (int i = nonslack_vars; i < x.size(); ++i ) { 
+    for (std::vector<double>::size_type i = nonslack_vars; i < x.size(); ++i ) { 
        x.at(i) /= model.rowScale(ineq_idx.at(i - nonslack_vars)); 
        xl.at(i) /= model.rowScale(ineq_idx.at(i - nonslack_vars)); 
        xu.at(i) /= model.rowScale(ineq_idx.at(i - nonslack_vars)); 
@@ -1456,14 +1456,14 @@ void Solver::WorkingPoint::undo_scaling(Model const & model) {
 }
 
 void Solver::WorkingPoint::apply_scaling(Model const & model) {
-    for (int i = 0; i < x.size(); ++i) { 
+    for (std::vector<double>::size_type i = 0; i < x.size(); ++i) { 
       x.at(i) /= model.colScale(i);
       xl.at(i) /= model.colScale(i);
       xu.at(i) /= model.colScale(i);
       zl.at(i) *= model.colScale(i);
       zu.at(i) *= model.colScale(i);
     }
-    for (int i = 0; i < y.size(); ++i) {
+    for (std::vector<double>::size_type i = 0; i < y.size(); ++i) {
       y.at(i) /= model.rowScale(i);
     }
     std::vector<int> ineq_idx;
@@ -1471,7 +1471,7 @@ void Solver::WorkingPoint::apply_scaling(Model const & model) {
       if (model.constraint(i) != '=') ineq_idx.push_back(i);
     }
     int nonslack_vars = model.n() - ineq_idx.size();
-    for (int i = nonslack_vars; i < x.size(); ++i ) { 
+    for (std::vector<double>::size_type i = nonslack_vars; i < x.size(); ++i ) { 
        x.at(i) *= model.rowScale(ineq_idx.at(i - nonslack_vars)); 
        xl.at(i) *= model.rowScale(ineq_idx.at(i - nonslack_vars)); 
        xu.at(i) *= model.rowScale(ineq_idx.at(i - nonslack_vars)); 

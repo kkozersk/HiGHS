@@ -340,7 +340,7 @@ struct SparseVector {
   std::vector<double> nz_values;
 
   double operator[](unsigned index) const;
-  void truncate(int num_nz);
+  void truncate(std::vector<int>::size_type num_nz);
   void set(unsigned index, double value);
   int num_nz() const { return nz_indices.size(); }
 
@@ -353,3 +353,4 @@ Timestage2Range create_stochastic_path_translation(Node & node);
 inline double update_ub(double old_ub, double new_rhs) { return old_ub == kHighsInf ? kHighsInf : new_rhs; };
 inline double update_lb(double old_lb, double new_rhs) { return old_lb == -kHighsInf ? -kHighsInf : new_rhs; };
 HighsLp modify_problem(SmpsCoreStructure const & core, Node & node);
+int find_csr_value_index(HighsSparseMatrix const & a, int col, int row);

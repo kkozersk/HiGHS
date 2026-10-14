@@ -45,7 +45,7 @@ struct NonZeroVector {
   NonZeroVector(HighsInt num_nz, std::vector<HighsInt> const & nz_ind, std::vector<double> const & nz_val)
   : number_of_nonzeros(num_nz), nonzero_indices(nz_ind), nonzero_values(nz_val) {}
   NonZeroVector(std::vector<double> const & vec) {
-    for (int i = 0; i < vec.size(); ++i)
+    for (std::vector<double>::size_type i = 0; i < vec.size(); ++i)
       if (vec.at(i) != 0) {
         nonzero_indices.push_back(i);
         nonzero_values.push_back(vec.at(i));
