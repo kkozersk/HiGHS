@@ -68,6 +68,9 @@ int SmpsTimeStructure::get_stage_index(std::string const & stage) const {
   return std::distance(stage_names.begin(), it);
 }
 
+bool SmpsTimeStructure::is_timestage(std::string const & stage) const {
+  return get_stage_index(stage) < static_cast<int>(stage_names.size());
+} 
 
 SmpsCoreStructure & SmpsCoreStructure::operator=(HighsLp const & lp) {
   HighsLp::operator=(lp);
@@ -447,7 +450,7 @@ StochasticTree ScenarioStructure::constructTree() {
       parent = quasiparent->get_parent();
     }
     if (scen.parent_scenario != "ROOT") scen += get_scenario(scen.parent_scenario);
-    for (int t = time.get_stage_index(scen.timestage); t < time.get_no_timestages(); ++t) {
+    for (std::vector<TimeStageEntry>::size_type t = time.get_stage_index(scen.timestage); t < time.get_no_timestages(); ++t) {
       auto timestage = time.get_timestage(t);
       auto path_prob = t == time.get_no_timestages() - 1 ? scen.probability : 0;
       auto modifications = scen.filter_by_proper_timestage(core, timestage);
@@ -712,7 +715,7 @@ std::pair<SmpsCoreStructure, StochasticTree> build_stochastic_tree(
   if (!core.load_time_stages(time)) return {core, nullptr};
 
   auto stoch = read_stochastic_file(stoch_filename, core, time);  
-  if (stoch == nullptr || !stoch->is_valid()) return {core, nullptr};
+  if (stoch == nullptr || !stoch->is_valid() || !stoch->fill_missing_stages(time)) return {core, nullptr};
 
   return {core, stoch->constructTree()};             
 }
@@ -760,4 +763,31 @@ void ScenarioModifications::operator+=(ScenarioModifications const & base) {
     if (lp_modifications.end() == std::find_if(lp_modifications.begin(), lp_modifications.end(),
                       [&mod](LpEntry const & entry) {return mod.col == entry.col && mod.row == entry.row;}))
       lp_modifications.push_back(mod);
+}
+
+bool IndepStructure::fill_missing_stages(SmpsTimeStructure const & time) {
+  if (!time.is_valid() || time.get_no_timestages() == 0 || timestage_random_entries.empty()) return false;
+  int data_idx = 0;
+  for (auto const & timestage : time.get_stage_names()) {
+    if (timestage_random_entries.at(data_idx).timestage != timestage)
+      timestage_random_entries.insert(timestage_random_entries.begin() + data_idx, {{}, timestage});
+    ++data_idx;
+  }
+  return timestage_random_entries.size() == time.get_no_timestages();
+}
+
+bool BlockStructure::fill_missing_stages(SmpsTimeStructure const & time) {
+  if (!time.is_valid() || time.get_no_timestages() == 0 || timestage_random_vectors.empty()) return false;
+  int data_idx = 0;
+  for (auto const & timestage : time.get_stage_names()) {
+    if (timestage_random_vectors.at(data_idx).timestage != timestage)
+      timestage_random_vectors.insert(timestage_random_vectors.begin() + data_idx, {{}, timestage});
+    ++data_idx;
+  }
+  return timestage_random_vectors.size() == time.get_no_timestages();
+}
+
+bool ScenarioStructure::fill_missing_stages(SmpsTimeStructure const & time) {
+  //TODO
+  return true;
 }

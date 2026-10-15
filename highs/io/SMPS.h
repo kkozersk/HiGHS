@@ -38,10 +38,11 @@ class SmpsTimeStructure {
     std::vector<std::string> get_stage_names() const { return stage_names; }
     std::vector<TimeStageEntry> const & get_entries() const { return timestage_entries; }
     int get_stage_index(std::string const & stage) const;
-    int get_no_timestages() const { return timestage_entries.size(); }
+    bool is_timestage(std::string const & stage) const; 
+    std::vector<TimeStageEntry>::size_type get_no_timestages() const { return timestage_entries.size(); }
     std::string get_timestage(int index) const { return stage_names.at(index); }
     std::string get_previous_stage(std::string const & stage) const {
-      auto idx = get_stage_index(stage);
+      std::vector<TimeStageEntry>::size_type idx = get_stage_index(stage);
       return (idx == 0 || idx >= get_no_timestages()) ? "" : get_timestage(idx - 1);
     }
   private:
@@ -181,6 +182,7 @@ class SmpsStochasticStructure {
     SmpsStochasticStructure() = default;
     virtual ~SmpsStochasticStructure() = default;
     virtual StochasticTree constructTree() = 0;
+    virtual bool fill_missing_stages(SmpsTimeStructure const & time) = 0;
     SmpsStochasticStructure(std::string problem_name) : problem_name(problem_name) {}
     std::string get_problem_name() const { return problem_name; }
     bool is_valid() const { return is_valid_; }
@@ -240,6 +242,7 @@ class IndepStructure : public SmpsStochasticStructure {
     IndepStructure(std::istream & input);
     IndepStructure(std::string const & filename);
     virtual StochasticTree constructTree();
+    virtual bool fill_missing_stages(SmpsTimeStructure const & time);
     int get_no_timestage_random_entries() const { return timestage_random_entries.size(); }
     TimestageRandomVariables const & get_timestage_random_entry(int index) { return timestage_random_entries.at(index); }
 };
@@ -259,6 +262,7 @@ class BlockStructure : public SmpsStochasticStructure {
     virtual StochasticTree constructTree();
     int get_no_timestage_random_vectors() const { return timestage_random_vectors.size(); }
     TimestageRandomVectors const & get_timestage_random_vector(int index) { return timestage_random_vectors.at(index); }
+    virtual bool fill_missing_stages(SmpsTimeStructure const & time);
 };
 
 //TODO rename to scenario?
@@ -302,6 +306,7 @@ class ScenarioStructure : public SmpsStochasticStructure {
     int get_no_scenarios() const { return scenarios.size(); }
     ScenarioModifications const & get_scenario(std::string const scen_name) const { return scenarios.at(name2scen_idx.at(scen_name)); }
     ScenarioModifications const & get_scenario(int index) const { return scenarios.at(index); }
+    virtual bool fill_missing_stages(SmpsTimeStructure const & time);
 };
 
 std::unique_ptr<SmpsStochasticStructure> read_stochastic_file(std::string const & filepath, SmpsCoreStructure const & core, SmpsTimeStructure const & time); 
