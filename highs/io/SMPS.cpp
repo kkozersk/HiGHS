@@ -719,7 +719,8 @@ std::pair<SmpsCoreStructure, StochasticTree> build_stochastic_tree(
   if (!core.load_time_stages(time)) return {core, nullptr};
 
   auto stoch = read_stochastic_file(stoch_filename, core, time);  
-  if (stoch == nullptr || !stoch->is_valid() || !stoch->fill_missing_stages(time)) return {core, nullptr};
+  if (stoch == nullptr || !stoch->is_valid() ||
+       !stoch->verify_stages(time) || !stoch->fill_missing_stages(time)) return {core, nullptr};
 
   return {core, stoch->constructTree()};             
 }
