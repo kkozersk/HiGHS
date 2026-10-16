@@ -770,7 +770,7 @@ void ScenarioModifications::operator+=(ScenarioModifications const & base) {
 }
 
 bool IndepStructure::verify_stages(SmpsTimeStructure const & time) const {
-  return std::all_of(timestage_random_entries.begin(), timestage_random_entries.end(),
+  return time.is_valid() && std::all_of(timestage_random_entries.begin(), timestage_random_entries.end(),
                      [&time](TimestageRandomVariables const & rv) {return time.is_timestage(rv.timestage); });
 }
 
