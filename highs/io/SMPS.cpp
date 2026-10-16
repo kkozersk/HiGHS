@@ -612,7 +612,6 @@ void add_node_entry(SmpsCoreStructure const & core, Node & node, Highs & result)
 
 void add_node_tree_entries(SmpsCoreStructure const & core, Node & node, Highs & result) {
   add_node_entry(core, node, result); 
-  auto v = node.get_no_children();
   for (int i = 0; i < node.get_no_children(); ++i)  add_node_tree_entries(core, *node.get_child(i), result);
 }
 

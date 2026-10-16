@@ -3511,3 +3511,109 @@ TEST_CASE("test-block-with-fully-empty-stochastic-tree", "[highs_smps]") {
   REQUIRE(tree.root->get_no_children() == 0);
   REQUIRE(tree.root->get_lp_modifications() == std::vector<LpEntry> {});
 }
+
+TEST_CASE("test-add-empty-node-tree-entry", "[highs_smps]") {
+  auto instance = std::string(HIGHS_DIR) + "/check/instances/stoch/simple";
+  HighsOptions opt;
+  SmpsCoreStructure core(opt, instance + ".cor");
+  REQUIRE(core.is_valid());
+
+  SmpsTimeStructure time(instance + ".tim");
+  REQUIRE(time.is_valid());
+
+  IndepStructure stoch(instance + "_missing_timestages.sto");
+  REQUIRE(stoch.is_valid());
+  REQUIRE(stoch.verify_stages(time));
+  REQUIRE(stoch.fill_missing_stages(time));
+  auto tree = stoch.constructTree();
+
+  core.load_time_stages(time);
+  REQUIRE(tree.root->get_no_children() == 1);
+  {
+    auto const & node = tree.root->get_child(0);
+    Highs highs;
+    add_node_tree_entries(core, *node, highs);
+
+    REQUIRE(highs.getNumCol() == 3);
+    auto expectedA = to_csr({3, 3, {
+              1,0,0,
+              2,100,0,
+              2,0,200,
+                            }});
+  
+    auto lp = highs.getModel().lp_;
+    auto A = lp.a_matrix_;
+    A.ensureRowwise();
+    REQUIRE(A == expectedA);
+  }
+}
+
+TEST_CASE("test-add-fully-empty-node-tree-entry", "[highs_smps]") {
+  auto instance = std::string(HIGHS_DIR) + "/check/instances/stoch/simple";
+  HighsOptions opt;
+  SmpsCoreStructure core(opt, instance + ".cor");
+  REQUIRE(core.is_valid());
+
+  SmpsTimeStructure time(instance + ".tim");
+  REQUIRE(time.is_valid());
+
+  IndepStructure stoch(instance + "_missing_all_timestages.sto");
+  REQUIRE(stoch.is_valid());
+  REQUIRE(stoch.verify_stages(time));
+  REQUIRE(stoch.fill_missing_stages(time));
+  auto tree = stoch.constructTree();
+  core.load_time_stages(time);
+  {
+    auto const & node = tree.root->get_child(0);
+    Highs highs;
+    add_node_tree_entries(core, *node, highs);
+
+    REQUIRE(highs.getNumCol() == 2);
+    auto expectedA = to_csr({2, 2, {
+              1,0,
+              2,4,
+                            }});
+  
+    auto lp = highs.getModel().lp_;
+    auto A = lp.a_matrix_;
+    A.ensureRowwise();
+    REQUIRE(A == expectedA);
+  }
+}
+
+TEST_CASE("test-add-filled-tree-entry", "[highs_smps]") {
+  auto instance = std::string(HIGHS_DIR) + "/check/instances/stoch/simple";
+  Highs highs;
+  build_stochastic_problem(highs, instance+ ".cor", instance + ".tim", instance + "_missing_timestages.sto");
+
+  REQUIRE(highs.getNumCol() == 3);
+
+  auto expectedA = to_csr({3, 3, {
+            1, 0,   0,
+            2, 100, 0,
+            2, 0,   200,
+                          }});
+  
+  auto lp = highs.getModel().lp_;
+  auto A = lp.a_matrix_;
+  A.ensureRowwise();
+  REQUIRE(A == expectedA);
+}
+
+TEST_CASE("test-add-fully-filled-tree-entry", "[highs_smps]") {
+  auto instance = std::string(HIGHS_DIR) + "/check/instances/stoch/simple";
+  Highs highs;
+  build_stochastic_problem(highs, instance+ ".cor", instance + ".tim", instance + "_missing_all_timestages.sto");
+
+  REQUIRE(highs.getNumCol() == 2);
+
+  auto expectedA = to_csr({2, 2, {
+            1, 0, 
+            2, 4, 
+                          }});
+  
+  auto lp = highs.getModel().lp_;
+  auto A = lp.a_matrix_;
+  A.ensureRowwise();
+  REQUIRE(A == expectedA);
+}
