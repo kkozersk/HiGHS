@@ -204,8 +204,10 @@ struct RandomVariable {
 struct RandomVectorValue {
   double probability;
   BlockLpEntry lp_modifications;
-  bool operator==(RandomVectorValue const & other) const { return probability == other.probability && lp_modifications == other.lp_modifications; }
-  RandomVectorValue(double probability, BlockLpEntry const & lp_modifications) : probability(probability), lp_modifications(lp_modifications) {}
+  bool operator==(RandomVectorValue const & other) const
+    { return probability == other.probability && lp_modifications == other.lp_modifications; }
+  RandomVectorValue(double probability=1., BlockLpEntry const & lp_modifications = {})
+    : probability(probability), lp_modifications(lp_modifications) {}
   void operator+=(RandomVectorValue const & basis);
   LpEntry const & at(int index) const { return lp_modifications.at(index); }
  };

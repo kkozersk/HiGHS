@@ -267,6 +267,7 @@ RandomVector append_to_random_vector(RandomVariable const & rv, RandomVector con
 }
 
 RandomVector TimestageRandomVariables::combine_variables() const {
+  if (rvs.empty()) return {{}};
   RandomVector result;
   for (auto const & rv: rvs) 
     result = append_to_random_vector(rv, result);
@@ -508,7 +509,9 @@ Tokens SmpsStochasticStructure::skip_initial_comments(std::istream & input) cons
   return tokens;
  }
 
+//TODO very similiar to the other function
 RandomVector TimestageRandomVectors::combine_vectors() const {
+  if (rvs.empty()) return {{}};
   RandomVector result;
   for (auto const & rv: rvs) 
     result = append_to_random_vector(rv, result);

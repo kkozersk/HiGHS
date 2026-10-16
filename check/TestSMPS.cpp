@@ -3300,3 +3300,98 @@ TEST_CASE("test-fill-timestage-block-structure-invalid-timedata-object", "[highs
   REQUIRE(!smps.verify_stages(time));
   REQUIRE(!smps.fill_missing_stages(time));
 }
+
+TEST_CASE("test-indep-with-fillling-to-stochastic-tree", "[highs_smps]") {
+  std::istringstream timedata("TIME NAME\n"
+                                      "PERIODS\n"
+                                "C1 R1 TIME1\n"
+                                "C2 R3 TIME2\n"
+                                "C3 R4 TIME3\n"
+                            "ENDATA");
+  SmpsTimeStructure time(timedata);
+  REQUIRE(time.is_valid());
+
+  std::istringstream data("STOCH NAME\n"
+                          "INDEP DISCRETE\n"
+                          "RHS R1 50 TIME2 0.5\n"
+                          "RHS R1 40 TIME2 0.3\n"
+                          "RHS R1 60 TIME2 0.2\n"
+                          "ENDATA");
+  IndepStructure smps(data);
+  REQUIRE(smps.is_valid());
+  REQUIRE(smps.verify_stages(time));
+  REQUIRE(smps.fill_missing_stages(time));
+  auto tree = smps.constructTree();
+  REQUIRE(tree.root->get_parent() == nullptr);
+  REQUIRE(tree.root->verify_children_probabilities());
+  REQUIRE(tree.root->get_no_children() == 1);
+  REQUIRE(tree.root->get_lp_modifications() == std::vector<LpEntry> {});
+  REQUIRE(tree.root->get_node_probability() == 1.);
+  auto & new_root = tree.root->get_child(0);
+  REQUIRE(new_root->get_no_children() == 3);
+  REQUIRE(new_root->verify_children_probabilities());
+  REQUIRE(new_root->get_lp_modifications() == std::vector<LpEntry>{});
+  REQUIRE(new_root->get_node_probability() == 1.);
+  
+
+  std::vector<double> child_probabilities = { 0.5, 0.3, 0.2, };
+  std::vector<std::vector<LpEntry>> child_mods { {{"R1", "RHS", 50}}, {{"R1", "RHS", 40}}, {{"R1", "RHS", 60}}, };
+  for (int i = 0; i < 3; ++i) {
+    auto & child = tree.root->get_child(0)->get_child(i);
+    REQUIRE(child->get_parent() == tree.root->get_child(0).get());
+    REQUIRE(child->get_node_probability() == child_probabilities.at(i));
+    REQUIRE(child->get_lp_modifications() == child_mods.at(i));
+    REQUIRE(child->verify_children_probabilities());
+    REQUIRE(child->get_no_children() == 1);
+    REQUIRE(child->get_child(0)->get_no_children() == 0);
+  }
+}
+
+TEST_CASE("test-block-with-fillling-to-stochastic-tree", "[highs_smps]") {
+  std::istringstream timedata("TIME NAME\n"
+                                      "PERIODS\n"
+                                "C1 R1 TIME1\n"
+                                "C2 R3 TIME2\n"
+                                "C3 R4 TIME3\n"
+                            "ENDATA");
+  SmpsTimeStructure time(timedata);
+  REQUIRE(time.is_valid());
+
+  std::istringstream data("STOCH NAME\n"
+                          "BLOCKS DISCRETE\n"
+                          "BL BLOCK01 TIME2 0.5\n"
+                          "RHS R1 50\n"
+                          "BL BLOCK01 TIME2 0.3\n"
+                          "RHS R1 40\n"
+                          "BL BLOCK01 TIME2 0.2\n"
+                          "RHS R1 60\n"
+                          "ENDATA");
+  BlockStructure smps(data);
+  REQUIRE(smps.is_valid());
+  REQUIRE(smps.verify_stages(time));
+  REQUIRE(smps.fill_missing_stages(time));
+  auto tree = smps.constructTree();
+  REQUIRE(tree.root->get_parent() == nullptr);
+  REQUIRE(tree.root->verify_children_probabilities());
+  REQUIRE(tree.root->get_no_children() == 1);
+  REQUIRE(tree.root->get_lp_modifications() == std::vector<LpEntry> {});
+  REQUIRE(tree.root->get_node_probability() == 1.);
+  auto & new_root = tree.root->get_child(0);
+  REQUIRE(new_root->get_no_children() == 3);
+  REQUIRE(new_root->verify_children_probabilities());
+  REQUIRE(new_root->get_lp_modifications() == std::vector<LpEntry>{});
+  REQUIRE(new_root->get_node_probability() == 1.);
+  
+
+  std::vector<double> child_probabilities = { 0.5, 0.3, 0.2, };
+  std::vector<std::vector<LpEntry>> child_mods { {{"R1", "RHS", 50}}, {{"R1", "RHS", 40}}, {{"R1", "RHS", 60}}, };
+  for (int i = 0; i < 3; ++i) {
+    auto & child = tree.root->get_child(0)->get_child(i);
+    REQUIRE(child->get_parent() == tree.root->get_child(0).get());
+    REQUIRE(child->get_node_probability() == child_probabilities.at(i));
+    REQUIRE(child->get_lp_modifications() == child_mods.at(i));
+    REQUIRE(child->verify_children_probabilities());
+    REQUIRE(child->get_no_children() == 1);
+    REQUIRE(child->get_child(0)->get_no_children() == 0);
+  }
+}
