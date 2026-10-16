@@ -242,6 +242,7 @@ class IndepStructure : public SmpsStochasticStructure {
     IndepStructure(std::istream & input);
     IndepStructure(std::string const & filename);
     virtual StochasticTree constructTree();
+    bool verify_stages(SmpsTimeStructure const & time) const;
     virtual bool fill_missing_stages(SmpsTimeStructure const & time);
     int get_no_timestage_random_entries() const { return timestage_random_entries.size(); }
     TimestageRandomVariables const & get_timestage_random_entry(int index) { return timestage_random_entries.at(index); }

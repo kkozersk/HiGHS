@@ -116,12 +116,6 @@ TEST_CASE("test-read-invalid-time-file", "[highs_smps]") {
   smps = SmpsTimeStructure(malformed_entries3);
   REQUIRE(!smps.is_valid());
 
-  std::istringstream no_entries("TIME NAME\n"
-                                      "PERIODS\n"
-                              "ENDATA");
-  smps = SmpsTimeStructure(no_entries);
-  REQUIRE(!smps.is_valid());
-
   std::istringstream missing_end("TIME NAME\n"
                                       "PERIODS\n"
                                 "C1 C2 T1\n"
@@ -155,6 +149,14 @@ TEST_CASE("test-read-valid-time-file", "[highs_smps]") {
   REQUIRE(smps.get_stage_index("TIME1") == 0);
   REQUIRE(smps.get_stage_index("TIME2") == 1);
   REQUIRE(smps.get_stage_index("NOTIME") == 2);
+}
+
+TEST_CASE("test-read-valid-time-file-empty", "[highs_smps]") {
+  std::istringstream no_entries("TIME NAME\n"
+                                      "PERIODS\n"
+                              "ENDATA");
+  auto smps = SmpsTimeStructure(no_entries);
+  REQUIRE(smps.is_valid());
 }
 
 TEST_CASE("test-load-core-from-file", "[highs_smps]") {
@@ -2809,4 +2811,139 @@ TEST_CASE("test-smps-scen-sgpf5y-read", "[highs-smps]") {
   //   REQUIRE(highs.getModelStatus() == HighsModelStatus::kOptimal);
   //   REQUIRE(std::abs(highs.getObjectiveValue() - (-4031.391)) < 1e-1);
   // }
+}
+
+TEST_CASE("test-fill-timestage-simple-indep-structure", "[highs_smps]") {
+  std::istringstream timedata("TIME NAME\n"
+                                      "PERIODS\n"
+                                "C1 R1 TIME1\n"
+                                "C2 R3 TIME2\n"
+                              "C3 R4 TIME3\n"
+                              "C4 R5 TIME4\n"
+                              "C5 R6 TIME5\n"
+                              "C6 R7 TIME6\n"
+                            "ENDATA");
+  SmpsTimeStructure time(timedata);
+  REQUIRE(time.is_valid());
+  REQUIRE(time.get_no_timestages() == 6);
+
+  std::istringstream stochdata("STOCH NAME\n"
+                          "INDEP DISCRETE\n"
+                          "RHS R3 50 TIME2 0.5\n"
+                          "RHS R3 40 TIME2 0.3\n"
+                          "RHS R3 60 TIME2 0.2\n"
+                          "C2 R3 50 TIME2 1.\n"
+                          "RHS R6 60 TIME5 1.0\n"
+                          "ENDATA");
+  IndepStructure stoch(stochdata);
+  REQUIRE(stoch.is_valid());
+  REQUIRE(stoch.get_no_timestage_random_entries() == 2);
+  {
+    auto rvt = stoch.get_timestage_random_entry(0);
+    REQUIRE(rvt.timestage == "TIME2");
+    REQUIRE(rvt.rvs.size() == 2);
+  }
+  {
+    auto rvt = stoch.get_timestage_random_entry(1);
+    REQUIRE(rvt.timestage == "TIME5");
+    REQUIRE(rvt.rvs.size() == 1);
+  }
+  REQUIRE(stoch.verify_stages(time));
+  REQUIRE(stoch.fill_missing_stages(time));
+  REQUIRE(stoch.get_no_timestage_random_entries() == 6);
+  for (int i = 0; i < 6; ++i) {
+    auto rvt = stoch.get_timestage_random_entry(i);
+    REQUIRE(rvt.timestage == "TIME" + std::to_string(i+1));
+    int size = 0;
+    if (i == 1) size = 2;
+    else if (i == 4) size = 1;
+    REQUIRE(rvt.rvs.size() == size);
+  }
+}
+
+TEST_CASE("test-fill-timestage-simple-indep-structure-full-time", "[highs_smps]") {
+  std::istringstream timedata("TIME NAME\n"
+                                      "PERIODS\n"
+                                "C1 R1 TIME1\n"
+                                "C2 R3 TIME2\n"
+                            "ENDATA");
+  SmpsTimeStructure time(timedata);
+  REQUIRE(time.is_valid());
+  REQUIRE(time.get_no_timestages() == 2);
+
+  std::istringstream stochdata("STOCH NAME\n"
+                          "INDEP DISCRETE\n"
+                          "RHS R3 50 TIME1 0.5\n"
+                          "RHS R3 40 TIME1 0.3\n"
+                          "RHS R3 60 TIME1 0.2\n"
+                          "C2 R3 50 TIME1 1.\n"
+                          "RHS R6 60 TIME2 1.0\n"
+                          "ENDATA");
+  IndepStructure stoch(stochdata);
+  REQUIRE(stoch.is_valid());
+  REQUIRE(stoch.get_no_timestage_random_entries() == 2);
+  {
+    auto rvt = stoch.get_timestage_random_entry(0);
+    REQUIRE(rvt.timestage == "TIME1");
+    REQUIRE(rvt.rvs.size() == 2);
+  }
+  {
+    auto rvt = stoch.get_timestage_random_entry(1);
+    REQUIRE(rvt.timestage == "TIME2");
+    REQUIRE(rvt.rvs.size() == 1);
+  }
+  REQUIRE(stoch.verify_stages(time));
+  REQUIRE(stoch.fill_missing_stages(time));
+  REQUIRE(stoch.get_no_timestage_random_entries() == 2);
+  for (int i = 0; i < 2; ++i) {
+    auto rvt = stoch.get_timestage_random_entry(i);
+    REQUIRE(rvt.timestage == "TIME" + std::to_string(i+1));
+    int size = (i == 0) ? 2 : 1;
+    REQUIRE(rvt.rvs.size() == size);
+  }
+}
+
+TEST_CASE("test-fill-timestage-simple-indep-structure-empty-time", "[highs_smps]") {
+  std::istringstream timedata("TIME NAME\n"
+                                      "PERIODS\n"
+                                "C1 R1 TIME1\n"
+                                "C2 R3 TIME2\n"
+                            "ENDATA");
+  SmpsTimeStructure time(timedata);
+  REQUIRE(time.is_valid());
+  REQUIRE(time.get_no_timestages() == 2);
+
+  std::istringstream stochdata("STOCH NAME\n"
+                          "INDEP DISCRETE\n"
+                          "ENDATA");
+  IndepStructure stoch(stochdata);
+  REQUIRE(stoch.is_valid());
+  REQUIRE(stoch.get_no_timestage_random_entries() == 0);
+  REQUIRE(stoch.verify_stages(time));
+  REQUIRE(stoch.fill_missing_stages(time));
+  REQUIRE(stoch.get_no_timestage_random_entries() == 2);
+  for (int i = 0; i < 2; ++i) {
+    auto rvt = stoch.get_timestage_random_entry(i);
+    REQUIRE(rvt.timestage == "TIME" + std::to_string(i+1));
+    REQUIRE(rvt.rvs.size() == 0);
+  }
+}
+
+TEST_CASE("test-fill-timestage-simple-indep-structure-empty-time-empty-timedata", "[highs_smps]") {
+  std::istringstream timedata("TIME NAME\n"
+                                      "PERIODS\n"
+                            "ENDATA");
+  SmpsTimeStructure time(timedata);
+  REQUIRE(time.is_valid());
+  REQUIRE(time.get_no_timestages() == 0);
+
+  std::istringstream stochdata("STOCH NAME\n"
+                          "INDEP DISCRETE\n"
+                          "ENDATA");
+  IndepStructure stoch(stochdata);
+  REQUIRE(stoch.is_valid());
+  REQUIRE(stoch.get_no_timestage_random_entries() == 0);
+  REQUIRE(stoch.verify_stages(time));
+  REQUIRE(stoch.fill_missing_stages(time));
+  REQUIRE(stoch.get_no_timestage_random_entries() == 0);
 }

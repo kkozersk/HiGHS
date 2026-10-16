@@ -23,7 +23,7 @@ void SmpsTimeStructure::read_file(std::istream & input) {
   while (getline(input, line) && !is_ending(line)) {
     if (!process_period(line)) return;
   }
-  if (timestage_entries.empty()) return;
+  // if (timestage_entries.empty()) return;
   std::transform(timestage_entries.begin(), timestage_entries.end(), std::back_inserter(stage_names), [](TimeStageEntry const & val) {return val.stage_name; });
   if (!process_ending(line)) return;
   is_valid_ = true;
@@ -182,7 +182,8 @@ bool IndepStructure::read_from_file(std::istream & input) {
     return process_header(read_tokens(input), header, problem_name) &&
            process_structure(read_tokens(input), structure_type, distribution) &&    
             header == "STOCH" && structure_type == "INDEP" && distribution == "DISCRETE"
-            && process_data(input) && !timestage_random_entries.empty();
+            && process_data(input);
+             // && !timestage_random_entries.empty();
 }
 
 bool IndepStructure::process_tokens(Tokens const & tokens, std::string & column, std::string & row, double & value, std::string & timeperiod, double & probability) const {
@@ -208,6 +209,7 @@ bool IndepStructure::process_data(std::istream & input) {
   std::vector<RandomVariable::RandomValue> values;
   std::vector<RandomVariable> rvs;
   auto tokens = skip_initial_comments(input);
+  if (is_ending(tokens)) return true;
   if (!process_tokens(tokens, column, row, value, timeperiod, probability)) return false;
   values.emplace_back(probability, value);
   while (!(tokens = read_tokens(input)).empty() && !is_ending(tokens)) {
@@ -284,7 +286,8 @@ bool BlockStructure::read_from_file(std::istream & input) {
     return process_header(read_tokens(input), header, problem_name) &&
            process_structure(read_tokens(input), structure_type, distribution) &&
            header == "STOCH" && structure_type == "BLOCKS" && distribution == "DISCRETE"
-           && process_data(input) && !timestage_random_vectors.empty();
+           && process_data(input);
+     // && !timestage_random_vectors.empty();
 }
 
 bool BlockStructure::is_new_block(Tokens const & tokens) const {
@@ -321,6 +324,7 @@ bool BlockStructure::process_data(std::istream & input) {
   std::vector<RandomVector> rvs;
   
   auto tokens = skip_initial_comments(input);
+  if (is_ending(tokens)) return true;
   if (!is_new_block(tokens) || !process_new_block(tokens, block_name, timeperiod, probability))
     return false;
   while (!(tokens = read_tokens(input)).empty() && !is_ending(tokens)) {
@@ -765,11 +769,16 @@ void ScenarioModifications::operator+=(ScenarioModifications const & base) {
       lp_modifications.push_back(mod);
 }
 
+bool IndepStructure::verify_stages(SmpsTimeStructure const & time) const {
+  return std::all_of(timestage_random_entries.begin(), timestage_random_entries.end(),
+                     [&time](TimestageRandomVariables const & rv) {return time.is_timestage(rv.timestage); });
+}
+
 bool IndepStructure::fill_missing_stages(SmpsTimeStructure const & time) {
-  if (!time.is_valid() || time.get_no_timestages() == 0 || timestage_random_entries.empty()) return false;
-  int data_idx = 0;
+  if (!time.is_valid()) return false;
+  std::vector<TimestageRandomVariables>::size_type data_idx = 0;
   for (auto const & timestage : time.get_stage_names()) {
-    if (timestage_random_entries.at(data_idx).timestage != timestage)
+    if (data_idx >= timestage_random_entries.size() || timestage_random_entries.at(data_idx).timestage != timestage)
       timestage_random_entries.insert(timestage_random_entries.begin() + data_idx, {{}, timestage});
     ++data_idx;
   }
@@ -777,7 +786,7 @@ bool IndepStructure::fill_missing_stages(SmpsTimeStructure const & time) {
 }
 
 bool BlockStructure::fill_missing_stages(SmpsTimeStructure const & time) {
-  if (!time.is_valid() || time.get_no_timestages() == 0 || timestage_random_vectors.empty()) return false;
+  if (!time.is_valid()) return false;
   int data_idx = 0;
   for (auto const & timestage : time.get_stage_names()) {
     if (timestage_random_vectors.at(data_idx).timestage != timestage)
