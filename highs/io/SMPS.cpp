@@ -774,6 +774,11 @@ bool IndepStructure::verify_stages(SmpsTimeStructure const & time) const {
                      [&time](TimestageRandomVariables const & rv) {return time.is_timestage(rv.timestage); });
 }
 
+bool BlockStructure::verify_stages(SmpsTimeStructure const & time) const {
+  return time.is_valid() && std::all_of(timestage_random_vectors.begin(), timestage_random_vectors.end(),
+                     [&time](TimestageRandomVectors const & rv) {return time.is_timestage(rv.timestage); });
+}
+
 bool IndepStructure::fill_missing_stages(SmpsTimeStructure const & time) {
   if (!time.is_valid()) return false;
   std::vector<TimestageRandomVariables>::size_type data_idx = 0;
@@ -787,9 +792,9 @@ bool IndepStructure::fill_missing_stages(SmpsTimeStructure const & time) {
 
 bool BlockStructure::fill_missing_stages(SmpsTimeStructure const & time) {
   if (!time.is_valid()) return false;
-  int data_idx = 0;
+  std::vector<TimestageRandomVectors>::size_type data_idx = 0;
   for (auto const & timestage : time.get_stage_names()) {
-    if (timestage_random_vectors.at(data_idx).timestage != timestage)
+    if (data_idx >= timestage_random_vectors.size() || timestage_random_vectors.at(data_idx).timestage != timestage)
       timestage_random_vectors.insert(timestage_random_vectors.begin() + data_idx, {{}, timestage});
     ++data_idx;
   }

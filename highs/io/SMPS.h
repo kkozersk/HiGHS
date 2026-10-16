@@ -182,6 +182,7 @@ class SmpsStochasticStructure {
     SmpsStochasticStructure() = default;
     virtual ~SmpsStochasticStructure() = default;
     virtual StochasticTree constructTree() = 0;
+    virtual bool verify_stages(SmpsTimeStructure const & time) const = 0;
     virtual bool fill_missing_stages(SmpsTimeStructure const & time) = 0;
     SmpsStochasticStructure(std::string problem_name) : problem_name(problem_name) {}
     std::string get_problem_name() const { return problem_name; }
@@ -264,6 +265,7 @@ class BlockStructure : public SmpsStochasticStructure {
     int get_no_timestage_random_vectors() const { return timestage_random_vectors.size(); }
     TimestageRandomVectors const & get_timestage_random_vector(int index) { return timestage_random_vectors.at(index); }
     virtual bool fill_missing_stages(SmpsTimeStructure const & time);
+    virtual bool verify_stages(SmpsTimeStructure const & time) const;
 };
 
 //TODO rename to scenario?
@@ -308,6 +310,7 @@ class ScenarioStructure : public SmpsStochasticStructure {
     ScenarioModifications const & get_scenario(std::string const scen_name) const { return scenarios.at(name2scen_idx.at(scen_name)); }
     ScenarioModifications const & get_scenario(int index) const { return scenarios.at(index); }
     virtual bool fill_missing_stages(SmpsTimeStructure const & time);
+    virtual bool verify_stages(SmpsTimeStructure const & time) const { return true; /*TODO*/};
 };
 
 std::unique_ptr<SmpsStochasticStructure> read_stochastic_file(std::string const & filepath, SmpsCoreStructure const & core, SmpsTimeStructure const & time); 

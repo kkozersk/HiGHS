@@ -3,7 +3,7 @@
 #include <memory>
 #include <sstream>
 #include <string>
-#include "interfaces/highs_c_api.h"
+// #include "interfaces/highs_c_api.h"
 #include "io/SMPS.h"
 #include "HCheckConfig.h"
 #include "catch.hpp"
@@ -2813,7 +2813,7 @@ TEST_CASE("test-smps-scen-sgpf5y-read", "[highs-smps]") {
   // }
 }
 
-TEST_CASE("test-fill-timestage-simple-indep-structure", "[highs_smps]") {
+TEST_CASE("test-fill-timestage-indep-structure", "[highs_smps]") {
   std::istringstream timedata("TIME NAME\n"
                                       "PERIODS\n"
                                 "C1 R1 TIME1\n"
@@ -2861,7 +2861,7 @@ TEST_CASE("test-fill-timestage-simple-indep-structure", "[highs_smps]") {
   }
 }
 
-TEST_CASE("test-fill-timestage-simple-indep-structure-full-time", "[highs_smps]") {
+TEST_CASE("test-fill-timestage-indep-structure-full-time", "[highs_smps]") {
   std::istringstream timedata("TIME NAME\n"
                                       "PERIODS\n"
                                 "C1 R1 TIME1\n"
@@ -2903,7 +2903,7 @@ TEST_CASE("test-fill-timestage-simple-indep-structure-full-time", "[highs_smps]"
   }
 }
 
-TEST_CASE("test-fill-timestage-simple-indep-structure-empty-time", "[highs_smps]") {
+TEST_CASE("test-fill-timestage-indep-structure-empty-time", "[highs_smps]") {
   std::istringstream timedata("TIME NAME\n"
                                       "PERIODS\n"
                                 "C1 R1 TIME1\n"
@@ -2929,7 +2929,7 @@ TEST_CASE("test-fill-timestage-simple-indep-structure-empty-time", "[highs_smps]
   }
 }
 
-TEST_CASE("test-fill-timestage-simple-indep-structure-empty-time-empty-timedata", "[highs_smps]") {
+TEST_CASE("test-fill-timestage-indep-structure-empty-time-empty-timedata", "[highs_smps]") {
   std::istringstream timedata("TIME NAME\n"
                                       "PERIODS\n"
                             "ENDATA");
@@ -2948,7 +2948,7 @@ TEST_CASE("test-fill-timestage-simple-indep-structure-empty-time-empty-timedata"
   REQUIRE(stoch.get_no_timestage_random_entries() == 0);
 }
 
-TEST_CASE("test-fill-timestage-simple-indep-structure-invalid-periods", "[highs_smps]") {
+TEST_CASE("test-fill-timestage-indep-structure-invalid-periods", "[highs_smps]") {
   std::istringstream timedata("TIME NAME\n"
                                       "PERIODS\n"
                                 "C1 R1 TIME1\n"
@@ -2983,7 +2983,7 @@ TEST_CASE("test-fill-timestage-simple-indep-structure-invalid-periods", "[highs_
   REQUIRE(!stoch.fill_missing_stages(time));
 }
 
-TEST_CASE("test-fill-timestage-simple-indep-structure-invalid-period-order", "[highs_smps]") {
+TEST_CASE("test-fill-timestage-indep-structure-invalid-period-order", "[highs_smps]") {
   std::istringstream timedata("TIME NAME\n"
                                       "PERIODS\n"
                                 "C1 R1 TIME1\n"
@@ -3008,7 +3008,7 @@ TEST_CASE("test-fill-timestage-simple-indep-structure-invalid-period-order", "[h
   REQUIRE(!stoch.fill_missing_stages(time));
 }
 
-TEST_CASE("test-fill-timestage-simple-indep-structure-too-many-periods", "[highs_smps]") {
+TEST_CASE("test-fill-timestage-indep-structure-too-many-periods", "[highs_smps]") {
   std::istringstream timedata("TIME NAME\n"
                                       "PERIODS\n"
                                 "C1 R1 TIME1\n"
@@ -3034,7 +3034,7 @@ TEST_CASE("test-fill-timestage-simple-indep-structure-too-many-periods", "[highs
   REQUIRE(!stoch.fill_missing_stages(time));
 }
 
-TEST_CASE("test-fill-timestage-simple-indep-structure-invalid-timedata-object", "[highs_smps]") {
+TEST_CASE("test-fill-timestage-indep-structure-invalid-timedata-object", "[highs_smps]") {
   std::istringstream timedata("TIME NAME\n"
                                       "PERIODS\n"
                                 "C1 R1 TIME1\n"
@@ -3056,4 +3056,247 @@ TEST_CASE("test-fill-timestage-simple-indep-structure-invalid-timedata-object", 
   REQUIRE(stoch.get_no_timestage_random_entries() == 2);
   REQUIRE(!stoch.verify_stages(time));
   REQUIRE(!stoch.fill_missing_stages(time));
+}
+
+TEST_CASE("test-fill-timestage-block-structure", "[highs_smps]") {
+  std::istringstream timedata("TIME NAME\n"
+                                      "PERIODS\n"
+                                "C1 R1 TIME1\n"
+                                "C2 R3 TIME2\n"
+                              "C3 R4 TIME3\n"
+                              "C4 R5 TIME4\n"
+                              "C5 R6 TIME5\n"
+                              "C6 R7 TIME6\n"
+                            "ENDATA");
+  SmpsTimeStructure time(timedata);
+  REQUIRE(time.is_valid());
+  REQUIRE(time.get_no_timestages() == 6);
+  std::istringstream data("STOCH NAME\n"
+                          "BLOCKS DISCRETE\n"
+                          "BL BLOCK01 TIME2 0.3\n"
+                          "RHS R1 50\n"
+                          "RHS R2 40\n"
+                          "BL BLOCK01 TIME2 0.7\n"
+                          "RHS R1 40\n"
+                          "RHS R2 50\n"
+                          "BL BLOCK02 TIME5 0.5\n"
+                          "RHS R3 50\n"
+                          "RHS R4 40\n"
+                          "BL BLOCK02 TIME5 0.5\n"
+                          "RHS R3 40\n"
+                          "RHS R4 50\n"
+                          "ENDATA");
+  BlockStructure smps(data);
+  REQUIRE(smps.is_valid());
+  REQUIRE(smps.get_no_timestage_random_vectors() == 2);
+  REQUIRE(smps.verify_stages(time));
+  REQUIRE(smps.fill_missing_stages(time));
+  REQUIRE(smps.get_no_timestage_random_vectors() == 6);
+  for (int i = 0; i < 6; ++i) {
+    auto rvt = smps.get_timestage_random_vector(i);
+    REQUIRE(rvt.timestage == "TIME" + std::to_string(i+1));
+    REQUIRE(rvt.rvs.size() == ((i==1 || i==4) ? 1 : 0));
+    
+  }
+}
+
+TEST_CASE("test-fill-timestage-block-structure-full-time", "[highs_smps]") {
+  std::istringstream timedata("TIME NAME\n"
+                                      "PERIODS\n"
+                                "C1 R1 TIME1\n"
+                                "C2 R3 TIME2\n"
+                            "ENDATA");
+  SmpsTimeStructure time(timedata);
+  REQUIRE(time.is_valid());
+  REQUIRE(time.get_no_timestages() == 2);
+  std::istringstream data("STOCH NAME\n"
+                          "BLOCKS DISCRETE\n"
+                          "BL BLOCK01 TIME1 0.3\n"
+                          "RHS R1 50\n"
+                          "RHS R2 40\n"
+                          "BL BLOCK01 TIME1 0.7\n"
+                          "RHS R1 40\n"
+                          "RHS R2 50\n"
+                          "BL BLOCK02 TIME2 0.5\n"
+                          "RHS R3 50\n"
+                          "RHS R4 40\n"
+                          "BL BLOCK02 TIME2 0.5\n"
+                          "RHS R3 40\n"
+                          "RHS R4 50\n"
+                          "ENDATA");
+  BlockStructure smps(data);
+  REQUIRE(smps.is_valid());
+  REQUIRE(smps.get_no_timestage_random_vectors() == 2);
+  REQUIRE(smps.verify_stages(time));
+  REQUIRE(smps.fill_missing_stages(time));
+  REQUIRE(smps.get_no_timestage_random_vectors() == 2);
+  for (int i = 0; i < 2; ++i) {
+    auto rvt = smps.get_timestage_random_vector(i);
+    REQUIRE(rvt.timestage == "TIME" + std::to_string(i+1));
+    REQUIRE(rvt.rvs.size() == 1);
+  }
+}
+
+TEST_CASE("test-fill-timestage-block-structure-empty-time", "[highs_smps]") {
+  std::istringstream timedata("TIME NAME\n"
+                                      "PERIODS\n"
+                                "C1 R1 TIME1\n"
+                                "C2 R3 TIME2\n"
+                            "ENDATA");
+  SmpsTimeStructure time(timedata);
+  REQUIRE(time.is_valid());
+  REQUIRE(time.get_no_timestages() == 2);
+  std::istringstream data("STOCH NAME\n"
+                          "BLOCKS DISCRETE\n"
+                          "ENDATA");
+  BlockStructure smps(data);
+  REQUIRE(smps.is_valid());
+  REQUIRE(smps.get_no_timestage_random_vectors() == 0);
+  REQUIRE(smps.verify_stages(time));
+  REQUIRE(smps.fill_missing_stages(time));
+  REQUIRE(smps.get_no_timestage_random_vectors() == 2);
+  for (int i = 0; i < 2; ++i) {
+    auto rvt = smps.get_timestage_random_vector(i);
+    REQUIRE(rvt.timestage == "TIME" + std::to_string(i+1));
+    REQUIRE(rvt.rvs.size() == 0);
+  }
+}
+
+TEST_CASE("test-fill-timestage-block-structure-empty-time-empty-timedata", "[highs_smps]") {
+  std::istringstream timedata("TIME NAME\n"
+                                      "PERIODS\n"
+                            "ENDATA");
+  SmpsTimeStructure time(timedata);
+  REQUIRE(time.is_valid());
+  REQUIRE(time.get_no_timestages() == 0);
+  std::istringstream data("STOCH NAME\n"
+                          "BLOCKS DISCRETE\n"
+                          "ENDATA");
+  BlockStructure smps(data);
+  REQUIRE(smps.is_valid());
+  REQUIRE(smps.get_no_timestage_random_vectors() == 0);
+  REQUIRE(smps.verify_stages(time));
+  REQUIRE(smps.fill_missing_stages(time));
+  REQUIRE(smps.get_no_timestage_random_vectors() == 0);
+}
+
+TEST_CASE("test-fill-timestage-block-structure-invalid-periods", "[highs_smps]") {
+  std::istringstream timedata("TIME NAME\n"
+                                      "PERIODS\n"
+                                "C1 R1 TIME1\n"
+                                "C2 R3 TIME2\n"
+                            "ENDATA");
+  SmpsTimeStructure time(timedata);
+  REQUIRE(time.is_valid());
+  std::istringstream data("STOCH NAME\n"
+                          "BLOCKS DISCRETE\n"
+                          "BL BLOCK01 TIME2 0.3\n"
+                          "RHS R1 50\n"
+                          "RHS R2 40\n"
+                          "BL BLOCK01 TIME2 0.7\n"
+                          "RHS R1 40\n"
+                          "RHS R2 50\n"
+                          "BL BLOCK02 TIMEX 0.5\n"
+                          "RHS R3 50\n"
+                          "RHS R4 40\n"
+                          "BL BLOCK02 TIMEX 0.5\n"
+                          "RHS R3 40\n"
+                          "RHS R4 50\n"
+                          "ENDATA");
+  BlockStructure smps(data);
+  REQUIRE(smps.is_valid());
+  REQUIRE(smps.get_no_timestage_random_vectors() == 2);
+  REQUIRE(!smps.verify_stages(time));
+  REQUIRE(!smps.fill_missing_stages(time));
+}
+
+TEST_CASE("test-fill-timestage-block-structure-too-many-periods", "[highs_smps]") {
+  std::istringstream timedata("TIME NAME\n"
+                                      "PERIODS\n"
+                                "C1 R1 TIME1\n"
+                                "C2 R3 TIME2\n"
+                            "ENDATA");
+  SmpsTimeStructure time(timedata);
+  REQUIRE(time.is_valid());
+  std::istringstream data("STOCH NAME\n"
+                          "BLOCKS DISCRETE\n"
+                          "BL BLOCK01 TIME1 0.3\n"
+                          "RHS R1 50\n"
+                          "RHS R2 40\n"
+                          "BL BLOCK01 TIME1 0.7\n"
+                          "RHS R1 40\n"
+                          "RHS R2 50\n"
+                          "BL BLOCK02 TIME2 0.5\n"
+                          "RHS R3 50\n"
+                          "RHS R4 40\n"
+                          "BL BLOCK02 TIME2 0.5\n"
+                          "RHS R3 40\n"
+                          "RHS R4 50\n"
+                          "BL BLOCK02 TIME3 1.0\n"
+                          "RHS R5 40\n"
+                          "ENDATA");
+  BlockStructure smps(data);
+  REQUIRE(smps.is_valid());
+  REQUIRE(smps.get_no_timestage_random_vectors() == 3);
+  REQUIRE(!smps.verify_stages(time));
+  REQUIRE(!smps.fill_missing_stages(time));
+}
+
+TEST_CASE("test-fill-timestage-block-structure-invalid-period-order", "[highs_smps]") {
+  std::istringstream timedata("TIME NAME\n"
+                                      "PERIODS\n"
+                                "C1 R1 TIME1\n"
+                                "C2 R3 TIME2\n"
+                            "ENDATA");
+  SmpsTimeStructure time(timedata);
+  REQUIRE(time.is_valid());
+  std::istringstream data("STOCH NAME\n"
+                          "BLOCKS DISCRETE\n"
+                          "BL BLOCK01 TIME2 0.3\n"
+                          "RHS R1 50\n"
+                          "RHS R2 40\n"
+                          "BL BLOCK01 TIME2 0.7\n"
+                          "RHS R1 40\n"
+                          "RHS R2 50\n"
+                          "BL BLOCK02 TIME1 0.5\n"
+                          "RHS R3 50\n"
+                          "RHS R4 40\n"
+                          "BL BLOCK02 TIME1 0.5\n"
+                          "RHS R3 40\n"
+                          "RHS R4 50\n"
+                          "ENDATA");
+  BlockStructure smps(data);
+  REQUIRE(smps.is_valid());
+  REQUIRE(smps.get_no_timestage_random_vectors() == 2);
+  REQUIRE(smps.verify_stages(time));
+  REQUIRE(!smps.fill_missing_stages(time));
+}
+
+TEST_CASE("test-fill-timestage-block-structure-invalid-timedata-object", "[highs_smps]") {
+  std::istringstream timedata("TIME NAME\n"
+                                      "PERIODS\n"
+                                "C1 R1 TIME1\n"
+                                "C2 R3 TIME2\n");
+  SmpsTimeStructure time(timedata);
+  REQUIRE(!time.is_valid());
+  std::istringstream data("STOCH NAME\n"
+                          "BLOCKS DISCRETE\n"
+                          "BL BLOCK01 TIME1 0.3\n"
+                          "RHS R1 50\n"
+                          "RHS R2 40\n"
+                          "BL BLOCK01 TIME1 0.7\n"
+                          "RHS R1 40\n"
+                          "RHS R2 50\n"
+                          "BL BLOCK02 TIME2 0.5\n"
+                          "RHS R3 50\n"
+                          "RHS R4 40\n"
+                          "BL BLOCK02 TIME2 0.5\n"
+                          "RHS R3 40\n"
+                          "RHS R4 50\n"
+                          "ENDATA");
+  BlockStructure smps(data);
+  REQUIRE(smps.is_valid());
+  REQUIRE(smps.get_no_timestage_random_vectors() == 2);
+  REQUIRE(!smps.verify_stages(time));
+  REQUIRE(!smps.fill_missing_stages(time));
 }
