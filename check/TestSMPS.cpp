@@ -3347,6 +3347,64 @@ TEST_CASE("test-indep-with-fillling-to-stochastic-tree", "[highs_smps]") {
   }
 }
 
+TEST_CASE("test-indep-with-empty-filled-stochastic-tree", "[highs_smps]") {
+  std::istringstream timedata("TIME NAME\n"
+                                      "PERIODS\n"
+                                "C1 R1 TIME1\n"
+                                "C2 R3 TIME2\n"
+                            "ENDATA");
+  SmpsTimeStructure time(timedata);
+  REQUIRE(time.is_valid());
+
+  std::istringstream data("STOCH NAME\n"
+                          "INDEP DISCRETE\n"
+                          "ENDATA");
+  IndepStructure smps(data);
+  REQUIRE(smps.is_valid());
+  REQUIRE(smps.verify_stages(time));
+  REQUIRE(smps.fill_missing_stages(time));
+  auto tree = smps.constructTree();
+  REQUIRE(tree.root->get_parent() == nullptr);
+  REQUIRE(tree.root->verify_children_probabilities());
+  REQUIRE(tree.root->get_no_children() == 1);
+  REQUIRE(tree.root->get_lp_modifications() == std::vector<LpEntry> {});
+
+  auto & time1 = tree.root->get_child(0);
+  REQUIRE(time1->get_parent() == tree.root.get());
+  REQUIRE(time1->verify_children_probabilities());
+  REQUIRE(time1->get_no_children() == 1);
+  REQUIRE(time1->get_lp_modifications() == std::vector<LpEntry> {});
+  REQUIRE(time1->get_node_probability() == 1.);
+
+  auto & time2 = time1->get_child(0);
+  REQUIRE(time2->get_parent() == time1.get());
+  REQUIRE(time2->verify_children_probabilities());
+  REQUIRE(time2->get_no_children() == 0);
+  REQUIRE(time2->get_lp_modifications() == std::vector<LpEntry> {});
+  REQUIRE(time2->get_node_probability() == 1.);
+}
+
+TEST_CASE("test-indep-with-fully-empty-stochastic-tree", "[highs_smps]") {
+  std::istringstream timedata("TIME NAME\n"
+                                      "PERIODS\n"
+                            "ENDATA");
+  SmpsTimeStructure time(timedata);
+  REQUIRE(time.is_valid());
+
+  std::istringstream data("STOCH NAME\n"
+                          "INDEP DISCRETE\n"
+                          "ENDATA");
+  IndepStructure smps(data);
+  REQUIRE(smps.is_valid());
+  REQUIRE(smps.verify_stages(time));
+  REQUIRE(smps.fill_missing_stages(time));
+  auto tree = smps.constructTree();
+  REQUIRE(tree.root->get_parent() == nullptr);
+  REQUIRE(tree.root->verify_children_probabilities());
+  REQUIRE(tree.root->get_no_children() == 0);
+  REQUIRE(tree.root->get_lp_modifications() == std::vector<LpEntry> {});
+}
+
 TEST_CASE("test-block-with-fillling-to-stochastic-tree", "[highs_smps]") {
   std::istringstream timedata("TIME NAME\n"
                                       "PERIODS\n"
@@ -3394,4 +3452,62 @@ TEST_CASE("test-block-with-fillling-to-stochastic-tree", "[highs_smps]") {
     REQUIRE(child->get_no_children() == 1);
     REQUIRE(child->get_child(0)->get_no_children() == 0);
   }
+}
+
+TEST_CASE("test-block-with-empty-filled-stochastic-tree", "[highs_smps]") {
+  std::istringstream timedata("TIME NAME\n"
+                                      "PERIODS\n"
+                                "C1 R1 TIME1\n"
+                                "C2 R3 TIME2\n"
+                            "ENDATA");
+  SmpsTimeStructure time(timedata);
+  REQUIRE(time.is_valid());
+
+  std::istringstream data("STOCH NAME\n"
+                          "BLOCKS DISCRETE\n"
+                          "ENDATA");
+  BlockStructure smps(data);
+  REQUIRE(smps.is_valid());
+  REQUIRE(smps.verify_stages(time));
+  REQUIRE(smps.fill_missing_stages(time));
+  auto tree = smps.constructTree();
+  REQUIRE(tree.root->get_parent() == nullptr);
+  REQUIRE(tree.root->verify_children_probabilities());
+  REQUIRE(tree.root->get_no_children() == 1);
+  REQUIRE(tree.root->get_lp_modifications() == std::vector<LpEntry> {});
+
+  auto & time1 = tree.root->get_child(0);
+  REQUIRE(time1->get_parent() == tree.root.get());
+  REQUIRE(time1->verify_children_probabilities());
+  REQUIRE(time1->get_no_children() == 1);
+  REQUIRE(time1->get_lp_modifications() == std::vector<LpEntry> {});
+  REQUIRE(time1->get_node_probability() == 1.);
+
+  auto & time2 = time1->get_child(0);
+  REQUIRE(time2->get_parent() == time1.get());
+  REQUIRE(time2->verify_children_probabilities());
+  REQUIRE(time2->get_no_children() == 0);
+  REQUIRE(time2->get_lp_modifications() == std::vector<LpEntry> {});
+  REQUIRE(time2->get_node_probability() == 1.);
+}
+
+TEST_CASE("test-block-with-fully-empty-stochastic-tree", "[highs_smps]") {
+  std::istringstream timedata("TIME NAME\n"
+                                      "PERIODS\n"
+                            "ENDATA");
+  SmpsTimeStructure time(timedata);
+  REQUIRE(time.is_valid());
+
+  std::istringstream data("STOCH NAME\n"
+                          "BLOCKS DISCRETE\n"
+                          "ENDATA");
+  BlockStructure smps(data);
+  REQUIRE(smps.is_valid());
+  REQUIRE(smps.verify_stages(time));
+  REQUIRE(smps.fill_missing_stages(time));
+  auto tree = smps.constructTree();
+  REQUIRE(tree.root->get_parent() == nullptr);
+  REQUIRE(tree.root->verify_children_probabilities());
+  REQUIRE(tree.root->get_no_children() == 0);
+  REQUIRE(tree.root->get_lp_modifications() == std::vector<LpEntry> {});
 }
