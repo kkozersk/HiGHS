@@ -23,7 +23,7 @@ void SmpsTimeStructure::read_file(std::istream & input) {
   while (getline(input, line) && !is_ending(line)) {
     if (!process_period(line)) return;
   }
-  // if (timestage_entries.empty()) return;
+  if (timestage_entries.empty()) return;
   std::transform(timestage_entries.begin(), timestage_entries.end(), std::back_inserter(stage_names), [](TimeStageEntry const & val) {return val.stage_name; });
   if (!process_ending(line)) return;
   is_valid_ = true;

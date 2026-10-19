@@ -122,6 +122,12 @@ TEST_CASE("test-read-invalid-time-file", "[highs_smps]") {
                                 "C1 R3 T1");
   smps = SmpsTimeStructure(missing_end);
   REQUIRE(!smps.is_valid());
+
+  std::istringstream no_entries("TIME NAME\n"
+                                      "PERIODS\n"
+                              "ENDATA");
+  smps = SmpsTimeStructure(no_entries);
+  REQUIRE(!smps.is_valid());
 }
 
 TEST_CASE("test-read-valid-time-file", "[highs_smps]") {
@@ -149,14 +155,6 @@ TEST_CASE("test-read-valid-time-file", "[highs_smps]") {
   REQUIRE(smps.get_stage_index("TIME1") == 0);
   REQUIRE(smps.get_stage_index("TIME2") == 1);
   REQUIRE(smps.get_stage_index("NOTIME") == 2);
-}
-
-TEST_CASE("test-read-valid-time-file-empty", "[highs_smps]") {
-  std::istringstream no_entries("TIME NAME\n"
-                                      "PERIODS\n"
-                              "ENDATA");
-  auto smps = SmpsTimeStructure(no_entries);
-  REQUIRE(smps.is_valid());
 }
 
 TEST_CASE("test-load-core-from-file", "[highs_smps]") {
@@ -2934,8 +2932,7 @@ TEST_CASE("test-fill-timestage-indep-structure-empty-time-empty-timedata", "[hig
                                       "PERIODS\n"
                             "ENDATA");
   SmpsTimeStructure time(timedata);
-  REQUIRE(time.is_valid());
-  REQUIRE(time.get_no_timestages() == 0);
+  REQUIRE(!time.is_valid());
 
   std::istringstream stochdata("STOCH NAME\n"
                           "INDEP DISCRETE\n"
@@ -2943,9 +2940,8 @@ TEST_CASE("test-fill-timestage-indep-structure-empty-time-empty-timedata", "[hig
   IndepStructure stoch(stochdata);
   REQUIRE(stoch.is_valid());
   REQUIRE(stoch.get_no_timestage_random_entries() == 0);
-  REQUIRE(stoch.verify_stages(time));
-  REQUIRE(stoch.fill_missing_stages(time));
-  REQUIRE(stoch.get_no_timestage_random_entries() == 0);
+  REQUIRE(!stoch.verify_stages(time));
+  REQUIRE(!stoch.fill_missing_stages(time));
 }
 
 TEST_CASE("test-fill-timestage-indep-structure-invalid-periods", "[highs_smps]") {
@@ -3167,17 +3163,15 @@ TEST_CASE("test-fill-timestage-block-structure-empty-time-empty-timedata", "[hig
                                       "PERIODS\n"
                             "ENDATA");
   SmpsTimeStructure time(timedata);
-  REQUIRE(time.is_valid());
-  REQUIRE(time.get_no_timestages() == 0);
+  REQUIRE(!time.is_valid());
   std::istringstream data("STOCH NAME\n"
                           "BLOCKS DISCRETE\n"
                           "ENDATA");
   BlockStructure smps(data);
   REQUIRE(smps.is_valid());
   REQUIRE(smps.get_no_timestage_random_vectors() == 0);
-  REQUIRE(smps.verify_stages(time));
-  REQUIRE(smps.fill_missing_stages(time));
-  REQUIRE(smps.get_no_timestage_random_vectors() == 0);
+  REQUIRE(!smps.verify_stages(time));
+  REQUIRE(!smps.fill_missing_stages(time));
 }
 
 TEST_CASE("test-fill-timestage-block-structure-invalid-periods", "[highs_smps]") {
@@ -3384,27 +3378,6 @@ TEST_CASE("test-indep-with-empty-filled-stochastic-tree", "[highs_smps]") {
   REQUIRE(time2->get_node_probability() == 1.);
 }
 
-TEST_CASE("test-indep-with-fully-empty-stochastic-tree", "[highs_smps]") {
-  std::istringstream timedata("TIME NAME\n"
-                                      "PERIODS\n"
-                            "ENDATA");
-  SmpsTimeStructure time(timedata);
-  REQUIRE(time.is_valid());
-
-  std::istringstream data("STOCH NAME\n"
-                          "INDEP DISCRETE\n"
-                          "ENDATA");
-  IndepStructure smps(data);
-  REQUIRE(smps.is_valid());
-  REQUIRE(smps.verify_stages(time));
-  REQUIRE(smps.fill_missing_stages(time));
-  auto tree = smps.constructTree();
-  REQUIRE(tree.root->get_parent() == nullptr);
-  REQUIRE(tree.root->verify_children_probabilities());
-  REQUIRE(tree.root->get_no_children() == 0);
-  REQUIRE(tree.root->get_lp_modifications() == std::vector<LpEntry> {});
-}
-
 TEST_CASE("test-block-with-fillling-to-stochastic-tree", "[highs_smps]") {
   std::istringstream timedata("TIME NAME\n"
                                       "PERIODS\n"
@@ -3491,27 +3464,6 @@ TEST_CASE("test-block-with-empty-filled-stochastic-tree", "[highs_smps]") {
   REQUIRE(time2->get_node_probability() == 1.);
 }
 
-TEST_CASE("test-block-with-fully-empty-stochastic-tree", "[highs_smps]") {
-  std::istringstream timedata("TIME NAME\n"
-                                      "PERIODS\n"
-                            "ENDATA");
-  SmpsTimeStructure time(timedata);
-  REQUIRE(time.is_valid());
-
-  std::istringstream data("STOCH NAME\n"
-                          "BLOCKS DISCRETE\n"
-                          "ENDATA");
-  BlockStructure smps(data);
-  REQUIRE(smps.is_valid());
-  REQUIRE(smps.verify_stages(time));
-  REQUIRE(smps.fill_missing_stages(time));
-  auto tree = smps.constructTree();
-  REQUIRE(tree.root->get_parent() == nullptr);
-  REQUIRE(tree.root->verify_children_probabilities());
-  REQUIRE(tree.root->get_no_children() == 0);
-  REQUIRE(tree.root->get_lp_modifications() == std::vector<LpEntry> {});
-}
-
 TEST_CASE("test-add-empty-node-tree-entry", "[highs_smps]") {
   auto instance = std::string(HIGHS_DIR) + "/check/instances/stoch/simple";
   HighsOptions opt;
@@ -3584,7 +3536,8 @@ TEST_CASE("test-add-fully-empty-node-tree-entry", "[highs_smps]") {
 TEST_CASE("test-add-filled-tree-entry", "[highs_smps]") {
   auto instance = std::string(HIGHS_DIR) + "/check/instances/stoch/simple";
   Highs highs;
-  build_stochastic_problem(highs, instance+ ".cor", instance + ".tim", instance + "_missing_timestages.sto");
+  auto res = build_stochastic_problem(highs, instance+ ".cor", instance + ".tim", instance + "_missing_timestages.sto");
+  REQUIRE(res);
 
   REQUIRE(highs.getNumCol() == 3);
 
@@ -3603,7 +3556,8 @@ TEST_CASE("test-add-filled-tree-entry", "[highs_smps]") {
 TEST_CASE("test-add-fully-filled-tree-entry", "[highs_smps]") {
   auto instance = std::string(HIGHS_DIR) + "/check/instances/stoch/simple";
   Highs highs;
-  build_stochastic_problem(highs, instance+ ".cor", instance + ".tim", instance + "_missing_all_timestages.sto");
+  auto res = build_stochastic_problem(highs, instance+ ".cor", instance + ".tim", instance + "_missing_all_timestages.sto");
+  REQUIRE(res);
 
   REQUIRE(highs.getNumCol() == 2);
 
@@ -3616,4 +3570,11 @@ TEST_CASE("test-add-fully-filled-tree-entry", "[highs_smps]") {
   auto A = lp.a_matrix_;
   A.ensureRowwise();
   REQUIRE(A == expectedA);
+}
+
+TEST_CASE("test-add-fully-empty-tree-entry", "[highs_smps]") {
+  auto instance = std::string(HIGHS_DIR) + "/check/instances/stoch/simple";
+  Highs highs;
+  auto res = build_stochastic_problem(highs, instance+ ".cor", instance + "missing_all_timestages.tim", instance + "_missing_all_timestages.sto");
+  REQUIRE(!res);
 }
