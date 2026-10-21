@@ -1,0 +1,5 @@
+TIME          IC-T2-1
+PERIODS
+    x1        1S_1                     STAGE1
+    y1        2S_1                     STAGE2
+ENDATA
