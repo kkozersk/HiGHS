@@ -1,6 +1,5 @@
 STOCH         4NODECAR
 INDEP         DISCRETE
-    X0.0      MLA       1.0          PERIOD1    1.0
     RHS     CBAB       50.0000       PERIOD2   1.000000
     RHS     CBAC       80.0000       PERIOD2   0.95
     RHS     CBAC       90.0          PERIOD2   0.05

@@ -328,6 +328,7 @@ BendersRet benders(HighsLp & base_problem, std::set<HighsInt> const & master_var
 BendersRet benders_l_shaped(SmpsCoreStructure & core, StochasticTree & tree, 
   std::vector<double> const & starting_point, double subproblem_lb, MasterProblem & master_solver, double eps, int max_iter, BendersAlgorithm::GAP gap_type) {
   assert(core.is_valid() && tree.root != nullptr && core.stage_submatrix.size() == 2 && tree.root->get_no_children() == 1);
+  core.integrality_.clear(); //TODO right only only LPs are supported
   auto & stage_1st = tree.root->get_child(0);
   unsigned int no_subproblems = stage_1st->get_no_children();
 
@@ -561,7 +562,7 @@ bool LevelSetQpMasterProblem::solve(double UBD, double LBD, double eps, double s
 void LevelSetIpmMasterProblem::pass_model(HighsModel const & model, int no_mu) {
   LevelSetMasterProblem::pass_model(model, no_mu);
   level_set_master.setOptionValue("solver", kHipoString);
-  level_set_master.setOptionValue("max_centring_steps_hipo", 100);
+  level_set_master.setOptionValue("max_centring_steps_hipo", 200);
   level_set_master.setOptionValue("run_crossover", kHighsOffString);
   level_set_master.setOptionValue("centring_gamma", 1-1e-5);
   level_set_master.setOptionValue("recentring_step", 1.0);

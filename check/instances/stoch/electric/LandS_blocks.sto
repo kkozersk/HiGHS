@@ -1,7 +1,5 @@
 STOCH         LandS
 BLOCKS        DISCRETE
- BL BLOCK0    PERIOD1   1.0
-    X1        OBJ       1.0
  BL BLOCK1    PERIOD2   0.3
     RHS       DEMAND1   3.0
  BL BLOCK1    PERIOD2   0.4

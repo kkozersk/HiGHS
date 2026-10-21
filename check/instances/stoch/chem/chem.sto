@@ -1,7 +1,5 @@
 STOCH         CHEM
 BLOCKS        DISCRETE
- BL BLOCK0    PERIOD1   1.0
-    NN1T0     CN1T0     1.0
  BL BLOCK1    PERIOD2   0.6
     RHS     DM4T1     150.0
     RHS     DM7T1     200.0

@@ -410,8 +410,8 @@ bool ScenarioStructure::process_data(std::istream & input) {
   while (!(tokens = read_tokens(input)).empty() && !is_ending(tokens)) {
     if (is_comment(tokens)) continue;
     if (is_new_scenario(tokens)) {
-        if (in_scenario_entries.empty()) return false;
-        scenarios.emplace_back(in_scenario_entries, probability, timeperiod, scenario_name, parent_scenario);
+        // if (in_scenario_entries.empty()) return false;
+        if (probability > 0) scenarios.emplace_back(in_scenario_entries, probability, timeperiod, scenario_name, parent_scenario);
         in_scenario_entries.clear();
         if (!process_new_scenario(tokens, scenario_name, parent_scenario, timeperiod, probability))  return false;
     } else {
@@ -419,8 +419,8 @@ bool ScenarioStructure::process_data(std::istream & input) {
       in_scenario_entries.emplace_back(row, column, value);    
     }
   }
-  if (in_scenario_entries.empty()) return false;
-  scenarios.emplace_back(in_scenario_entries, probability, timeperiod, scenario_name, parent_scenario);
+  // if (in_scenario_entries.empty()) return false;
+  if (probability > 0) scenarios.emplace_back(in_scenario_entries, probability, timeperiod, scenario_name, parent_scenario);
   return is_proper_ending(tokens);
 }
 
@@ -471,16 +471,19 @@ StochasticTree ScenarioStructure::constructTree() {
 bool Node::rescale_to_children_probability() {
   if (is_leaf() && node_probability > 0) return true;
   auto child_prob = sum_children_prob();
-  if (child_prob == 0) return false;
+  if (child_prob == 0) { std::cout << node_probability << " " << timestage << " " << children.size() << std::endl;
+    return false;}
   node_probability = child_prob;
   for (auto & child : children) child->node_probability /= node_probability;
   return true;
 }
 
 bool Node::rescale_tree_to_leaf_probability() {
+  // std::cout << "Enter: "<<  timestage << " " << node_probability << std::endl;
   for (auto & child : children)
     if(!child->rescale_tree_to_leaf_probability())
       return false;
+  // std::cout << "Exit: "<<  timestage << " " << node_probability << std::endl;
   return rescale_to_children_probability();
 }
 
@@ -713,17 +716,21 @@ std::pair<SmpsCoreStructure, StochasticTree> build_stochastic_tree(
                               std::string const & stoch_filename,
                               HighsOptions const & highs_mps_options) {
   SmpsCoreStructure core(highs_mps_options, core_filename);  
+  assert(core.is_valid());
    if (!core.is_valid()) return {core, nullptr};
 
   SmpsTimeStructure time(time_filename);
+  assert(time.is_valid());
   if (!time.is_valid()) return {core, nullptr};
-
   if (!core.load_time_stages(time)) return {core, nullptr};
 
   auto stoch = read_stochastic_file(stoch_filename, core, time);  
+  assert(stoch!=nullptr);
+  assert(stoch->is_valid());
+  assert(stoch->verify_stages(time));
+  assert(stoch->fill_missing_stages(time));
   if (stoch == nullptr || !stoch->is_valid() ||
        !stoch->verify_stages(time) || !stoch->fill_missing_stages(time)) return {core, nullptr};
-
   return {core, stoch->constructTree()};             
 }
 
@@ -744,7 +751,7 @@ bool build_stochastic_problem(Highs & problem, std::string const & mutual_name, 
 }
 
 std::string SmpsCoreStructure::entry2stage(LpEntry const & entry) const {
-  if (entry.row == objective_name_) {
+  if (entry.row == objective_name_ || entry.row == "UPBND" || entry.row == "LOBND" || entry.row == "FXBND") {
     int col_idx = col_hash_.name2index.at(entry.col);
     for (auto const & time_submatrix : stage_submatrix)
       if (col_idx < time_submatrix.second.col_idx_end) return time_submatrix.first;

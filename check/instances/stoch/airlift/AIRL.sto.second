@@ -1,6 +1,5 @@
 STOCH         AIRL   
 INDEP         DISCRETE
-    X11       OBJ       7200.0       PERIOD1   1.0
     RHS     DEMAND1     988.16       PERIOD2   0.0668
     RHS     DEMAND1     989.98       PERIOD2   0.2417
     RHS     DEMAND1     994.92       PERIOD2   0.3830

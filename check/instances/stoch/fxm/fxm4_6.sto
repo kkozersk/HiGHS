@@ -1,6 +1,5 @@
 STOCH         SCFXM1
 INDEP         DISCRETE
-    1D1IK     1DT012         1.                   TIME1  1.0
     RHS       1PD068        220.0000              TIME2 0.16667
     RHS       1PD068        150.0000              TIME2 0.16667
     RHS       1PD068        100.0000              TIME2 0.16667

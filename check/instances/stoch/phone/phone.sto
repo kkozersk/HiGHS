@@ -1,6 +1,5 @@
 STOCH         PHONE   
 INDEP         DISCRETE
-    X1        BUD        1.0           PERIOD1        1.0
     RHS       DEM12      2.70000       PERIOD2   0.500000    
     RHS       DEM12      3.30000       PERIOD2   0.500000    
     RHS       DEM13      3.96000       PERIOD2   0.500000    

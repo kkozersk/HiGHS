@@ -1,7 +1,5 @@
 STOCH         STOCHFOR
 BLOCKS        DISCRETE
- BL BLOCK0    PERIOD1       1.00
-    CLASS3.1  BOUND3.1       1.    
  BL BLOCK1    PERIOD2       .6912
     CLASS3.1  REGEN1.2      -1.0000
     CLASS4.1  REGEN1.2      -1.0000

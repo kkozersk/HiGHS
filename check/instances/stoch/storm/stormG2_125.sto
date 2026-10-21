@@ -1,8 +1,5 @@
 STOCH         storm
 BLOCKS        DISCRETE
- BL BLOCK0    PERIOD1       1.0
-    RHS R0000101 4.0
-*
  BL BLOCK1    PERIOD2       0.2
     RHS       R0000102     336.80000
     RHS       R0000202      80.00000
