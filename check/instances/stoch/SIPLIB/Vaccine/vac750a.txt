@@ -1,0 +1,7502 @@
+stoch file 
+scenario 1 Probability 0.00133333
+	epsilon 0.855828
+	b 0.510643
+	m 1.18261
+	Achild 0.7
+	Aadult 0.7
+	Aold 0.7
+	Bchild 0.7
+	Badult 0.7
+	Bold 1.3
+scenario 2 Probability 0.00133333
+	epsilon 0.797832
+	b 0.666264
+	m 1.0433
+	Achild 1.3
+	Aadult 0.7
+	Aold 1.3
+	Bchild 1.3
+	Badult 0.7
+	Bold 1.3
+scenario 3 Probability 0.00133333
+	epsilon 0.832225
+	b 0.567132
+	m 1.0294
+	Achild 1.3
+	Aadult 0.7
+	Aold 1.3
+	Bchild 0.7
+	Badult 0.7
+	Bold 1.3
+scenario 4 Probability 0.00133333
+	epsilon 0.773549
+	b 0.554846
+	m 1.05331
+	Achild 1.3
+	Aadult 0.7
+	Aold 0.7
+	Bchild 0.7
+	Badult 1.3
+	Bold 1.3
+scenario 5 Probability 0.00133333
+	epsilon 0.870832
+	b 0.596101
+	m 1.18078
+	Achild 1.3
+	Aadult 0.7
+	Aold 1.3
+	Bchild 0.7
+	Badult 0.7
+	Bold 1.3
+scenario 6 Probability 0.00133333
+	epsilon 0.814211
+	b 0.653858
+	m 0.971409
+	Achild 0.7
+	Aadult 0.7
+	Aold 1.3
+	Bchild 0.7
+	Badult 1.3
+	Bold 0.7
+scenario 7 Probability 0.00133333
+	epsilon 0.924562
+	b 0.616557
+	m 1.05378
+	Achild 1.3
+	Aadult 1.3
+	Aold 0.7
+	Bchild 1.3
+	Badult 0.7
+	Bold 1.3
+scenario 8 Probability 0.00133333
+	epsilon 0.919086
+	b 0.519461
+	m 1.11509
+	Achild 0.7
+	Aadult 0.7
+	Aold 0.7
+	Bchild 1.3
+	Badult 1.3
+	Bold 0.7
+scenario 9 Probability 0.00133333
+	epsilon 0.896389
+	b 0.642921
+	m 1.06135
+	Achild 0.7
+	Aadult 1.3
+	Aold 0.7
+	Bchild 1.3
+	Badult 0.7
+	Bold 1.3
+scenario 10 Probability 0.00133333
+	epsilon 0.872975
+	b 0.587708
+	m 1.24293
+	Achild 0.7
+	Aadult 0.7
+	Aold 1.3
+	Bchild 0.7
+	Badult 0.7
+	Bold 1.3
+scenario 11 Probability 0.00133333
+	epsilon 0.899936
+	b 0.666566
+	m 1.1536
+	Achild 1.3
+	Aadult 0.7
+	Aold 1.3
+	Bchild 0.7
+	Badult 1.3
+	Bold 1.3
+scenario 12 Probability 0.00133333
+	epsilon 0.863381
+	b 0.577961
+	m 1.07357
+	Achild 1.3
+	Aadult 1.3
+	Aold 0.7
+	Bchild 1.3
+	Badult 0.7
+	Bold 0.7
+scenario 13 Probability 0.00133333
+	epsilon 0.772693
+	b 0.516965
+	m 0.985625
+	Achild 1.3
+	Aadult 1.3
+	Aold 1.3
+	Bchild 0.7
+	Badult 1.3
+	Bold 1.3
+scenario 14 Probability 0.00133333
+	epsilon 0.855682
+	b 0.550049
+	m 0.825574
+	Achild 0.7
+	Aadult 1.3
+	Aold 1.3
+	Bchild 1.3
+	Badult 1.3
+	Bold 1.3
+scenario 15 Probability 0.00133333
+	epsilon 0.852716
+	b 0.514117
+	m 0.945587
+	Achild 1.3
+	Aadult 1.3
+	Aold 1.3
+	Bchild 1.3
+	Badult 1.3
+	Bold 1.3
+scenario 16 Probability 0.00133333
+	epsilon 0.850162
+	b 0.560986
+	m 1.11905
+	Achild 1.3
+	Aadult 0.7
+	Aold 1.3
+	Bchild 0.7
+	Badult 0.7
+	Bold 1.3
+scenario 17 Probability 0.00133333
+	epsilon 0.817917
+	b 0.692517
+	m 1.23133
+	Achild 1.3
+	Aadult 0.7
+	Aold 1.3
+	Bchild 1.3
+	Badult 1.3
+	Bold 1.3
+scenario 18 Probability 0.00133333
+	epsilon 0.89991
+	b 0.509751
+	m 1.10378
+	Achild 1.3
+	Aadult 0.7
+	Aold 1.3
+	Bchild 0.7
+	Badult 0.7
+	Bold 1.3
+scenario 19 Probability 0.00133333
+	epsilon 0.869811
+	b 0.555876
+	m 1.15943
+	Achild 1.3
+	Aadult 1.3
+	Aold 0.7
+	Bchild 1.3
+	Badult 0.7
+	Bold 0.7
+scenario 20 Probability 0.00133333
+	epsilon 0.849569
+	b 0.57398
+	m 1.15054
+	Achild 0.7
+	Aadult 0.7
+	Aold 1.3
+	Bchild 1.3
+	Badult 1.3
+	Bold 0.7
+scenario 21 Probability 0.00133333
+	epsilon 0.870836
+	b 0.640719
+	m 1.05624
+	Achild 0.7
+	Aadult 0.7
+	Aold 1.3
+	Bchild 1.3
+	Badult 0.7
+	Bold 1.3
+scenario 22 Probability 0.00133333
+	epsilon 0.866493
+	b 0.609632
+	m 1.18544
+	Achild 0.7
+	Aadult 1.3
+	Aold 0.7
+	Bchild 0.7
+	Badult 1.3
+	Bold 1.3
+scenario 23 Probability 0.00133333
+	epsilon 0.943096
+	b 0.567123
+	m 1.01037
+	Achild 0.7
+	Aadult 0.7
+	Aold 1.3
+	Bchild 1.3
+	Badult 1.3
+	Bold 1.3
+scenario 24 Probability 0.00133333
+	epsilon 0.758753
+	b 0.538397
+	m 0.785347
+	Achild 0.7
+	Aadult 1.3
+	Aold 0.7
+	Bchild 1.3
+	Badult 0.7
+	Bold 0.7
+scenario 25 Probability 0.00133333
+	epsilon 0.846658
+	b 0.584891
+	m 0.890767
+	Achild 1.3
+	Aadult 1.3
+	Aold 1.3
+	Bchild 1.3
+	Badult 0.7
+	Bold 1.3
+scenario 26 Probability 0.00133333
+	epsilon 0.854881
+	b 0.64076
+	m 0.924666
+	Achild 1.3
+	Aadult 0.7
+	Aold 1.3
+	Bchild 0.7
+	Badult 1.3
+	Bold 0.7
+scenario 27 Probability 0.00133333
+	epsilon 0.831695
+	b 0.533321
+	m 0.938858
+	Achild 1.3
+	Aadult 0.7
+	Aold 0.7
+	Bchild 1.3
+	Badult 0.7
+	Bold 0.7
+scenario 28 Probability 0.00133333
+	epsilon 0.932477
+	b 0.663756
+	m 0.840899
+	Achild 0.7
+	Aadult 1.3
+	Aold 0.7
+	Bchild 1.3
+	Badult 1.3
+	Bold 0.7
+scenario 29 Probability 0.00133333
+	epsilon 0.924504
+	b 0.601367
+	m 1.04506
+	Achild 1.3
+	Aadult 0.7
+	Aold 1.3
+	Bchild 0.7
+	Badult 1.3
+	Bold 0.7
+scenario 30 Probability 0.00133333
+	epsilon 0.827836
+	b 0.648855
+	m 1.10538
+	Achild 1.3
+	Aadult 1.3
+	Aold 1.3
+	Bchild 1.3
+	Badult 1.3
+	Bold 0.7
+scenario 31 Probability 0.00133333
+	epsilon 0.845026
+	b 0.648865
+	m 0.981395
+	Achild 0.7
+	Aadult 1.3
+	Aold 1.3
+	Bchild 1.3
+	Badult 0.7
+	Bold 0.7
+scenario 32 Probability 0.00133333
+	epsilon 0.837894
+	b 0.522666
+	m 0.987476
+	Achild 1.3
+	Aadult 0.7
+	Aold 0.7
+	Bchild 1.3
+	Badult 0.7
+	Bold 1.3
+scenario 33 Probability 0.00133333
+	epsilon 0.854632
+	b 0.64197
+	m 0.892825
+	Achild 0.7
+	Aadult 1.3
+	Aold 0.7
+	Bchild 1.3
+	Badult 0.7
+	Bold 1.3
+scenario 34 Probability 0.00133333
+	epsilon 0.844457
+	b 0.579816
+	m 0.942582
+	Achild 0.7
+	Aadult 1.3
+	Aold 1.3
+	Bchild 0.7
+	Badult 0.7
+	Bold 0.7
+scenario 35 Probability 0.00133333
+	epsilon 0.940444
+	b 0.688673
+	m 0.827254
+	Achild 1.3
+	Aadult 0.7
+	Aold 0.7
+	Bchild 0.7
+	Badult 0.7
+	Bold 1.3
+scenario 36 Probability 0.00133333
+	epsilon 0.90923
+	b 0.558026
+	m 0.824298
+	Achild 1.3
+	Aadult 1.3
+	Aold 1.3
+	Bchild 0.7
+	Badult 1.3
+	Bold 0.7
+scenario 37 Probability 0.00133333
+	epsilon 0.892221
+	b 0.559028
+	m 1.05987
+	Achild 1.3
+	Aadult 0.7
+	Aold 0.7
+	Bchild 0.7
+	Badult 1.3
+	Bold 1.3
+scenario 38 Probability 0.00133333
+	epsilon 0.79353
+	b 0.600079
+	m 0.882299
+	Achild 1.3
+	Aadult 0.7
+	Aold 0.7
+	Bchild 0.7
+	Badult 1.3
+	Bold 1.3
+scenario 39 Probability 0.00133333
+	epsilon 0.873661
+	b 0.540765
+	m 1.20107
+	Achild 0.7
+	Aadult 1.3
+	Aold 1.3
+	Bchild 1.3
+	Badult 1.3
+	Bold 1.3
+scenario 40 Probability 0.00133333
+	epsilon 0.880995
+	b 0.531926
+	m 1.05963
+	Achild 0.7
+	Aadult 0.7
+	Aold 0.7
+	Bchild 1.3
+	Badult 0.7
+	Bold 0.7
+scenario 41 Probability 0.00133333
+	epsilon 0.799317
+	b 0.605996
+	m 1.14485
+	Achild 0.7
+	Aadult 1.3
+	Aold 1.3
+	Bchild 0.7
+	Badult 1.3
+	Bold 0.7
+scenario 42 Probability 0.00133333
+	epsilon 0.86589
+	b 0.556661
+	m 0.77249
+	Achild 0.7
+	Aadult 1.3
+	Aold 1.3
+	Bchild 0.7
+	Badult 1.3
+	Bold 0.7
+scenario 43 Probability 0.00133333
+	epsilon 0.775245
+	b 0.599902
+	m 1.07608
+	Achild 1.3
+	Aadult 1.3
+	Aold 0.7
+	Bchild 1.3
+	Badult 1.3
+	Bold 1.3
+scenario 44 Probability 0.00133333
+	epsilon 0.819092
+	b 0.695779
+	m 1.05474
+	Achild 0.7
+	Aadult 1.3
+	Aold 1.3
+	Bchild 0.7
+	Badult 0.7
+	Bold 1.3
+scenario 45 Probability 0.00133333
+	epsilon 0.835245
+	b 0.562271
+	m 0.928382
+	Achild 0.7
+	Aadult 0.7
+	Aold 1.3
+	Bchild 1.3
+	Badult 1.3
+	Bold 1.3
+scenario 46 Probability 0.00133333
+	epsilon 0.923392
+	b 0.669342
+	m 1.22494
+	Achild 0.7
+	Aadult 0.7
+	Aold 0.7
+	Bchild 0.7
+	Badult 0.7
+	Bold 0.7
+scenario 47 Probability 0.00133333
+	epsilon 0.921833
+	b 0.609086
+	m 0.94376
+	Achild 1.3
+	Aadult 1.3
+	Aold 1.3
+	Bchild 1.3
+	Badult 0.7
+	Bold 1.3
+scenario 48 Probability 0.00133333
+	epsilon 0.933407
+	b 0.559802
+	m 1.23315
+	Achild 0.7
+	Aadult 1.3
+	Aold 1.3
+	Bchild 0.7
+	Badult 1.3
+	Bold 1.3
+scenario 49 Probability 0.00133333
+	epsilon 0.898736
+	b 0.691926
+	m 0.911931
+	Achild 0.7
+	Aadult 1.3
+	Aold 0.7
+	Bchild 0.7
+	Badult 0.7
+	Bold 0.7
+scenario 50 Probability 0.00133333
+	epsilon 0.770615
+	b 0.509954
+	m 1.13337
+	Achild 1.3
+	Aadult 0.7
+	Aold 1.3
+	Bchild 1.3
+	Badult 1.3
+	Bold 1.3
+scenario 51 Probability 0.00133333
+	epsilon 0.889893
+	b 0.579156
+	m 0.824483
+	Achild 0.7
+	Aadult 0.7
+	Aold 0.7
+	Bchild 1.3
+	Badult 1.3
+	Bold 1.3
+scenario 52 Probability 0.00133333
+	epsilon 0.819188
+	b 0.583428
+	m 0.964567
+	Achild 1.3
+	Aadult 1.3
+	Aold 1.3
+	Bchild 1.3
+	Badult 0.7
+	Bold 1.3
+scenario 53 Probability 0.00133333
+	epsilon 0.775996
+	b 0.551269
+	m 0.87062
+	Achild 1.3
+	Aadult 0.7
+	Aold 1.3
+	Bchild 1.3
+	Badult 1.3
+	Bold 0.7
+scenario 54 Probability 0.00133333
+	epsilon 0.788318
+	b 0.670102
+	m 0.911039
+	Achild 0.7
+	Aadult 0.7
+	Aold 0.7
+	Bchild 1.3
+	Badult 1.3
+	Bold 1.3
+scenario 55 Probability 0.00133333
+	epsilon 0.883887
+	b 0.619886
+	m 0.877812
+	Achild 1.3
+	Aadult 1.3
+	Aold 1.3
+	Bchild 0.7
+	Badult 0.7
+	Bold 0.7
+scenario 56 Probability 0.00133333
+	epsilon 0.823623
+	b 0.629808
+	m 1.08007
+	Achild 0.7
+	Aadult 0.7
+	Aold 0.7
+	Bchild 0.7
+	Badult 1.3
+	Bold 1.3
+scenario 57 Probability 0.00133333
+	epsilon 0.859548
+	b 0.598027
+	m 0.846191
+	Achild 0.7
+	Aadult 1.3
+	Aold 0.7
+	Bchild 1.3
+	Badult 0.7
+	Bold 1.3
+scenario 58 Probability 0.00133333
+	epsilon 0.938245
+	b 0.534303
+	m 1.00469
+	Achild 0.7
+	Aadult 0.7
+	Aold 0.7
+	Bchild 0.7
+	Badult 1.3
+	Bold 1.3
+scenario 59 Probability 0.00133333
+	epsilon 0.843487
+	b 0.559916
+	m 0.88325
+	Achild 1.3
+	Aadult 1.3
+	Aold 0.7
+	Bchild 0.7
+	Badult 1.3
+	Bold 1.3
+scenario 60 Probability 0.00133333
+	epsilon 0.811682
+	b 0.646471
+	m 0.819633
+	Achild 0.7
+	Aadult 1.3
+	Aold 1.3
+	Bchild 0.7
+	Badult 0.7
+	Bold 1.3
+scenario 61 Probability 0.00133333
+	epsilon 0.87457
+	b 0.673449
+	m 0.915604
+	Achild 1.3
+	Aadult 1.3
+	Aold 1.3
+	Bchild 0.7
+	Badult 1.3
+	Bold 1.3
+scenario 62 Probability 0.00133333
+	epsilon 0.792948
+	b 0.619551
+	m 1.19177
+	Achild 1.3
+	Aadult 0.7
+	Aold 0.7
+	Bchild 1.3
+	Badult 1.3
+	Bold 0.7
+scenario 63 Probability 0.00133333
+	epsilon 0.844324
+	b 0.598892
+	m 0.912743
+	Achild 0.7
+	Aadult 1.3
+	Aold 0.7
+	Bchild 1.3
+	Badult 0.7
+	Bold 1.3
+scenario 64 Probability 0.00133333
+	epsilon 0.887733
+	b 0.559359
+	m 0.951307
+	Achild 1.3
+	Aadult 1.3
+	Aold 1.3
+	Bchild 0.7
+	Badult 1.3
+	Bold 0.7
+scenario 65 Probability 0.00133333
+	epsilon 0.801671
+	b 0.596674
+	m 1.08394
+	Achild 1.3
+	Aadult 1.3
+	Aold 1.3
+	Bchild 0.7
+	Badult 1.3
+	Bold 1.3
+scenario 66 Probability 0.00133333
+	epsilon 0.917108
+	b 0.615109
+	m 0.907806
+	Achild 0.7
+	Aadult 0.7
+	Aold 0.7
+	Bchild 1.3
+	Badult 1.3
+	Bold 0.7
+scenario 67 Probability 0.00133333
+	epsilon 0.859023
+	b 0.566293
+	m 0.936627
+	Achild 1.3
+	Aadult 1.3
+	Aold 0.7
+	Bchild 1.3
+	Badult 0.7
+	Bold 0.7
+scenario 68 Probability 0.00133333
+	epsilon 0.881475
+	b 0.597971
+	m 0.962626
+	Achild 0.7
+	Aadult 0.7
+	Aold 0.7
+	Bchild 0.7
+	Badult 1.3
+	Bold 0.7
+scenario 69 Probability 0.00133333
+	epsilon 0.831827
+	b 0.524683
+	m 0.837809
+	Achild 1.3
+	Aadult 0.7
+	Aold 0.7
+	Bchild 1.3
+	Badult 0.7
+	Bold 1.3
+scenario 70 Probability 0.00133333
+	epsilon 0.859989
+	b 0.541824
+	m 1.0766
+	Achild 0.7
+	Aadult 0.7
+	Aold 0.7
+	Bchild 1.3
+	Badult 1.3
+	Bold 0.7
+scenario 71 Probability 0.00133333
+	epsilon 0.750263
+	b 0.548871
+	m 0.887223
+	Achild 0.7
+	Aadult 0.7
+	Aold 1.3
+	Bchild 1.3
+	Badult 0.7
+	Bold 0.7
+scenario 72 Probability 0.00133333
+	epsilon 0.90259
+	b 0.582865
+	m 1.22324
+	Achild 0.7
+	Aadult 1.3
+	Aold 0.7
+	Bchild 0.7
+	Badult 0.7
+	Bold 1.3
+scenario 73 Probability 0.00133333
+	epsilon 0.797698
+	b 0.642076
+	m 0.951038
+	Achild 0.7
+	Aadult 1.3
+	Aold 0.7
+	Bchild 1.3
+	Badult 0.7
+	Bold 1.3
+scenario 74 Probability 0.00133333
+	epsilon 0.946883
+	b 0.695295
+	m 0.899802
+	Achild 0.7
+	Aadult 0.7
+	Aold 0.7
+	Bchild 1.3
+	Badult 0.7
+	Bold 0.7
+scenario 75 Probability 0.00133333
+	epsilon 0.81997
+	b 0.628883
+	m 0.967921
+	Achild 1.3
+	Aadult 1.3
+	Aold 0.7
+	Bchild 1.3
+	Badult 0.7
+	Bold 0.7
+scenario 76 Probability 0.00133333
+	epsilon 0.835943
+	b 0.587061
+	m 1.01904
+	Achild 1.3
+	Aadult 1.3
+	Aold 0.7
+	Bchild 1.3
+	Badult 0.7
+	Bold 1.3
+scenario 77 Probability 0.00133333
+	epsilon 0.805147
+	b 0.66601
+	m 1.12018
+	Achild 0.7
+	Aadult 0.7
+	Aold 1.3
+	Bchild 0.7
+	Badult 1.3
+	Bold 0.7
+scenario 78 Probability 0.00133333
+	epsilon 0.827622
+	b 0.532173
+	m 1.0755
+	Achild 0.7
+	Aadult 1.3
+	Aold 0.7
+	Bchild 0.7
+	Badult 1.3
+	Bold 1.3
+scenario 79 Probability 0.00133333
+	epsilon 0.8326
+	b 0.503807
+	m 1.11595
+	Achild 1.3
+	Aadult 1.3
+	Aold 1.3
+	Bchild 0.7
+	Badult 0.7
+	Bold 0.7
+scenario 80 Probability 0.00133333
+	epsilon 0.858999
+	b 0.566758
+	m 0.86047
+	Achild 0.7
+	Aadult 1.3
+	Aold 0.7
+	Bchild 1.3
+	Badult 1.3
+	Bold 0.7
+scenario 81 Probability 0.00133333
+	epsilon 0.85018
+	b 0.524026
+	m 1.01912
+	Achild 0.7
+	Aadult 0.7
+	Aold 0.7
+	Bchild 1.3
+	Badult 0.7
+	Bold 1.3
+scenario 82 Probability 0.00133333
+	epsilon 0.774566
+	b 0.616983
+	m 1.06488
+	Achild 1.3
+	Aadult 1.3
+	Aold 0.7
+	Bchild 1.3
+	Badult 0.7
+	Bold 1.3
+scenario 83 Probability 0.00133333
+	epsilon 0.859609
+	b 0.546377
+	m 0.97364
+	Achild 0.7
+	Aadult 1.3
+	Aold 1.3
+	Bchild 0.7
+	Badult 0.7
+	Bold 0.7
+scenario 84 Probability 0.00133333
+	epsilon 0.8252
+	b 0.536157
+	m 1.13912
+	Achild 0.7
+	Aadult 1.3
+	Aold 0.7
+	Bchild 0.7
+	Badult 1.3
+	Bold 1.3
+scenario 85 Probability 0.00133333
+	epsilon 0.912022
+	b 0.545122
+	m 1.1876
+	Achild 1.3
+	Aadult 0.7
+	Aold 1.3
+	Bchild 0.7
+	Badult 0.7
+	Bold 1.3
+scenario 86 Probability 0.00133333
+	epsilon 0.811121
+	b 0.680083
+	m 1.19888
+	Achild 0.7
+	Aadult 1.3
+	Aold 1.3
+	Bchild 1.3
+	Badult 0.7
+	Bold 0.7
+scenario 87 Probability 0.00133333
+	epsilon 0.940966
+	b 0.698856
+	m 1.16224
+	Achild 1.3
+	Aadult 0.7
+	Aold 1.3
+	Bchild 0.7
+	Badult 0.7
+	Bold 1.3
+scenario 88 Probability 0.00133333
+	epsilon 0.884972
+	b 0.552459
+	m 0.993844
+	Achild 0.7
+	Aadult 1.3
+	Aold 0.7
+	Bchild 0.7
+	Badult 0.7
+	Bold 0.7
+scenario 89 Probability 0.00133333
+	epsilon 0.882171
+	b 0.578859
+	m 0.992086
+	Achild 0.7
+	Aadult 0.7
+	Aold 1.3
+	Bchild 1.3
+	Badult 0.7
+	Bold 0.7
+scenario 90 Probability 0.00133333
+	epsilon 0.807074
+	b 0.554726
+	m 1.14159
+	Achild 1.3
+	Aadult 1.3
+	Aold 1.3
+	Bchild 1.3
+	Badult 1.3
+	Bold 1.3
+scenario 91 Probability 0.00133333
+	epsilon 0.830363
+	b 0.606568
+	m 1.0813
+	Achild 0.7
+	Aadult 1.3
+	Aold 0.7
+	Bchild 1.3
+	Badult 1.3
+	Bold 1.3
+scenario 92 Probability 0.00133333
+	epsilon 0.793444
+	b 0.576501
+	m 1.10157
+	Achild 1.3
+	Aadult 1.3
+	Aold 0.7
+	Bchild 1.3
+	Badult 1.3
+	Bold 0.7
+scenario 93 Probability 0.00133333
+	epsilon 0.815417
+	b 0.601584
+	m 0.773701
+	Achild 1.3
+	Aadult 0.7
+	Aold 0.7
+	Bchild 1.3
+	Badult 0.7
+	Bold 0.7
+scenario 94 Probability 0.00133333
+	epsilon 0.894762
+	b 0.636516
+	m 0.855827
+	Achild 1.3
+	Aadult 0.7
+	Aold 1.3
+	Bchild 1.3
+	Badult 0.7
+	Bold 1.3
+scenario 95 Probability 0.00133333
+	epsilon 0.849887
+	b 0.588789
+	m 1.11144
+	Achild 0.7
+	Aadult 0.7
+	Aold 0.7
+	Bchild 0.7
+	Badult 1.3
+	Bold 1.3
+scenario 96 Probability 0.00133333
+	epsilon 0.936287
+	b 0.627423
+	m 0.989577
+	Achild 1.3
+	Aadult 0.7
+	Aold 0.7
+	Bchild 1.3
+	Badult 0.7
+	Bold 1.3
+scenario 97 Probability 0.00133333
+	epsilon 0.881873
+	b 0.559647
+	m 0.82989
+	Achild 1.3
+	Aadult 0.7
+	Aold 1.3
+	Bchild 0.7
+	Badult 0.7
+	Bold 1.3
+scenario 98 Probability 0.00133333
+	epsilon 0.797224
+	b 0.574418
+	m 0.980291
+	Achild 1.3
+	Aadult 1.3
+	Aold 0.7
+	Bchild 0.7
+	Badult 0.7
+	Bold 1.3
+scenario 99 Probability 0.00133333
+	epsilon 0.783077
+	b 0.67116
+	m 1.03331
+	Achild 0.7
+	Aadult 1.3
+	Aold 1.3
+	Bchild 1.3
+	Badult 1.3
+	Bold 0.7
+scenario 100 Probability 0.00133333
+	epsilon 0.791365
+	b 0.557565
+	m 1.21101
+	Achild 0.7
+	Aadult 1.3
+	Aold 0.7
+	Bchild 0.7
+	Badult 0.7
+	Bold 1.3
+scenario 101 Probability 0.00133333
+	epsilon 0.816259
+	b 0.599145
+	m 0.914919
+	Achild 0.7
+	Aadult 0.7
+	Aold 1.3
+	Bchild 0.7
+	Badult 0.7
+	Bold 1.3
+scenario 102 Probability 0.00133333
+	epsilon 0.857032
+	b 0.537123
+	m 0.890306
+	Achild 1.3
+	Aadult 1.3
+	Aold 1.3
+	Bchild 0.7
+	Badult 0.7
+	Bold 1.3
+scenario 103 Probability 0.00133333
+	epsilon 0.8516
+	b 0.6006
+	m 0.934316
+	Achild 1.3
+	Aadult 1.3
+	Aold 1.3
+	Bchild 0.7
+	Badult 1.3
+	Bold 1.3
+scenario 104 Probability 0.00133333
+	epsilon 0.894352
+	b 0.68097
+	m 1.11958
+	Achild 0.7
+	Aadult 1.3
+	Aold 0.7
+	Bchild 0.7
+	Badult 0.7
+	Bold 0.7
+scenario 105 Probability 0.00133333
+	epsilon 0.874145
+	b 0.572106
+	m 0.93106
+	Achild 1.3
+	Aadult 0.7
+	Aold 0.7
+	Bchild 1.3
+	Badult 0.7
+	Bold 0.7
+scenario 106 Probability 0.00133333
+	epsilon 0.839443
+	b 0.626357
+	m 0.880029
+	Achild 1.3
+	Aadult 0.7
+	Aold 1.3
+	Bchild 0.7
+	Badult 1.3
+	Bold 1.3
+scenario 107 Probability 0.00133333
+	epsilon 0.784279
+	b 0.608969
+	m 1.04003
+	Achild 1.3
+	Aadult 1.3
+	Aold 1.3
+	Bchild 1.3
+	Badult 1.3
+	Bold 0.7
+scenario 108 Probability 0.00133333
+	epsilon 0.861604
+	b 0.514204
+	m 1.03387
+	Achild 1.3
+	Aadult 0.7
+	Aold 1.3
+	Bchild 0.7
+	Badult 1.3
+	Bold 0.7
+scenario 109 Probability 0.00133333
+	epsilon 0.862603
+	b 0.613734
+	m 1.20241
+	Achild 1.3
+	Aadult 0.7
+	Aold 0.7
+	Bchild 1.3
+	Badult 0.7
+	Bold 0.7
+scenario 110 Probability 0.00133333
+	epsilon 0.803266
+	b 0.6225
+	m 0.862567
+	Achild 0.7
+	Aadult 0.7
+	Aold 0.7
+	Bchild 1.3
+	Badult 0.7
+	Bold 1.3
+scenario 111 Probability 0.00133333
+	epsilon 0.777646
+	b 0.586384
+	m 0.973377
+	Achild 1.3
+	Aadult 1.3
+	Aold 1.3
+	Bchild 0.7
+	Badult 0.7
+	Bold 0.7
+scenario 112 Probability 0.00133333
+	epsilon 0.837846
+	b 0.571714
+	m 0.851595
+	Achild 1.3
+	Aadult 0.7
+	Aold 1.3
+	Bchild 1.3
+	Badult 1.3
+	Bold 1.3
+scenario 113 Probability 0.00133333
+	epsilon 0.875664
+	b 0.608473
+	m 1.06825
+	Achild 0.7
+	Aadult 1.3
+	Aold 1.3
+	Bchild 1.3
+	Badult 0.7
+	Bold 0.7
+scenario 114 Probability 0.00133333
+	epsilon 0.829565
+	b 0.550461
+	m 1.16844
+	Achild 0.7
+	Aadult 0.7
+	Aold 0.7
+	Bchild 1.3
+	Badult 1.3
+	Bold 0.7
+scenario 115 Probability 0.00133333
+	epsilon 0.869059
+	b 0.619704
+	m 1.07411
+	Achild 1.3
+	Aadult 1.3
+	Aold 1.3
+	Bchild 1.3
+	Badult 1.3
+	Bold 0.7
+scenario 116 Probability 0.00133333
+	epsilon 0.808142
+	b 0.560683
+	m 0.998538
+	Achild 1.3
+	Aadult 0.7
+	Aold 1.3
+	Bchild 1.3
+	Badult 0.7
+	Bold 0.7
+scenario 117 Probability 0.00133333
+	epsilon 0.897477
+	b 0.546674
+	m 1.08027
+	Achild 1.3
+	Aadult 0.7
+	Aold 1.3
+	Bchild 0.7
+	Badult 0.7
+	Bold 0.7
+scenario 118 Probability 0.00133333
+	epsilon 0.869196
+	b 0.64986
+	m 1.20677
+	Achild 0.7
+	Aadult 0.7
+	Aold 0.7
+	Bchild 1.3
+	Badult 1.3
+	Bold 1.3
+scenario 119 Probability 0.00133333
+	epsilon 0.810787
+	b 0.60648
+	m 0.960803
+	Achild 1.3
+	Aadult 1.3
+	Aold 0.7
+	Bchild 1.3
+	Badult 0.7
+	Bold 0.7
+scenario 120 Probability 0.00133333
+	epsilon 0.855847
+	b 0.50854
+	m 0.964083
+	Achild 0.7
+	Aadult 1.3
+	Aold 1.3
+	Bchild 0.7
+	Badult 1.3
+	Bold 0.7
+scenario 121 Probability 0.00133333
+	epsilon 0.855234
+	b 0.620132
+	m 1.04508
+	Achild 1.3
+	Aadult 1.3
+	Aold 0.7
+	Bchild 1.3
+	Badult 0.7
+	Bold 1.3
+scenario 122 Probability 0.00133333
+	epsilon 0.876242
+	b 0.653613
+	m 0.792167
+	Achild 1.3
+	Aadult 1.3
+	Aold 0.7
+	Bchild 1.3
+	Badult 0.7
+	Bold 1.3
+scenario 123 Probability 0.00133333
+	epsilon 0.876171
+	b 0.519829
+	m 0.867736
+	Achild 1.3
+	Aadult 0.7
+	Aold 1.3
+	Bchild 0.7
+	Badult 1.3
+	Bold 1.3
+scenario 124 Probability 0.00133333
+	epsilon 0.898845
+	b 0.572182
+	m 1.21632
+	Achild 0.7
+	Aadult 0.7
+	Aold 0.7
+	Bchild 1.3
+	Badult 1.3
+	Bold 0.7
+scenario 125 Probability 0.00133333
+	epsilon 0.885189
+	b 0.573655
+	m 0.926608
+	Achild 0.7
+	Aadult 1.3
+	Aold 1.3
+	Bchild 0.7
+	Badult 1.3
+	Bold 0.7
+scenario 126 Probability 0.00133333
+	epsilon 0.88528
+	b 0.537061
+	m 1.09938
+	Achild 0.7
+	Aadult 0.7
+	Aold 0.7
+	Bchild 0.7
+	Badult 0.7
+	Bold 1.3
+scenario 127 Probability 0.00133333
+	epsilon 0.883132
+	b 0.666169
+	m 1.09384
+	Achild 1.3
+	Aadult 1.3
+	Aold 0.7
+	Bchild 1.3
+	Badult 0.7
+	Bold 0.7
+scenario 128 Probability 0.00133333
+	epsilon 0.812138
+	b 0.527583
+	m 0.906955
+	Achild 1.3
+	Aadult 0.7
+	Aold 0.7
+	Bchild 1.3
+	Badult 0.7
+	Bold 0.7
+scenario 129 Probability 0.00133333
+	epsilon 0.928177
+	b 0.617346
+	m 0.953504
+	Achild 1.3
+	Aadult 0.7
+	Aold 0.7
+	Bchild 0.7
+	Badult 1.3
+	Bold 1.3
+scenario 130 Probability 0.00133333
+	epsilon 0.826099
+	b 0.670047
+	m 1.08284
+	Achild 0.7
+	Aadult 1.3
+	Aold 1.3
+	Bchild 0.7
+	Badult 0.7
+	Bold 1.3
+scenario 131 Probability 0.00133333
+	epsilon 0.856588
+	b 0.6462
+	m 0.852615
+	Achild 1.3
+	Aadult 0.7
+	Aold 0.7
+	Bchild 1.3
+	Badult 1.3
+	Bold 1.3
+scenario 132 Probability 0.00133333
+	epsilon 0.851392
+	b 0.613699
+	m 0.836975
+	Achild 1.3
+	Aadult 1.3
+	Aold 0.7
+	Bchild 1.3
+	Badult 0.7
+	Bold 1.3
+scenario 133 Probability 0.00133333
+	epsilon 0.812685
+	b 0.541781
+	m 1.17475
+	Achild 1.3
+	Aadult 0.7
+	Aold 1.3
+	Bchild 0.7
+	Badult 0.7
+	Bold 1.3
+scenario 134 Probability 0.00133333
+	epsilon 0.869077
+	b 0.634251
+	m 1.10248
+	Achild 1.3
+	Aadult 1.3
+	Aold 1.3
+	Bchild 0.7
+	Badult 1.3
+	Bold 0.7
+scenario 135 Probability 0.00133333
+	epsilon 0.793067
+	b 0.655759
+	m 1.01552
+	Achild 0.7
+	Aadult 0.7
+	Aold 1.3
+	Bchild 1.3
+	Badult 0.7
+	Bold 0.7
+scenario 136 Probability 0.00133333
+	epsilon 0.852776
+	b 0.593864
+	m 1.03089
+	Achild 0.7
+	Aadult 0.7
+	Aold 0.7
+	Bchild 1.3
+	Badult 0.7
+	Bold 0.7
+scenario 137 Probability 0.00133333
+	epsilon 0.815873
+	b 0.637373
+	m 0.94822
+	Achild 0.7
+	Aadult 0.7
+	Aold 1.3
+	Bchild 1.3
+	Badult 0.7
+	Bold 1.3
+scenario 138 Probability 0.00133333
+	epsilon 0.815249
+	b 0.51769
+	m 1.13543
+	Achild 1.3
+	Aadult 0.7
+	Aold 1.3
+	Bchild 0.7
+	Badult 0.7
+	Bold 0.7
+scenario 139 Probability 0.00133333
+	epsilon 0.807275
+	b 0.621557
+	m 1.1426
+	Achild 1.3
+	Aadult 0.7
+	Aold 0.7
+	Bchild 0.7
+	Badult 1.3
+	Bold 1.3
+scenario 140 Probability 0.00133333
+	epsilon 0.85234
+	b 0.559088
+	m 1.16967
+	Achild 1.3
+	Aadult 0.7
+	Aold 0.7
+	Bchild 1.3
+	Badult 1.3
+	Bold 0.7
+scenario 141 Probability 0.00133333
+	epsilon 0.826721
+	b 0.519235
+	m 0.971691
+	Achild 1.3
+	Aadult 1.3
+	Aold 1.3
+	Bchild 1.3
+	Badult 1.3
+	Bold 1.3
+scenario 142 Probability 0.00133333
+	epsilon 0.913037
+	b 0.561049
+	m 0.930577
+	Achild 0.7
+	Aadult 0.7
+	Aold 1.3
+	Bchild 1.3
+	Badult 1.3
+	Bold 0.7
+scenario 143 Probability 0.00133333
+	epsilon 0.865155
+	b 0.658422
+	m 1.09472
+	Achild 0.7
+	Aadult 1.3
+	Aold 1.3
+	Bchild 1.3
+	Badult 0.7
+	Bold 0.7
+scenario 144 Probability 0.00133333
+	epsilon 0.829055
+	b 0.63992
+	m 1.22237
+	Achild 1.3
+	Aadult 1.3
+	Aold 0.7
+	Bchild 0.7
+	Badult 0.7
+	Bold 0.7
+scenario 145 Probability 0.00133333
+	epsilon 0.842354
+	b 0.624052
+	m 1.05188
+	Achild 1.3
+	Aadult 0.7
+	Aold 1.3
+	Bchild 0.7
+	Badult 0.7
+	Bold 0.7
+scenario 146 Probability 0.00133333
+	epsilon 0.886323
+	b 0.682609
+	m 0.793129
+	Achild 0.7
+	Aadult 0.7
+	Aold 1.3
+	Bchild 0.7
+	Badult 0.7
+	Bold 1.3
+scenario 147 Probability 0.00133333
+	epsilon 0.912585
+	b 0.561508
+	m 1.14558
+	Achild 0.7
+	Aadult 1.3
+	Aold 1.3
+	Bchild 0.7
+	Badult 1.3
+	Bold 0.7
+scenario 148 Probability 0.00133333
+	epsilon 0.919171
+	b 0.60201
+	m 1.05031
+	Achild 0.7
+	Aadult 0.7
+	Aold 1.3
+	Bchild 1.3
+	Badult 1.3
+	Bold 1.3
+scenario 149 Probability 0.00133333
+	epsilon 0.828648
+	b 0.675311
+	m 1.08542
+	Achild 0.7
+	Aadult 0.7
+	Aold 1.3
+	Bchild 0.7
+	Badult 1.3
+	Bold 1.3
+scenario 150 Probability 0.00133333
+	epsilon 0.847406
+	b 0.695137
+	m 1.0653
+	Achild 0.7
+	Aadult 0.7
+	Aold 1.3
+	Bchild 0.7
+	Badult 0.7
+	Bold 1.3
+scenario 151 Probability 0.00133333
+	epsilon 0.918897
+	b 0.626155
+	m 0.86555
+	Achild 1.3
+	Aadult 0.7
+	Aold 0.7
+	Bchild 1.3
+	Badult 1.3
+	Bold 0.7
+scenario 152 Probability 0.00133333
+	epsilon 0.905807
+	b 0.682609
+	m 0.953099
+	Achild 0.7
+	Aadult 0.7
+	Aold 0.7
+	Bchild 0.7
+	Badult 1.3
+	Bold 0.7
+scenario 153 Probability 0.00133333
+	epsilon 0.754062
+	b 0.655764
+	m 0.816044
+	Achild 1.3
+	Aadult 0.7
+	Aold 1.3
+	Bchild 1.3
+	Badult 1.3
+	Bold 0.7
+scenario 154 Probability 0.00133333
+	epsilon 0.844711
+	b 0.567711
+	m 1.13087
+	Achild 0.7
+	Aadult 0.7
+	Aold 0.7
+	Bchild 1.3
+	Badult 0.7
+	Bold 0.7
+scenario 155 Probability 0.00133333
+	epsilon 0.818165
+	b 0.597199
+	m 1.23328
+	Achild 1.3
+	Aadult 0.7
+	Aold 1.3
+	Bchild 0.7
+	Badult 0.7
+	Bold 0.7
+scenario 156 Probability 0.00133333
+	epsilon 0.88375
+	b 0.647452
+	m 0.940122
+	Achild 1.3
+	Aadult 0.7
+	Aold 1.3
+	Bchild 1.3
+	Badult 1.3
+	Bold 1.3
+scenario 157 Probability 0.00133333
+	epsilon 0.929859
+	b 0.628533
+	m 0.941089
+	Achild 1.3
+	Aadult 1.3
+	Aold 0.7
+	Bchild 1.3
+	Badult 0.7
+	Bold 0.7
+scenario 158 Probability 0.00133333
+	epsilon 0.880904
+	b 0.519167
+	m 0.928189
+	Achild 0.7
+	Aadult 1.3
+	Aold 1.3
+	Bchild 1.3
+	Badult 1.3
+	Bold 1.3
+scenario 159 Probability 0.00133333
+	epsilon 0.810044
+	b 0.680225
+	m 1.01379
+	Achild 0.7
+	Aadult 1.3
+	Aold 1.3
+	Bchild 0.7
+	Badult 1.3
+	Bold 0.7
+scenario 160 Probability 0.00133333
+	epsilon 0.811928
+	b 0.586475
+	m 0.944304
+	Achild 0.7
+	Aadult 1.3
+	Aold 0.7
+	Bchild 1.3
+	Badult 1.3
+	Bold 1.3
+scenario 161 Probability 0.00133333
+	epsilon 0.773732
+	b 0.530762
+	m 0.778447
+	Achild 0.7
+	Aadult 0.7
+	Aold 0.7
+	Bchild 0.7
+	Badult 1.3
+	Bold 0.7
+scenario 162 Probability 0.00133333
+	epsilon 0.868804
+	b 0.575901
+	m 0.797145
+	Achild 0.7
+	Aadult 0.7
+	Aold 1.3
+	Bchild 1.3
+	Badult 0.7
+	Bold 0.7
+scenario 163 Probability 0.00133333
+	epsilon 0.802523
+	b 0.608155
+	m 0.893282
+	Achild 1.3
+	Aadult 1.3
+	Aold 0.7
+	Bchild 0.7
+	Badult 0.7
+	Bold 1.3
+scenario 164 Probability 0.00133333
+	epsilon 0.757975
+	b 0.640444
+	m 1.17161
+	Achild 0.7
+	Aadult 0.7
+	Aold 0.7
+	Bchild 0.7
+	Badult 0.7
+	Bold 0.7
+scenario 165 Probability 0.00133333
+	epsilon 0.851519
+	b 0.559802
+	m 1.06234
+	Achild 1.3
+	Aadult 0.7
+	Aold 0.7
+	Bchild 1.3
+	Badult 1.3
+	Bold 1.3
+scenario 166 Probability 0.00133333
+	epsilon 0.81878
+	b 0.596942
+	m 0.960919
+	Achild 1.3
+	Aadult 0.7
+	Aold 1.3
+	Bchild 1.3
+	Badult 1.3
+	Bold 1.3
+scenario 167 Probability 0.00133333
+	epsilon 0.813488
+	b 0.653404
+	m 0.977744
+	Achild 0.7
+	Aadult 1.3
+	Aold 0.7
+	Bchild 1.3
+	Badult 0.7
+	Bold 1.3
+scenario 168 Probability 0.00133333
+	epsilon 0.827175
+	b 0.626012
+	m 0.806451
+	Achild 0.7
+	Aadult 1.3
+	Aold 1.3
+	Bchild 0.7
+	Badult 1.3
+	Bold 1.3
+scenario 169 Probability 0.00133333
+	epsilon 0.885576
+	b 0.553723
+	m 0.945151
+	Achild 0.7
+	Aadult 1.3
+	Aold 1.3
+	Bchild 1.3
+	Badult 0.7
+	Bold 1.3
+scenario 170 Probability 0.00133333
+	epsilon 0.861095
+	b 0.655935
+	m 0.929173
+	Achild 1.3
+	Aadult 1.3
+	Aold 1.3
+	Bchild 0.7
+	Badult 0.7
+	Bold 0.7
+scenario 171 Probability 0.00133333
+	epsilon 0.836493
+	b 0.589852
+	m 1.04856
+	Achild 1.3
+	Aadult 1.3
+	Aold 1.3
+	Bchild 1.3
+	Badult 1.3
+	Bold 0.7
+scenario 172 Probability 0.00133333
+	epsilon 0.843043
+	b 0.596869
+	m 1.16788
+	Achild 0.7
+	Aadult 1.3
+	Aold 0.7
+	Bchild 1.3
+	Badult 0.7
+	Bold 1.3
+scenario 173 Probability 0.00133333
+	epsilon 0.927572
+	b 0.581416
+	m 1.05177
+	Achild 0.7
+	Aadult 0.7
+	Aold 0.7
+	Bchild 1.3
+	Badult 0.7
+	Bold 1.3
+scenario 174 Probability 0.00133333
+	epsilon 0.868558
+	b 0.509291
+	m 0.88438
+	Achild 0.7
+	Aadult 1.3
+	Aold 0.7
+	Bchild 1.3
+	Badult 0.7
+	Bold 1.3
+scenario 175 Probability 0.00133333
+	epsilon 0.797016
+	b 0.656283
+	m 0.765533
+	Achild 1.3
+	Aadult 0.7
+	Aold 0.7
+	Bchild 0.7
+	Badult 0.7
+	Bold 1.3
+scenario 176 Probability 0.00133333
+	epsilon 0.835799
+	b 0.58268
+	m 0.847851
+	Achild 1.3
+	Aadult 0.7
+	Aold 1.3
+	Bchild 1.3
+	Badult 1.3
+	Bold 1.3
+scenario 177 Probability 0.00133333
+	epsilon 0.918503
+	b 0.642931
+	m 0.815566
+	Achild 1.3
+	Aadult 1.3
+	Aold 1.3
+	Bchild 0.7
+	Badult 0.7
+	Bold 1.3
+scenario 178 Probability 0.00133333
+	epsilon 0.878003
+	b 0.631751
+	m 1.05763
+	Achild 0.7
+	Aadult 0.7
+	Aold 1.3
+	Bchild 0.7
+	Badult 1.3
+	Bold 1.3
+scenario 179 Probability 0.00133333
+	epsilon 0.922398
+	b 0.678391
+	m 0.91973
+	Achild 0.7
+	Aadult 0.7
+	Aold 0.7
+	Bchild 1.3
+	Badult 0.7
+	Bold 1.3
+scenario 180 Probability 0.00133333
+	epsilon 0.856171
+	b 0.683646
+	m 1.00099
+	Achild 1.3
+	Aadult 0.7
+	Aold 0.7
+	Bchild 1.3
+	Badult 0.7
+	Bold 0.7
+scenario 181 Probability 0.00133333
+	epsilon 0.814451
+	b 0.596696
+	m 0.949147
+	Achild 0.7
+	Aadult 0.7
+	Aold 1.3
+	Bchild 0.7
+	Badult 1.3
+	Bold 1.3
+scenario 182 Probability 0.00133333
+	epsilon 0.930117
+	b 0.586761
+	m 0.895482
+	Achild 0.7
+	Aadult 1.3
+	Aold 0.7
+	Bchild 0.7
+	Badult 0.7
+	Bold 1.3
+scenario 183 Probability 0.00133333
+	epsilon 0.91905
+	b 0.693818
+	m 0.903432
+	Achild 0.7
+	Aadult 1.3
+	Aold 0.7
+	Bchild 0.7
+	Badult 0.7
+	Bold 1.3
+scenario 184 Probability 0.00133333
+	epsilon 0.814725
+	b 0.599449
+	m 1.17784
+	Achild 0.7
+	Aadult 1.3
+	Aold 1.3
+	Bchild 1.3
+	Badult 1.3
+	Bold 1.3
+scenario 185 Probability 0.00133333
+	epsilon 0.814416
+	b 0.69254
+	m 0.985827
+	Achild 1.3
+	Aadult 0.7
+	Aold 1.3
+	Bchild 0.7
+	Badult 0.7
+	Bold 0.7
+scenario 186 Probability 0.00133333
+	epsilon 0.812631
+	b 0.588594
+	m 0.856234
+	Achild 0.7
+	Aadult 1.3
+	Aold 0.7
+	Bchild 0.7
+	Badult 0.7
+	Bold 1.3
+scenario 187 Probability 0.00133333
+	epsilon 0.789516
+	b 0.661603
+	m 1.04628
+	Achild 0.7
+	Aadult 0.7
+	Aold 0.7
+	Bchild 0.7
+	Badult 1.3
+	Bold 1.3
+scenario 188 Probability 0.00133333
+	epsilon 0.805838
+	b 0.624301
+	m 1.11518
+	Achild 0.7
+	Aadult 0.7
+	Aold 1.3
+	Bchild 1.3
+	Badult 0.7
+	Bold 1.3
+scenario 189 Probability 0.00133333
+	epsilon 0.854958
+	b 0.540798
+	m 1.21657
+	Achild 0.7
+	Aadult 0.7
+	Aold 1.3
+	Bchild 1.3
+	Badult 0.7
+	Bold 0.7
+scenario 190 Probability 0.00133333
+	epsilon 0.797832
+	b 0.633643
+	m 0.820276
+	Achild 0.7
+	Aadult 1.3
+	Aold 0.7
+	Bchild 1.3
+	Badult 0.7
+	Bold 0.7
+scenario 191 Probability 0.00133333
+	epsilon 0.801413
+	b 0.598087
+	m 1.10528
+	Achild 0.7
+	Aadult 0.7
+	Aold 1.3
+	Bchild 0.7
+	Badult 1.3
+	Bold 0.7
+scenario 192 Probability 0.00133333
+	epsilon 0.833572
+	b 0.583687
+	m 0.755126
+	Achild 1.3
+	Aadult 1.3
+	Aold 0.7
+	Bchild 0.7
+	Badult 1.3
+	Bold 1.3
+scenario 193 Probability 0.00133333
+	epsilon 0.802592
+	b 0.590156
+	m 1.16531
+	Achild 1.3
+	Aadult 1.3
+	Aold 1.3
+	Bchild 1.3
+	Badult 1.3
+	Bold 1.3
+scenario 194 Probability 0.00133333
+	epsilon 0.874394
+	b 0.668225
+	m 1.17883
+	Achild 1.3
+	Aadult 1.3
+	Aold 0.7
+	Bchild 0.7
+	Badult 0.7
+	Bold 1.3
+scenario 195 Probability 0.00133333
+	epsilon 0.878501
+	b 0.628989
+	m 1.08029
+	Achild 0.7
+	Aadult 1.3
+	Aold 0.7
+	Bchild 0.7
+	Badult 1.3
+	Bold 1.3
+scenario 196 Probability 0.00133333
+	epsilon 0.782311
+	b 0.67417
+	m 0.974089
+	Achild 1.3
+	Aadult 0.7
+	Aold 0.7
+	Bchild 0.7
+	Badult 0.7
+	Bold 0.7
+scenario 197 Probability 0.00133333
+	epsilon 0.934041
+	b 0.594311
+	m 1.03361
+	Achild 1.3
+	Aadult 1.3
+	Aold 1.3
+	Bchild 1.3
+	Badult 1.3
+	Bold 0.7
+scenario 198 Probability 0.00133333
+	epsilon 0.818717
+	b 0.563501
+	m 0.778039
+	Achild 1.3
+	Aadult 0.7
+	Aold 0.7
+	Bchild 0.7
+	Badult 1.3
+	Bold 1.3
+scenario 199 Probability 0.00133333
+	epsilon 0.897629
+	b 0.586503
+	m 0.900121
+	Achild 1.3
+	Aadult 1.3
+	Aold 0.7
+	Bchild 0.7
+	Badult 1.3
+	Bold 1.3
+scenario 200 Probability 0.00133333
+	epsilon 0.812627
+	b 0.576613
+	m 1.0466
+	Achild 0.7
+	Aadult 0.7
+	Aold 1.3
+	Bchild 0.7
+	Badult 1.3
+	Bold 0.7
+scenario 201 Probability 0.00133333
+	epsilon 0.926379
+	b 0.653581
+	m 0.928666
+	Achild 0.7
+	Aadult 1.3
+	Aold 1.3
+	Bchild 0.7
+	Badult 0.7
+	Bold 1.3
+scenario 202 Probability 0.00133333
+	epsilon 0.91337
+	b 0.544278
+	m 0.922137
+	Achild 0.7
+	Aadult 0.7
+	Aold 1.3
+	Bchild 0.7
+	Badult 1.3
+	Bold 1.3
+scenario 203 Probability 0.00133333
+	epsilon 0.846006
+	b 0.511356
+	m 0.906112
+	Achild 0.7
+	Aadult 0.7
+	Aold 0.7
+	Bchild 1.3
+	Badult 0.7
+	Bold 0.7
+scenario 204 Probability 0.00133333
+	epsilon 0.794001
+	b 0.607676
+	m 1.20193
+	Achild 0.7
+	Aadult 1.3
+	Aold 1.3
+	Bchild 0.7
+	Badult 1.3
+	Bold 1.3
+scenario 205 Probability 0.00133333
+	epsilon 0.877492
+	b 0.562067
+	m 1.13451
+	Achild 1.3
+	Aadult 1.3
+	Aold 1.3
+	Bchild 0.7
+	Badult 1.3
+	Bold 1.3
+scenario 206 Probability 0.00133333
+	epsilon 0.819689
+	b 0.504934
+	m 1.21541
+	Achild 0.7
+	Aadult 0.7
+	Aold 1.3
+	Bchild 1.3
+	Badult 0.7
+	Bold 1.3
+scenario 207 Probability 0.00133333
+	epsilon 0.940784
+	b 0.596066
+	m 0.939471
+	Achild 1.3
+	Aadult 0.7
+	Aold 1.3
+	Bchild 0.7
+	Badult 1.3
+	Bold 1.3
+scenario 208 Probability 0.00133333
+	epsilon 0.801512
+	b 0.573245
+	m 1.22056
+	Achild 1.3
+	Aadult 0.7
+	Aold 1.3
+	Bchild 1.3
+	Badult 1.3
+	Bold 1.3
+scenario 209 Probability 0.00133333
+	epsilon 0.82875
+	b 0.636692
+	m 1.12794
+	Achild 1.3
+	Aadult 0.7
+	Aold 0.7
+	Bchild 0.7
+	Badult 0.7
+	Bold 0.7
+scenario 210 Probability 0.00133333
+	epsilon 0.811723
+	b 0.566932
+	m 1.09862
+	Achild 0.7
+	Aadult 1.3
+	Aold 1.3
+	Bchild 0.7
+	Badult 1.3
+	Bold 1.3
+scenario 211 Probability 0.00133333
+	epsilon 0.895644
+	b 0.59067
+	m 0.907209
+	Achild 0.7
+	Aadult 0.7
+	Aold 0.7
+	Bchild 1.3
+	Badult 1.3
+	Bold 0.7
+scenario 212 Probability 0.00133333
+	epsilon 0.830926
+	b 0.565421
+	m 1.06076
+	Achild 0.7
+	Aadult 1.3
+	Aold 0.7
+	Bchild 1.3
+	Badult 0.7
+	Bold 1.3
+scenario 213 Probability 0.00133333
+	epsilon 0.936432
+	b 0.583515
+	m 0.94822
+	Achild 0.7
+	Aadult 0.7
+	Aold 1.3
+	Bchild 0.7
+	Badult 1.3
+	Bold 1.3
+scenario 214 Probability 0.00133333
+	epsilon 0.830222
+	b 0.647732
+	m 1.02527
+	Achild 0.7
+	Aadult 1.3
+	Aold 0.7
+	Bchild 0.7
+	Badult 0.7
+	Bold 0.7
+scenario 215 Probability 0.00133333
+	epsilon 0.830415
+	b 0.616947
+	m 0.981321
+	Achild 0.7
+	Aadult 0.7
+	Aold 0.7
+	Bchild 1.3
+	Badult 0.7
+	Bold 0.7
+scenario 216 Probability 0.00133333
+	epsilon 0.854981
+	b 0.607597
+	m 1.16505
+	Achild 1.3
+	Aadult 1.3
+	Aold 1.3
+	Bchild 1.3
+	Badult 1.3
+	Bold 1.3
+scenario 217 Probability 0.00133333
+	epsilon 0.820163
+	b 0.625172
+	m 1.09544
+	Achild 0.7
+	Aadult 0.7
+	Aold 0.7
+	Bchild 1.3
+	Badult 0.7
+	Bold 0.7
+scenario 218 Probability 0.00133333
+	epsilon 0.908148
+	b 0.662061
+	m 1.04293
+	Achild 0.7
+	Aadult 1.3
+	Aold 0.7
+	Bchild 1.3
+	Badult 0.7
+	Bold 0.7
+scenario 219 Probability 0.00133333
+	epsilon 0.851513
+	b 0.564289
+	m 0.868473
+	Achild 0.7
+	Aadult 1.3
+	Aold 1.3
+	Bchild 1.3
+	Badult 0.7
+	Bold 0.7
+scenario 220 Probability 0.00133333
+	epsilon 0.813598
+	b 0.579565
+	m 1.10714
+	Achild 0.7
+	Aadult 0.7
+	Aold 0.7
+	Bchild 1.3
+	Badult 0.7
+	Bold 0.7
+scenario 221 Probability 0.00133333
+	epsilon 0.757268
+	b 0.563769
+	m 1.00645
+	Achild 1.3
+	Aadult 0.7
+	Aold 0.7
+	Bchild 0.7
+	Badult 0.7
+	Bold 0.7
+scenario 222 Probability 0.00133333
+	epsilon 0.830593
+	b 0.563087
+	m 0.927843
+	Achild 1.3
+	Aadult 0.7
+	Aold 0.7
+	Bchild 0.7
+	Badult 1.3
+	Bold 0.7
+scenario 223 Probability 0.00133333
+	epsilon 0.760516
+	b 0.699382
+	m 1.08339
+	Achild 1.3
+	Aadult 1.3
+	Aold 0.7
+	Bchild 1.3
+	Badult 1.3
+	Bold 0.7
+scenario 224 Probability 0.00133333
+	epsilon 0.772593
+	b 0.589174
+	m 0.847851
+	Achild 1.3
+	Aadult 1.3
+	Aold 1.3
+	Bchild 1.3
+	Badult 0.7
+	Bold 0.7
+scenario 225 Probability 0.00133333
+	epsilon 0.778666
+	b 0.56769
+	m 1.16523
+	Achild 0.7
+	Aadult 1.3
+	Aold 0.7
+	Bchild 1.3
+	Badult 0.7
+	Bold 1.3
+scenario 226 Probability 0.00133333
+	epsilon 0.841994
+	b 0.639028
+	m 0.901878
+	Achild 0.7
+	Aadult 1.3
+	Aold 1.3
+	Bchild 1.3
+	Badult 1.3
+	Bold 1.3
+scenario 227 Probability 0.00133333
+	epsilon 0.882834
+	b 0.625361
+	m 1.19383
+	Achild 0.7
+	Aadult 0.7
+	Aold 1.3
+	Bchild 0.7
+	Badult 0.7
+	Bold 0.7
+scenario 228 Probability 0.00133333
+	epsilon 0.819718
+	b 0.694366
+	m 0.940993
+	Achild 0.7
+	Aadult 0.7
+	Aold 1.3
+	Bchild 0.7
+	Badult 1.3
+	Bold 0.7
+scenario 229 Probability 0.00133333
+	epsilon 0.902266
+	b 0.569449
+	m 0.832617
+	Achild 0.7
+	Aadult 1.3
+	Aold 1.3
+	Bchild 1.3
+	Badult 1.3
+	Bold 1.3
+scenario 230 Probability 0.00133333
+	epsilon 0.846449
+	b 0.608619
+	m 1.08526
+	Achild 1.3
+	Aadult 1.3
+	Aold 0.7
+	Bchild 0.7
+	Badult 0.7
+	Bold 1.3
+scenario 231 Probability 0.00133333
+	epsilon 0.869284
+	b 0.631462
+	m 1.0507
+	Achild 1.3
+	Aadult 0.7
+	Aold 0.7
+	Bchild 1.3
+	Badult 0.7
+	Bold 0.7
+scenario 232 Probability 0.00133333
+	epsilon 0.853759
+	b 0.663924
+	m 0.848873
+	Achild 0.7
+	Aadult 1.3
+	Aold 1.3
+	Bchild 1.3
+	Badult 0.7
+	Bold 0.7
+scenario 233 Probability 0.00133333
+	epsilon 0.848997
+	b 0.664283
+	m 1.10378
+	Achild 0.7
+	Aadult 0.7
+	Aold 1.3
+	Bchild 1.3
+	Badult 0.7
+	Bold 1.3
+scenario 234 Probability 0.00133333
+	epsilon 0.887054
+	b 0.501945
+	m 1.17478
+	Achild 0.7
+	Aadult 1.3
+	Aold 0.7
+	Bchild 0.7
+	Badult 0.7
+	Bold 0.7
+scenario 235 Probability 0.00133333
+	epsilon 0.752634
+	b 0.58582
+	m 0.758014
+	Achild 0.7
+	Aadult 0.7
+	Aold 1.3
+	Bchild 1.3
+	Badult 1.3
+	Bold 1.3
+scenario 236 Probability 0.00133333
+	epsilon 0.886939
+	b 0.545106
+	m 0.826033
+	Achild 0.7
+	Aadult 0.7
+	Aold 0.7
+	Bchild 0.7
+	Badult 0.7
+	Bold 1.3
+scenario 237 Probability 0.00133333
+	epsilon 0.887706
+	b 0.603683
+	m 1.0153
+	Achild 1.3
+	Aadult 0.7
+	Aold 0.7
+	Bchild 1.3
+	Badult 0.7
+	Bold 1.3
+scenario 238 Probability 0.00133333
+	epsilon 0.786584
+	b 0.57211
+	m 1.09381
+	Achild 1.3
+	Aadult 0.7
+	Aold 1.3
+	Bchild 0.7
+	Badult 0.7
+	Bold 0.7
+scenario 239 Probability 0.00133333
+	epsilon 0.918388
+	b 0.558128
+	m 1.00694
+	Achild 0.7
+	Aadult 0.7
+	Aold 1.3
+	Bchild 1.3
+	Badult 0.7
+	Bold 1.3
+scenario 240 Probability 0.00133333
+	epsilon 0.833777
+	b 0.521749
+	m 1.12625
+	Achild 0.7
+	Aadult 1.3
+	Aold 0.7
+	Bchild 1.3
+	Badult 0.7
+	Bold 0.7
+scenario 241 Probability 0.00133333
+	epsilon 0.868771
+	b 0.630617
+	m 1.13072
+	Achild 1.3
+	Aadult 1.3
+	Aold 0.7
+	Bchild 1.3
+	Badult 0.7
+	Bold 1.3
+scenario 242 Probability 0.00133333
+	epsilon 0.764168
+	b 0.589069
+	m 1.00354
+	Achild 0.7
+	Aadult 1.3
+	Aold 1.3
+	Bchild 0.7
+	Badult 0.7
+	Bold 1.3
+scenario 243 Probability 0.00133333
+	epsilon 0.860639
+	b 0.563272
+	m 1.12178
+	Achild 0.7
+	Aadult 0.7
+	Aold 0.7
+	Bchild 1.3
+	Badult 1.3
+	Bold 1.3
+scenario 244 Probability 0.00133333
+	epsilon 0.893368
+	b 0.514992
+	m 0.897938
+	Achild 1.3
+	Aadult 1.3
+	Aold 1.3
+	Bchild 1.3
+	Badult 1.3
+	Bold 0.7
+scenario 245 Probability 0.00133333
+	epsilon 0.936294
+	b 0.549444
+	m 0.927078
+	Achild 0.7
+	Aadult 0.7
+	Aold 0.7
+	Bchild 1.3
+	Badult 0.7
+	Bold 1.3
+scenario 246 Probability 0.00133333
+	epsilon 0.897492
+	b 0.513045
+	m 1.0656
+	Achild 0.7
+	Aadult 0.7
+	Aold 0.7
+	Bchild 0.7
+	Badult 1.3
+	Bold 0.7
+scenario 247 Probability 0.00133333
+	epsilon 0.850671
+	b 0.530432
+	m 0.841431
+	Achild 1.3
+	Aadult 1.3
+	Aold 1.3
+	Bchild 1.3
+	Badult 1.3
+	Bold 1.3
+scenario 248 Probability 0.00133333
+	epsilon 0.838118
+	b 0.595547
+	m 1.23877
+	Achild 1.3
+	Aadult 0.7
+	Aold 1.3
+	Bchild 1.3
+	Badult 0.7
+	Bold 0.7
+scenario 249 Probability 0.00133333
+	epsilon 0.812569
+	b 0.579126
+	m 0.938127
+	Achild 0.7
+	Aadult 1.3
+	Aold 0.7
+	Bchild 1.3
+	Badult 0.7
+	Bold 0.7
+scenario 250 Probability 0.00133333
+	epsilon 0.855115
+	b 0.605999
+	m 1.04981
+	Achild 0.7
+	Aadult 1.3
+	Aold 1.3
+	Bchild 1.3
+	Badult 0.7
+	Bold 1.3
+scenario 251 Probability 0.00133333
+	epsilon 0.803232
+	b 0.501283
+	m 0.862779
+	Achild 0.7
+	Aadult 1.3
+	Aold 1.3
+	Bchild 0.7
+	Badult 1.3
+	Bold 1.3
+scenario 252 Probability 0.00133333
+	epsilon 0.908361
+	b 0.552969
+	m 1.10452
+	Achild 1.3
+	Aadult 0.7
+	Aold 1.3
+	Bchild 0.7
+	Badult 0.7
+	Bold 0.7
+scenario 253 Probability 0.00133333
+	epsilon 0.793873
+	b 0.607284
+	m 0.947741
+	Achild 1.3
+	Aadult 0.7
+	Aold 0.7
+	Bchild 1.3
+	Badult 0.7
+	Bold 0.7
+scenario 254 Probability 0.00133333
+	epsilon 0.835358
+	b 0.639421
+	m 1.14378
+	Achild 1.3
+	Aadult 0.7
+	Aold 1.3
+	Bchild 0.7
+	Badult 1.3
+	Bold 1.3
+scenario 255 Probability 0.00133333
+	epsilon 0.817723
+	b 0.606715
+	m 0.897973
+	Achild 1.3
+	Aadult 1.3
+	Aold 1.3
+	Bchild 0.7
+	Badult 1.3
+	Bold 1.3
+scenario 256 Probability 0.00133333
+	epsilon 0.834021
+	b 0.639747
+	m 1.2334
+	Achild 0.7
+	Aadult 1.3
+	Aold 1.3
+	Bchild 0.7
+	Badult 1.3
+	Bold 1.3
+scenario 257 Probability 0.00133333
+	epsilon 0.798299
+	b 0.50917
+	m 0.846924
+	Achild 0.7
+	Aadult 0.7
+	Aold 1.3
+	Bchild 0.7
+	Badult 1.3
+	Bold 1.3
+scenario 258 Probability 0.00133333
+	epsilon 0.822573
+	b 0.512892
+	m 0.950351
+	Achild 1.3
+	Aadult 0.7
+	Aold 1.3
+	Bchild 1.3
+	Badult 0.7
+	Bold 0.7
+scenario 259 Probability 0.00133333
+	epsilon 0.812764
+	b 0.647629
+	m 0.781774
+	Achild 1.3
+	Aadult 0.7
+	Aold 1.3
+	Bchild 0.7
+	Badult 1.3
+	Bold 0.7
+scenario 260 Probability 0.00133333
+	epsilon 0.831225
+	b 0.515619
+	m 1.01279
+	Achild 0.7
+	Aadult 0.7
+	Aold 0.7
+	Bchild 0.7
+	Badult 1.3
+	Bold 0.7
+scenario 261 Probability 0.00133333
+	epsilon 0.916608
+	b 0.520885
+	m 0.940538
+	Achild 1.3
+	Aadult 0.7
+	Aold 1.3
+	Bchild 1.3
+	Badult 1.3
+	Bold 0.7
+scenario 262 Probability 0.00133333
+	epsilon 0.875149
+	b 0.518528
+	m 0.892098
+	Achild 0.7
+	Aadult 0.7
+	Aold 1.3
+	Bchild 1.3
+	Badult 0.7
+	Bold 1.3
+scenario 263 Probability 0.00133333
+	epsilon 0.909125
+	b 0.602757
+	m 0.807507
+	Achild 0.7
+	Aadult 1.3
+	Aold 1.3
+	Bchild 0.7
+	Badult 0.7
+	Bold 1.3
+scenario 264 Probability 0.00133333
+	epsilon 0.811977
+	b 0.601383
+	m 1.00984
+	Achild 1.3
+	Aadult 1.3
+	Aold 1.3
+	Bchild 0.7
+	Badult 0.7
+	Bold 0.7
+scenario 265 Probability 0.00133333
+	epsilon 0.853772
+	b 0.62656
+	m 0.94776
+	Achild 1.3
+	Aadult 0.7
+	Aold 0.7
+	Bchild 1.3
+	Badult 0.7
+	Bold 0.7
+scenario 266 Probability 0.00133333
+	epsilon 0.843269
+	b 0.592486
+	m 0.911192
+	Achild 0.7
+	Aadult 1.3
+	Aold 1.3
+	Bchild 1.3
+	Badult 0.7
+	Bold 1.3
+scenario 267 Probability 0.00133333
+	epsilon 0.9231
+	b 0.545491
+	m 1.02623
+	Achild 0.7
+	Aadult 0.7
+	Aold 1.3
+	Bchild 0.7
+	Badult 1.3
+	Bold 0.7
+scenario 268 Probability 0.00133333
+	epsilon 0.89982
+	b 0.556472
+	m 1.21997
+	Achild 1.3
+	Aadult 0.7
+	Aold 1.3
+	Bchild 1.3
+	Badult 1.3
+	Bold 0.7
+scenario 269 Probability 0.00133333
+	epsilon 0.840092
+	b 0.645934
+	m 0.961614
+	Achild 1.3
+	Aadult 1.3
+	Aold 0.7
+	Bchild 1.3
+	Badult 0.7
+	Bold 1.3
+scenario 270 Probability 0.00133333
+	epsilon 0.780193
+	b 0.624972
+	m 0.938819
+	Achild 0.7
+	Aadult 1.3
+	Aold 0.7
+	Bchild 0.7
+	Badult 1.3
+	Bold 0.7
+scenario 271 Probability 0.00133333
+	epsilon 0.925889
+	b 0.516888
+	m 0.759057
+	Achild 0.7
+	Aadult 0.7
+	Aold 1.3
+	Bchild 0.7
+	Badult 1.3
+	Bold 1.3
+scenario 272 Probability 0.00133333
+	epsilon 0.767774
+	b 0.587321
+	m 0.801031
+	Achild 0.7
+	Aadult 1.3
+	Aold 1.3
+	Bchild 1.3
+	Badult 1.3
+	Bold 1.3
+scenario 273 Probability 0.00133333
+	epsilon 0.904735
+	b 0.580952
+	m 0.796285
+	Achild 1.3
+	Aadult 1.3
+	Aold 0.7
+	Bchild 0.7
+	Badult 0.7
+	Bold 1.3
+scenario 274 Probability 0.00133333
+	epsilon 0.874013
+	b 0.509736
+	m 1.16556
+	Achild 0.7
+	Aadult 0.7
+	Aold 1.3
+	Bchild 0.7
+	Badult 0.7
+	Bold 1.3
+scenario 275 Probability 0.00133333
+	epsilon 0.900738
+	b 0.565071
+	m 1.05907
+	Achild 0.7
+	Aadult 1.3
+	Aold 1.3
+	Bchild 1.3
+	Badult 1.3
+	Bold 0.7
+scenario 276 Probability 0.00133333
+	epsilon 0.921877
+	b 0.542646
+	m 0.983417
+	Achild 0.7
+	Aadult 0.7
+	Aold 1.3
+	Bchild 1.3
+	Badult 1.3
+	Bold 0.7
+scenario 277 Probability 0.00133333
+	epsilon 0.778865
+	b 0.651875
+	m 0.890105
+	Achild 0.7
+	Aadult 1.3
+	Aold 0.7
+	Bchild 0.7
+	Badult 0.7
+	Bold 0.7
+scenario 278 Probability 0.00133333
+	epsilon 0.836667
+	b 0.675447
+	m 1.13135
+	Achild 1.3
+	Aadult 1.3
+	Aold 0.7
+	Bchild 1.3
+	Badult 0.7
+	Bold 1.3
+scenario 279 Probability 0.00133333
+	epsilon 0.894838
+	b 0.614117
+	m 0.873344
+	Achild 1.3
+	Aadult 1.3
+	Aold 0.7
+	Bchild 0.7
+	Badult 0.7
+	Bold 1.3
+scenario 280 Probability 0.00133333
+	epsilon 0.882932
+	b 0.699012
+	m 1.05615
+	Achild 1.3
+	Aadult 0.7
+	Aold 0.7
+	Bchild 1.3
+	Badult 0.7
+	Bold 0.7
+scenario 281 Probability 0.00133333
+	epsilon 0.793701
+	b 0.620648
+	m 0.772377
+	Achild 0.7
+	Aadult 1.3
+	Aold 0.7
+	Bchild 1.3
+	Badult 0.7
+	Bold 0.7
+scenario 282 Probability 0.00133333
+	epsilon 0.943662
+	b 0.546549
+	m 0.912938
+	Achild 0.7
+	Aadult 0.7
+	Aold 1.3
+	Bchild 1.3
+	Badult 0.7
+	Bold 1.3
+scenario 283 Probability 0.00133333
+	epsilon 0.885041
+	b 0.695469
+	m 1.05769
+	Achild 0.7
+	Aadult 0.7
+	Aold 0.7
+	Bchild 0.7
+	Badult 0.7
+	Bold 1.3
+scenario 284 Probability 0.00133333
+	epsilon 0.876325
+	b 0.594695
+	m 0.78363
+	Achild 0.7
+	Aadult 0.7
+	Aold 0.7
+	Bchild 1.3
+	Badult 0.7
+	Bold 0.7
+scenario 285 Probability 0.00133333
+	epsilon 0.887037
+	b 0.630299
+	m 1.07303
+	Achild 0.7
+	Aadult 1.3
+	Aold 0.7
+	Bchild 1.3
+	Badult 1.3
+	Bold 0.7
+scenario 286 Probability 0.00133333
+	epsilon 0.817136
+	b 0.632315
+	m 1.22831
+	Achild 1.3
+	Aadult 0.7
+	Aold 0.7
+	Bchild 0.7
+	Badult 0.7
+	Bold 1.3
+scenario 287 Probability 0.00133333
+	epsilon 0.809253
+	b 0.681921
+	m 0.9702
+	Achild 1.3
+	Aadult 1.3
+	Aold 1.3
+	Bchild 1.3
+	Badult 0.7
+	Bold 1.3
+scenario 288 Probability 0.00133333
+	epsilon 0.846389
+	b 0.623932
+	m 1.23889
+	Achild 0.7
+	Aadult 0.7
+	Aold 0.7
+	Bchild 1.3
+	Badult 0.7
+	Bold 0.7
+scenario 289 Probability 0.00133333
+	epsilon 0.845314
+	b 0.539504
+	m 1.05619
+	Achild 1.3
+	Aadult 1.3
+	Aold 0.7
+	Bchild 1.3
+	Badult 1.3
+	Bold 0.7
+scenario 290 Probability 0.00133333
+	epsilon 0.851674
+	b 0.671371
+	m 0.85656
+	Achild 1.3
+	Aadult 0.7
+	Aold 1.3
+	Bchild 0.7
+	Badult 1.3
+	Bold 0.7
+scenario 291 Probability 0.00133333
+	epsilon 0.780346
+	b 0.550019
+	m 0.977067
+	Achild 1.3
+	Aadult 0.7
+	Aold 0.7
+	Bchild 1.3
+	Badult 0.7
+	Bold 1.3
+scenario 292 Probability 0.00133333
+	epsilon 0.858983
+	b 0.699127
+	m 1.20284
+	Achild 0.7
+	Aadult 1.3
+	Aold 0.7
+	Bchild 1.3
+	Badult 0.7
+	Bold 1.3
+scenario 293 Probability 0.00133333
+	epsilon 0.883319
+	b 0.616601
+	m 1.18125
+	Achild 0.7
+	Aadult 0.7
+	Aold 0.7
+	Bchild 0.7
+	Badult 0.7
+	Bold 1.3
+scenario 294 Probability 0.00133333
+	epsilon 0.828057
+	b 0.639091
+	m 1.0858
+	Achild 0.7
+	Aadult 1.3
+	Aold 0.7
+	Bchild 1.3
+	Badult 0.7
+	Bold 1.3
+scenario 295 Probability 0.00133333
+	epsilon 0.925792
+	b 0.603285
+	m 1.15235
+	Achild 1.3
+	Aadult 0.7
+	Aold 1.3
+	Bchild 1.3
+	Badult 1.3
+	Bold 1.3
+scenario 296 Probability 0.00133333
+	epsilon 0.812498
+	b 0.614762
+	m 1.05243
+	Achild 0.7
+	Aadult 0.7
+	Aold 0.7
+	Bchild 0.7
+	Badult 0.7
+	Bold 0.7
+scenario 297 Probability 0.00133333
+	epsilon 0.849636
+	b 0.579355
+	m 0.935632
+	Achild 0.7
+	Aadult 0.7
+	Aold 1.3
+	Bchild 1.3
+	Badult 1.3
+	Bold 0.7
+scenario 298 Probability 0.00133333
+	epsilon 0.84426
+	b 0.591401
+	m 0.860109
+	Achild 0.7
+	Aadult 0.7
+	Aold 0.7
+	Bchild 1.3
+	Badult 1.3
+	Bold 1.3
+scenario 299 Probability 0.00133333
+	epsilon 0.80912
+	b 0.629615
+	m 1.02633
+	Achild 1.3
+	Aadult 1.3
+	Aold 0.7
+	Bchild 1.3
+	Badult 0.7
+	Bold 0.7
+scenario 300 Probability 0.00133333
+	epsilon 0.866655
+	b 0.672103
+	m 1.08691
+	Achild 0.7
+	Aadult 0.7
+	Aold 1.3
+	Bchild 0.7
+	Badult 0.7
+	Bold 1.3
+scenario 301 Probability 0.00133333
+	epsilon 0.792483
+	b 0.592268
+	m 1.01059
+	Achild 0.7
+	Aadult 1.3
+	Aold 0.7
+	Bchild 1.3
+	Badult 0.7
+	Bold 1.3
+scenario 302 Probability 0.00133333
+	epsilon 0.846202
+	b 0.558489
+	m 0.994523
+	Achild 1.3
+	Aadult 1.3
+	Aold 0.7
+	Bchild 1.3
+	Badult 1.3
+	Bold 1.3
+scenario 303 Probability 0.00133333
+	epsilon 0.813193
+	b 0.683414
+	m 1.07618
+	Achild 0.7
+	Aadult 0.7
+	Aold 0.7
+	Bchild 0.7
+	Badult 0.7
+	Bold 0.7
+scenario 304 Probability 0.00133333
+	epsilon 0.821158
+	b 0.574249
+	m 1.02261
+	Achild 1.3
+	Aadult 0.7
+	Aold 0.7
+	Bchild 1.3
+	Badult 1.3
+	Bold 1.3
+scenario 305 Probability 0.00133333
+	epsilon 0.831236
+	b 0.569345
+	m 1.04858
+	Achild 0.7
+	Aadult 0.7
+	Aold 1.3
+	Bchild 1.3
+	Badult 0.7
+	Bold 0.7
+scenario 306 Probability 0.00133333
+	epsilon 0.897291
+	b 0.638264
+	m 0.753106
+	Achild 0.7
+	Aadult 0.7
+	Aold 1.3
+	Bchild 1.3
+	Badult 0.7
+	Bold 1.3
+scenario 307 Probability 0.00133333
+	epsilon 0.822537
+	b 0.595751
+	m 0.844818
+	Achild 1.3
+	Aadult 1.3
+	Aold 0.7
+	Bchild 0.7
+	Badult 1.3
+	Bold 1.3
+scenario 308 Probability 0.00133333
+	epsilon 0.865287
+	b 0.681824
+	m 1.2228
+	Achild 0.7
+	Aadult 0.7
+	Aold 0.7
+	Bchild 0.7
+	Badult 0.7
+	Bold 1.3
+scenario 309 Probability 0.00133333
+	epsilon 0.908121
+	b 0.667653
+	m 0.898901
+	Achild 1.3
+	Aadult 0.7
+	Aold 0.7
+	Bchild 0.7
+	Badult 1.3
+	Bold 1.3
+scenario 310 Probability 0.00133333
+	epsilon 0.861495
+	b 0.663652
+	m 1.08336
+	Achild 1.3
+	Aadult 1.3
+	Aold 1.3
+	Bchild 1.3
+	Badult 1.3
+	Bold 0.7
+scenario 311 Probability 0.00133333
+	epsilon 0.881099
+	b 0.508502
+	m 1.08099
+	Achild 0.7
+	Aadult 0.7
+	Aold 1.3
+	Bchild 0.7
+	Badult 0.7
+	Bold 1.3
+scenario 312 Probability 0.00133333
+	epsilon 0.882762
+	b 0.501177
+	m 1.04533
+	Achild 0.7
+	Aadult 0.7
+	Aold 1.3
+	Bchild 1.3
+	Badult 0.7
+	Bold 1.3
+scenario 313 Probability 0.00133333
+	epsilon 0.768542
+	b 0.500898
+	m 0.873597
+	Achild 1.3
+	Aadult 0.7
+	Aold 0.7
+	Bchild 0.7
+	Badult 1.3
+	Bold 1.3
+scenario 314 Probability 0.00133333
+	epsilon 0.828663
+	b 0.638448
+	m 0.994235
+	Achild 0.7
+	Aadult 0.7
+	Aold 1.3
+	Bchild 0.7
+	Badult 0.7
+	Bold 0.7
+scenario 315 Probability 0.00133333
+	epsilon 0.939327
+	b 0.533588
+	m 1.00347
+	Achild 0.7
+	Aadult 1.3
+	Aold 1.3
+	Bchild 0.7
+	Badult 0.7
+	Bold 0.7
+scenario 316 Probability 0.00133333
+	epsilon 0.792456
+	b 0.512446
+	m 1.00276
+	Achild 1.3
+	Aadult 1.3
+	Aold 0.7
+	Bchild 0.7
+	Badult 0.7
+	Bold 0.7
+scenario 317 Probability 0.00133333
+	epsilon 0.764081
+	b 0.512987
+	m 1.24473
+	Achild 0.7
+	Aadult 1.3
+	Aold 1.3
+	Bchild 0.7
+	Badult 1.3
+	Bold 1.3
+scenario 318 Probability 0.00133333
+	epsilon 0.818872
+	b 0.529836
+	m 1.234
+	Achild 1.3
+	Aadult 1.3
+	Aold 0.7
+	Bchild 0.7
+	Badult 1.3
+	Bold 0.7
+scenario 319 Probability 0.00133333
+	epsilon 0.920423
+	b 0.634721
+	m 0.814975
+	Achild 0.7
+	Aadult 1.3
+	Aold 1.3
+	Bchild 1.3
+	Badult 0.7
+	Bold 0.7
+scenario 320 Probability 0.00133333
+	epsilon 0.865497
+	b 0.549393
+	m 0.991684
+	Achild 1.3
+	Aadult 1.3
+	Aold 1.3
+	Bchild 0.7
+	Badult 1.3
+	Bold 0.7
+scenario 321 Probability 0.00133333
+	epsilon 0.883707
+	b 0.596399
+	m 1.10337
+	Achild 1.3
+	Aadult 1.3
+	Aold 1.3
+	Bchild 1.3
+	Badult 1.3
+	Bold 0.7
+scenario 322 Probability 0.00133333
+	epsilon 0.828034
+	b 0.667407
+	m 0.836491
+	Achild 0.7
+	Aadult 1.3
+	Aold 1.3
+	Bchild 0.7
+	Badult 1.3
+	Bold 1.3
+scenario 323 Probability 0.00133333
+	epsilon 0.903222
+	b 0.549944
+	m 0.976272
+	Achild 1.3
+	Aadult 0.7
+	Aold 0.7
+	Bchild 1.3
+	Badult 0.7
+	Bold 0.7
+scenario 324 Probability 0.00133333
+	epsilon 0.834556
+	b 0.602813
+	m 0.873863
+	Achild 0.7
+	Aadult 1.3
+	Aold 1.3
+	Bchild 1.3
+	Badult 1.3
+	Bold 0.7
+scenario 325 Probability 0.00133333
+	epsilon 0.87462
+	b 0.544188
+	m 0.985633
+	Achild 1.3
+	Aadult 0.7
+	Aold 1.3
+	Bchild 0.7
+	Badult 1.3
+	Bold 0.7
+scenario 326 Probability 0.00133333
+	epsilon 0.809418
+	b 0.672707
+	m 0.980778
+	Achild 0.7
+	Aadult 1.3
+	Aold 0.7
+	Bchild 0.7
+	Badult 0.7
+	Bold 1.3
+scenario 327 Probability 0.00133333
+	epsilon 0.901063
+	b 0.579629
+	m 1.08348
+	Achild 0.7
+	Aadult 0.7
+	Aold 1.3
+	Bchild 0.7
+	Badult 1.3
+	Bold 0.7
+scenario 328 Probability 0.00133333
+	epsilon 0.804134
+	b 0.604055
+	m 0.811318
+	Achild 1.3
+	Aadult 1.3
+	Aold 1.3
+	Bchild 1.3
+	Badult 1.3
+	Bold 0.7
+scenario 329 Probability 0.00133333
+	epsilon 0.902771
+	b 0.661247
+	m 1.05018
+	Achild 1.3
+	Aadult 1.3
+	Aold 1.3
+	Bchild 1.3
+	Badult 0.7
+	Bold 0.7
+scenario 330 Probability 0.00133333
+	epsilon 0.781793
+	b 0.514232
+	m 0.817013
+	Achild 1.3
+	Aadult 0.7
+	Aold 0.7
+	Bchild 1.3
+	Badult 0.7
+	Bold 1.3
+scenario 331 Probability 0.00133333
+	epsilon 0.84707
+	b 0.529719
+	m 0.986729
+	Achild 0.7
+	Aadult 0.7
+	Aold 0.7
+	Bchild 1.3
+	Badult 1.3
+	Bold 1.3
+scenario 332 Probability 0.00133333
+	epsilon 0.752196
+	b 0.538267
+	m 1.00085
+	Achild 0.7
+	Aadult 1.3
+	Aold 0.7
+	Bchild 0.7
+	Badult 1.3
+	Bold 0.7
+scenario 333 Probability 0.00133333
+	epsilon 0.868016
+	b 0.616839
+	m 1.029
+	Achild 1.3
+	Aadult 1.3
+	Aold 1.3
+	Bchild 0.7
+	Badult 0.7
+	Bold 1.3
+scenario 334 Probability 0.00133333
+	epsilon 0.939067
+	b 0.621081
+	m 1.19934
+	Achild 1.3
+	Aadult 1.3
+	Aold 1.3
+	Bchild 1.3
+	Badult 1.3
+	Bold 1.3
+scenario 335 Probability 0.00133333
+	epsilon 0.919397
+	b 0.563038
+	m 0.918073
+	Achild 0.7
+	Aadult 1.3
+	Aold 1.3
+	Bchild 0.7
+	Badult 0.7
+	Bold 0.7
+scenario 336 Probability 0.00133333
+	epsilon 0.823329
+	b 0.566246
+	m 1.01836
+	Achild 1.3
+	Aadult 1.3
+	Aold 1.3
+	Bchild 1.3
+	Badult 0.7
+	Bold 0.7
+scenario 337 Probability 0.00133333
+	epsilon 0.838224
+	b 0.531023
+	m 1.17007
+	Achild 1.3
+	Aadult 1.3
+	Aold 0.7
+	Bchild 0.7
+	Badult 0.7
+	Bold 0.7
+scenario 338 Probability 0.00133333
+	epsilon 0.8294
+	b 0.619273
+	m 1.11638
+	Achild 1.3
+	Aadult 0.7
+	Aold 1.3
+	Bchild 1.3
+	Badult 0.7
+	Bold 1.3
+scenario 339 Probability 0.00133333
+	epsilon 0.910983
+	b 0.668964
+	m 1.11872
+	Achild 0.7
+	Aadult 0.7
+	Aold 0.7
+	Bchild 0.7
+	Badult 1.3
+	Bold 1.3
+scenario 340 Probability 0.00133333
+	epsilon 0.758563
+	b 0.687781
+	m 1.04766
+	Achild 1.3
+	Aadult 1.3
+	Aold 1.3
+	Bchild 0.7
+	Badult 0.7
+	Bold 1.3
+scenario 341 Probability 0.00133333
+	epsilon 0.854309
+	b 0.626448
+	m 1.08185
+	Achild 1.3
+	Aadult 0.7
+	Aold 0.7
+	Bchild 1.3
+	Badult 1.3
+	Bold 0.7
+scenario 342 Probability 0.00133333
+	epsilon 0.85382
+	b 0.510486
+	m 0.977719
+	Achild 1.3
+	Aadult 1.3
+	Aold 0.7
+	Bchild 0.7
+	Badult 0.7
+	Bold 1.3
+scenario 343 Probability 0.00133333
+	epsilon 0.921477
+	b 0.666199
+	m 0.94163
+	Achild 0.7
+	Aadult 0.7
+	Aold 1.3
+	Bchild 1.3
+	Badult 0.7
+	Bold 0.7
+scenario 344 Probability 0.00133333
+	epsilon 0.750659
+	b 0.595697
+	m 0.825987
+	Achild 1.3
+	Aadult 0.7
+	Aold 0.7
+	Bchild 0.7
+	Badult 0.7
+	Bold 0.7
+scenario 345 Probability 0.00133333
+	epsilon 0.75654
+	b 0.608556
+	m 0.947553
+	Achild 1.3
+	Aadult 1.3
+	Aold 1.3
+	Bchild 1.3
+	Badult 0.7
+	Bold 0.7
+scenario 346 Probability 0.00133333
+	epsilon 0.867724
+	b 0.661202
+	m 1.0584
+	Achild 0.7
+	Aadult 0.7
+	Aold 0.7
+	Bchild 1.3
+	Badult 1.3
+	Bold 1.3
+scenario 347 Probability 0.00133333
+	epsilon 0.759962
+	b 0.644352
+	m 1.07048
+	Achild 0.7
+	Aadult 0.7
+	Aold 1.3
+	Bchild 0.7
+	Badult 0.7
+	Bold 0.7
+scenario 348 Probability 0.00133333
+	epsilon 0.938866
+	b 0.681162
+	m 1.24311
+	Achild 1.3
+	Aadult 0.7
+	Aold 0.7
+	Bchild 1.3
+	Badult 0.7
+	Bold 0.7
+scenario 349 Probability 0.00133333
+	epsilon 0.845257
+	b 0.642818
+	m 0.922865
+	Achild 1.3
+	Aadult 1.3
+	Aold 0.7
+	Bchild 0.7
+	Badult 1.3
+	Bold 1.3
+scenario 350 Probability 0.00133333
+	epsilon 0.825403
+	b 0.656325
+	m 0.895134
+	Achild 1.3
+	Aadult 0.7
+	Aold 0.7
+	Bchild 1.3
+	Badult 1.3
+	Bold 1.3
+scenario 351 Probability 0.00133333
+	epsilon 0.792521
+	b 0.551804
+	m 0.811496
+	Achild 1.3
+	Aadult 0.7
+	Aold 1.3
+	Bchild 1.3
+	Badult 0.7
+	Bold 0.7
+scenario 352 Probability 0.00133333
+	epsilon 0.751267
+	b 0.682881
+	m 1.06976
+	Achild 0.7
+	Aadult 1.3
+	Aold 0.7
+	Bchild 1.3
+	Badult 1.3
+	Bold 0.7
+scenario 353 Probability 0.00133333
+	epsilon 0.917587
+	b 0.581405
+	m 0.818815
+	Achild 0.7
+	Aadult 0.7
+	Aold 0.7
+	Bchild 0.7
+	Badult 0.7
+	Bold 1.3
+scenario 354 Probability 0.00133333
+	epsilon 0.930833
+	b 0.676379
+	m 1.04075
+	Achild 0.7
+	Aadult 1.3
+	Aold 1.3
+	Bchild 1.3
+	Badult 1.3
+	Bold 1.3
+scenario 355 Probability 0.00133333
+	epsilon 0.876851
+	b 0.569726
+	m 0.882946
+	Achild 0.7
+	Aadult 1.3
+	Aold 0.7
+	Bchild 0.7
+	Badult 1.3
+	Bold 1.3
+scenario 356 Probability 0.00133333
+	epsilon 0.923011
+	b 0.52704
+	m 1.21632
+	Achild 0.7
+	Aadult 1.3
+	Aold 0.7
+	Bchild 1.3
+	Badult 1.3
+	Bold 0.7
+scenario 357 Probability 0.00133333
+	epsilon 0.847224
+	b 0.553139
+	m 0.854929
+	Achild 0.7
+	Aadult 0.7
+	Aold 0.7
+	Bchild 1.3
+	Badult 0.7
+	Bold 1.3
+scenario 358 Probability 0.00133333
+	epsilon 0.879157
+	b 0.68929
+	m 0.982731
+	Achild 1.3
+	Aadult 0.7
+	Aold 1.3
+	Bchild 0.7
+	Badult 0.7
+	Bold 0.7
+scenario 359 Probability 0.00133333
+	epsilon 0.794614
+	b 0.601547
+	m 0.950518
+	Achild 0.7
+	Aadult 1.3
+	Aold 0.7
+	Bchild 1.3
+	Badult 0.7
+	Bold 0.7
+scenario 360 Probability 0.00133333
+	epsilon 0.926092
+	b 0.680457
+	m 0.895482
+	Achild 1.3
+	Aadult 1.3
+	Aold 0.7
+	Bchild 1.3
+	Badult 0.7
+	Bold 0.7
+scenario 361 Probability 0.00133333
+	epsilon 0.774916
+	b 0.673895
+	m 1.06873
+	Achild 1.3
+	Aadult 0.7
+	Aold 1.3
+	Bchild 1.3
+	Badult 0.7
+	Bold 1.3
+scenario 362 Probability 0.00133333
+	epsilon 0.758791
+	b 0.642416
+	m 0.935336
+	Achild 0.7
+	Aadult 0.7
+	Aold 1.3
+	Bchild 0.7
+	Badult 1.3
+	Bold 1.3
+scenario 363 Probability 0.00133333
+	epsilon 0.81411
+	b 0.653681
+	m 1.14025
+	Achild 1.3
+	Aadult 1.3
+	Aold 0.7
+	Bchild 1.3
+	Badult 1.3
+	Bold 0.7
+scenario 364 Probability 0.00133333
+	epsilon 0.885619
+	b 0.650622
+	m 1.17701
+	Achild 0.7
+	Aadult 1.3
+	Aold 1.3
+	Bchild 0.7
+	Badult 1.3
+	Bold 1.3
+scenario 365 Probability 0.00133333
+	epsilon 0.888273
+	b 0.672619
+	m 1.14111
+	Achild 1.3
+	Aadult 1.3
+	Aold 0.7
+	Bchild 1.3
+	Badult 0.7
+	Bold 1.3
+scenario 366 Probability 0.00133333
+	epsilon 0.841297
+	b 0.580244
+	m 1.05945
+	Achild 1.3
+	Aadult 0.7
+	Aold 0.7
+	Bchild 1.3
+	Badult 0.7
+	Bold 1.3
+scenario 367 Probability 0.00133333
+	epsilon 0.920238
+	b 0.581889
+	m 1.01439
+	Achild 1.3
+	Aadult 0.7
+	Aold 0.7
+	Bchild 1.3
+	Badult 1.3
+	Bold 1.3
+scenario 368 Probability 0.00133333
+	epsilon 0.765611
+	b 0.612544
+	m 0.867126
+	Achild 1.3
+	Aadult 1.3
+	Aold 1.3
+	Bchild 1.3
+	Badult 0.7
+	Bold 1.3
+scenario 369 Probability 0.00133333
+	epsilon 0.940399
+	b 0.592004
+	m 0.993288
+	Achild 0.7
+	Aadult 0.7
+	Aold 1.3
+	Bchild 0.7
+	Badult 0.7
+	Bold 1.3
+scenario 370 Probability 0.00133333
+	epsilon 0.891114
+	b 0.507152
+	m 1.09331
+	Achild 0.7
+	Aadult 1.3
+	Aold 0.7
+	Bchild 1.3
+	Badult 1.3
+	Bold 0.7
+scenario 371 Probability 0.00133333
+	epsilon 0.783315
+	b 0.611542
+	m 0.938341
+	Achild 1.3
+	Aadult 0.7
+	Aold 1.3
+	Bchild 0.7
+	Badult 1.3
+	Bold 0.7
+scenario 372 Probability 0.00133333
+	epsilon 0.766712
+	b 0.635393
+	m 0.953752
+	Achild 1.3
+	Aadult 1.3
+	Aold 1.3
+	Bchild 0.7
+	Badult 1.3
+	Bold 1.3
+scenario 373 Probability 0.00133333
+	epsilon 0.863643
+	b 0.688518
+	m 1.15436
+	Achild 1.3
+	Aadult 0.7
+	Aold 1.3
+	Bchild 1.3
+	Badult 0.7
+	Bold 1.3
+scenario 374 Probability 0.00133333
+	epsilon 0.945137
+	b 0.56118
+	m 1.18849
+	Achild 1.3
+	Aadult 1.3
+	Aold 1.3
+	Bchild 0.7
+	Badult 0.7
+	Bold 0.7
+scenario 375 Probability 0.00133333
+	epsilon 0.801606
+	b 0.58689
+	m 0.910669
+	Achild 0.7
+	Aadult 0.7
+	Aold 1.3
+	Bchild 1.3
+	Badult 1.3
+	Bold 0.7
+scenario 376 Probability 0.00133333
+	epsilon 0.825629
+	b 0.655604
+	m 1.23468
+	Achild 1.3
+	Aadult 0.7
+	Aold 1.3
+	Bchild 1.3
+	Badult 0.7
+	Bold 1.3
+scenario 377 Probability 0.00133333
+	epsilon 0.849664
+	b 0.694751
+	m 1.09208
+	Achild 0.7
+	Aadult 1.3
+	Aold 0.7
+	Bchild 1.3
+	Badult 0.7
+	Bold 0.7
+scenario 378 Probability 0.00133333
+	epsilon 0.918977
+	b 0.540655
+	m 1.0442
+	Achild 1.3
+	Aadult 1.3
+	Aold 1.3
+	Bchild 1.3
+	Badult 1.3
+	Bold 0.7
+scenario 379 Probability 0.00133333
+	epsilon 0.761755
+	b 0.565993
+	m 0.903959
+	Achild 1.3
+	Aadult 1.3
+	Aold 0.7
+	Bchild 0.7
+	Badult 0.7
+	Bold 1.3
+scenario 380 Probability 0.00133333
+	epsilon 0.868235
+	b 0.596266
+	m 1.14854
+	Achild 1.3
+	Aadult 0.7
+	Aold 1.3
+	Bchild 1.3
+	Badult 1.3
+	Bold 0.7
+scenario 381 Probability 0.00133333
+	epsilon 0.906138
+	b 0.681321
+	m 1.02597
+	Achild 0.7
+	Aadult 0.7
+	Aold 1.3
+	Bchild 0.7
+	Badult 1.3
+	Bold 1.3
+scenario 382 Probability 0.00133333
+	epsilon 0.914696
+	b 0.68359
+	m 1.1297
+	Achild 1.3
+	Aadult 0.7
+	Aold 1.3
+	Bchild 0.7
+	Badult 1.3
+	Bold 0.7
+scenario 383 Probability 0.00133333
+	epsilon 0.93181
+	b 0.569982
+	m 1.17513
+	Achild 0.7
+	Aadult 0.7
+	Aold 1.3
+	Bchild 0.7
+	Badult 1.3
+	Bold 1.3
+scenario 384 Probability 0.00133333
+	epsilon 0.760239
+	b 0.642081
+	m 0.753944
+	Achild 0.7
+	Aadult 0.7
+	Aold 1.3
+	Bchild 0.7
+	Badult 1.3
+	Bold 1.3
+scenario 385 Probability 0.00133333
+	epsilon 0.899755
+	b 0.637729
+	m 0.996326
+	Achild 0.7
+	Aadult 1.3
+	Aold 0.7
+	Bchild 1.3
+	Badult 1.3
+	Bold 1.3
+scenario 386 Probability 0.00133333
+	epsilon 0.865116
+	b 0.638345
+	m 0.902251
+	Achild 1.3
+	Aadult 0.7
+	Aold 0.7
+	Bchild 1.3
+	Badult 0.7
+	Bold 1.3
+scenario 387 Probability 0.00133333
+	epsilon 0.848403
+	b 0.602472
+	m 1.17759
+	Achild 0.7
+	Aadult 1.3
+	Aold 1.3
+	Bchild 1.3
+	Badult 1.3
+	Bold 1.3
+scenario 388 Probability 0.00133333
+	epsilon 0.924279
+	b 0.603674
+	m 1.24485
+	Achild 1.3
+	Aadult 0.7
+	Aold 0.7
+	Bchild 0.7
+	Badult 1.3
+	Bold 1.3
+scenario 389 Probability 0.00133333
+	epsilon 0.843851
+	b 0.517607
+	m 1.18049
+	Achild 1.3
+	Aadult 0.7
+	Aold 1.3
+	Bchild 1.3
+	Badult 1.3
+	Bold 1.3
+scenario 390 Probability 0.00133333
+	epsilon 0.822199
+	b 0.581757
+	m 0.840032
+	Achild 0.7
+	Aadult 0.7
+	Aold 1.3
+	Bchild 1.3
+	Badult 1.3
+	Bold 1.3
+scenario 391 Probability 0.00133333
+	epsilon 0.841792
+	b 0.628724
+	m 1.02808
+	Achild 0.7
+	Aadult 0.7
+	Aold 1.3
+	Bchild 1.3
+	Badult 0.7
+	Bold 1.3
+scenario 392 Probability 0.00133333
+	epsilon 0.905037
+	b 0.540151
+	m 0.908214
+	Achild 0.7
+	Aadult 1.3
+	Aold 0.7
+	Bchild 0.7
+	Badult 0.7
+	Bold 0.7
+scenario 393 Probability 0.00133333
+	epsilon 0.766698
+	b 0.605883
+	m 1.23079
+	Achild 0.7
+	Aadult 0.7
+	Aold 1.3
+	Bchild 0.7
+	Badult 1.3
+	Bold 1.3
+scenario 394 Probability 0.00133333
+	epsilon 0.858079
+	b 0.644805
+	m 0.989848
+	Achild 1.3
+	Aadult 1.3
+	Aold 1.3
+	Bchild 0.7
+	Badult 1.3
+	Bold 1.3
+scenario 395 Probability 0.00133333
+	epsilon 0.877071
+	b 0.655674
+	m 1.03147
+	Achild 1.3
+	Aadult 1.3
+	Aold 1.3
+	Bchild 0.7
+	Badult 1.3
+	Bold 1.3
+scenario 396 Probability 0.00133333
+	epsilon 0.819196
+	b 0.580021
+	m 0.90296
+	Achild 0.7
+	Aadult 1.3
+	Aold 0.7
+	Bchild 1.3
+	Badult 1.3
+	Bold 0.7
+scenario 397 Probability 0.00133333
+	epsilon 0.897266
+	b 0.627854
+	m 0.808757
+	Achild 0.7
+	Aadult 1.3
+	Aold 0.7
+	Bchild 0.7
+	Badult 1.3
+	Bold 1.3
+scenario 398 Probability 0.00133333
+	epsilon 0.758403
+	b 0.605909
+	m 1.21755
+	Achild 1.3
+	Aadult 1.3
+	Aold 1.3
+	Bchild 1.3
+	Badult 0.7
+	Bold 1.3
+scenario 399 Probability 0.00133333
+	epsilon 0.833255
+	b 0.576482
+	m 0.9768
+	Achild 1.3
+	Aadult 0.7
+	Aold 0.7
+	Bchild 0.7
+	Badult 1.3
+	Bold 0.7
+scenario 400 Probability 0.00133333
+	epsilon 0.826548
+	b 0.670423
+	m 0.995108
+	Achild 0.7
+	Aadult 1.3
+	Aold 0.7
+	Bchild 1.3
+	Badult 0.7
+	Bold 0.7
+scenario 401 Probability 0.00133333
+	epsilon 0.897457
+	b 0.635868
+	m 1.03024
+	Achild 0.7
+	Aadult 0.7
+	Aold 0.7
+	Bchild 1.3
+	Badult 0.7
+	Bold 1.3
+scenario 402 Probability 0.00133333
+	epsilon 0.860385
+	b 0.570709
+	m 1.05898
+	Achild 1.3
+	Aadult 1.3
+	Aold 0.7
+	Bchild 0.7
+	Badult 0.7
+	Bold 1.3
+scenario 403 Probability 0.00133333
+	epsilon 0.927771
+	b 0.593112
+	m 1.17218
+	Achild 1.3
+	Aadult 0.7
+	Aold 1.3
+	Bchild 1.3
+	Badult 1.3
+	Bold 0.7
+scenario 404 Probability 0.00133333
+	epsilon 0.874566
+	b 0.611913
+	m 1.00185
+	Achild 0.7
+	Aadult 0.7
+	Aold 0.7
+	Bchild 1.3
+	Badult 1.3
+	Bold 0.7
+scenario 405 Probability 0.00133333
+	epsilon 0.884592
+	b 0.669007
+	m 0.982968
+	Achild 1.3
+	Aadult 1.3
+	Aold 1.3
+	Bchild 0.7
+	Badult 1.3
+	Bold 0.7
+scenario 406 Probability 0.00133333
+	epsilon 0.831706
+	b 0.682846
+	m 0.972927
+	Achild 1.3
+	Aadult 1.3
+	Aold 0.7
+	Bchild 0.7
+	Badult 0.7
+	Bold 1.3
+scenario 407 Probability 0.00133333
+	epsilon 0.819437
+	b 0.625235
+	m 1.07217
+	Achild 1.3
+	Aadult 0.7
+	Aold 0.7
+	Bchild 1.3
+	Badult 1.3
+	Bold 0.7
+scenario 408 Probability 0.00133333
+	epsilon 0.777495
+	b 0.598524
+	m 1.17592
+	Achild 0.7
+	Aadult 1.3
+	Aold 0.7
+	Bchild 0.7
+	Badult 0.7
+	Bold 1.3
+scenario 409 Probability 0.00133333
+	epsilon 0.868374
+	b 0.605083
+	m 0.966346
+	Achild 1.3
+	Aadult 0.7
+	Aold 0.7
+	Bchild 0.7
+	Badult 0.7
+	Bold 1.3
+scenario 410 Probability 0.00133333
+	epsilon 0.922398
+	b 0.580619
+	m 0.840725
+	Achild 1.3
+	Aadult 0.7
+	Aold 0.7
+	Bchild 1.3
+	Badult 1.3
+	Bold 1.3
+scenario 411 Probability 0.00133333
+	epsilon 0.815093
+	b 0.549069
+	m 0.992967
+	Achild 1.3
+	Aadult 1.3
+	Aold 0.7
+	Bchild 1.3
+	Badult 1.3
+	Bold 0.7
+scenario 412 Probability 0.00133333
+	epsilon 0.889195
+	b 0.577916
+	m 1.18326
+	Achild 1.3
+	Aadult 1.3
+	Aold 0.7
+	Bchild 1.3
+	Badult 1.3
+	Bold 1.3
+scenario 413 Probability 0.00133333
+	epsilon 0.856787
+	b 0.578451
+	m 1.10581
+	Achild 0.7
+	Aadult 1.3
+	Aold 0.7
+	Bchild 1.3
+	Badult 0.7
+	Bold 1.3
+scenario 414 Probability 0.00133333
+	epsilon 0.856685
+	b 0.51351
+	m 0.99893
+	Achild 0.7
+	Aadult 1.3
+	Aold 0.7
+	Bchild 0.7
+	Badult 0.7
+	Bold 1.3
+scenario 415 Probability 0.00133333
+	epsilon 0.837109
+	b 0.594033
+	m 1.14897
+	Achild 1.3
+	Aadult 1.3
+	Aold 0.7
+	Bchild 1.3
+	Badult 0.7
+	Bold 1.3
+scenario 416 Probability 0.00133333
+	epsilon 0.77606
+	b 0.672285
+	m 0.90743
+	Achild 1.3
+	Aadult 0.7
+	Aold 0.7
+	Bchild 1.3
+	Badult 1.3
+	Bold 1.3
+scenario 417 Probability 0.00133333
+	epsilon 0.875047
+	b 0.693701
+	m 0.854684
+	Achild 1.3
+	Aadult 1.3
+	Aold 1.3
+	Bchild 1.3
+	Badult 0.7
+	Bold 1.3
+scenario 418 Probability 0.00133333
+	epsilon 0.817761
+	b 0.625858
+	m 0.909214
+	Achild 1.3
+	Aadult 0.7
+	Aold 1.3
+	Bchild 0.7
+	Badult 0.7
+	Bold 1.3
+scenario 419 Probability 0.00133333
+	epsilon 0.848883
+	b 0.55382
+	m 1.01606
+	Achild 1.3
+	Aadult 0.7
+	Aold 0.7
+	Bchild 1.3
+	Badult 1.3
+	Bold 0.7
+scenario 420 Probability 0.00133333
+	epsilon 0.832545
+	b 0.623002
+	m 0.958381
+	Achild 0.7
+	Aadult 0.7
+	Aold 0.7
+	Bchild 1.3
+	Badult 1.3
+	Bold 0.7
+scenario 421 Probability 0.00133333
+	epsilon 0.77836
+	b 0.630377
+	m 0.875123
+	Achild 1.3
+	Aadult 0.7
+	Aold 1.3
+	Bchild 1.3
+	Badult 0.7
+	Bold 1.3
+scenario 422 Probability 0.00133333
+	epsilon 0.770622
+	b 0.638856
+	m 0.95238
+	Achild 1.3
+	Aadult 0.7
+	Aold 0.7
+	Bchild 0.7
+	Badult 0.7
+	Bold 0.7
+scenario 423 Probability 0.00133333
+	epsilon 0.908454
+	b 0.606872
+	m 0.92977
+	Achild 1.3
+	Aadult 1.3
+	Aold 0.7
+	Bchild 1.3
+	Badult 1.3
+	Bold 1.3
+scenario 424 Probability 0.00133333
+	epsilon 0.893259
+	b 0.641631
+	m 1.17493
+	Achild 1.3
+	Aadult 0.7
+	Aold 0.7
+	Bchild 1.3
+	Badult 1.3
+	Bold 0.7
+scenario 425 Probability 0.00133333
+	epsilon 0.945715
+	b 0.624114
+	m 1.03776
+	Achild 0.7
+	Aadult 1.3
+	Aold 0.7
+	Bchild 1.3
+	Badult 0.7
+	Bold 0.7
+scenario 426 Probability 0.00133333
+	epsilon 0.795854
+	b 0.533819
+	m 0.955536
+	Achild 0.7
+	Aadult 1.3
+	Aold 0.7
+	Bchild 0.7
+	Badult 1.3
+	Bold 0.7
+scenario 427 Probability 0.00133333
+	epsilon 0.842899
+	b 0.567656
+	m 0.938156
+	Achild 0.7
+	Aadult 1.3
+	Aold 1.3
+	Bchild 0.7
+	Badult 1.3
+	Bold 1.3
+scenario 428 Probability 0.00133333
+	epsilon 0.876795
+	b 0.59403
+	m 1.02792
+	Achild 1.3
+	Aadult 0.7
+	Aold 0.7
+	Bchild 1.3
+	Badult 0.7
+	Bold 1.3
+scenario 429 Probability 0.00133333
+	epsilon 0.830408
+	b 0.638744
+	m 0.858368
+	Achild 1.3
+	Aadult 1.3
+	Aold 0.7
+	Bchild 0.7
+	Badult 0.7
+	Bold 0.7
+scenario 430 Probability 0.00133333
+	epsilon 0.857778
+	b 0.566622
+	m 1.09717
+	Achild 1.3
+	Aadult 1.3
+	Aold 0.7
+	Bchild 0.7
+	Badult 0.7
+	Bold 1.3
+scenario 431 Probability 0.00133333
+	epsilon 0.831221
+	b 0.678914
+	m 1.04354
+	Achild 0.7
+	Aadult 0.7
+	Aold 0.7
+	Bchild 0.7
+	Badult 1.3
+	Bold 0.7
+scenario 432 Probability 0.00133333
+	epsilon 0.856317
+	b 0.613567
+	m 1.12481
+	Achild 0.7
+	Aadult 1.3
+	Aold 0.7
+	Bchild 1.3
+	Badult 0.7
+	Bold 0.7
+scenario 433 Probability 0.00133333
+	epsilon 0.783053
+	b 0.558272
+	m 0.919803
+	Achild 0.7
+	Aadult 1.3
+	Aold 0.7
+	Bchild 0.7
+	Badult 1.3
+	Bold 1.3
+scenario 434 Probability 0.00133333
+	epsilon 0.919123
+	b 0.615636
+	m 1.17994
+	Achild 1.3
+	Aadult 0.7
+	Aold 0.7
+	Bchild 1.3
+	Badult 0.7
+	Bold 0.7
+scenario 435 Probability 0.00133333
+	epsilon 0.8158
+	b 0.574945
+	m 1.05532
+	Achild 1.3
+	Aadult 0.7
+	Aold 0.7
+	Bchild 0.7
+	Badult 0.7
+	Bold 1.3
+scenario 436 Probability 0.00133333
+	epsilon 0.904947
+	b 0.669458
+	m 0.896361
+	Achild 1.3
+	Aadult 1.3
+	Aold 1.3
+	Bchild 0.7
+	Badult 1.3
+	Bold 1.3
+scenario 437 Probability 0.00133333
+	epsilon 0.844418
+	b 0.66162
+	m 1.02088
+	Achild 1.3
+	Aadult 0.7
+	Aold 1.3
+	Bchild 1.3
+	Badult 1.3
+	Bold 0.7
+scenario 438 Probability 0.00133333
+	epsilon 0.760426
+	b 0.597099
+	m 0.958939
+	Achild 0.7
+	Aadult 0.7
+	Aold 0.7
+	Bchild 1.3
+	Badult 0.7
+	Bold 1.3
+scenario 439 Probability 0.00133333
+	epsilon 0.912568
+	b 0.544513
+	m 0.978393
+	Achild 1.3
+	Aadult 1.3
+	Aold 1.3
+	Bchild 0.7
+	Badult 1.3
+	Bold 0.7
+scenario 440 Probability 0.00133333
+	epsilon 0.913779
+	b 0.612943
+	m 0.907265
+	Achild 0.7
+	Aadult 0.7
+	Aold 1.3
+	Bchild 1.3
+	Badult 1.3
+	Bold 0.7
+scenario 441 Probability 0.00133333
+	epsilon 0.920398
+	b 0.639028
+	m 1.05729
+	Achild 0.7
+	Aadult 1.3
+	Aold 1.3
+	Bchild 1.3
+	Badult 1.3
+	Bold 1.3
+scenario 442 Probability 0.00133333
+	epsilon 0.813087
+	b 0.628161
+	m 0.925233
+	Achild 0.7
+	Aadult 1.3
+	Aold 0.7
+	Bchild 1.3
+	Badult 0.7
+	Bold 1.3
+scenario 443 Probability 0.00133333
+	epsilon 0.87189
+	b 0.620723
+	m 1.02262
+	Achild 1.3
+	Aadult 1.3
+	Aold 0.7
+	Bchild 0.7
+	Badult 0.7
+	Bold 0.7
+scenario 444 Probability 0.00133333
+	epsilon 0.932046
+	b 0.571791
+	m 0.75423
+	Achild 1.3
+	Aadult 1.3
+	Aold 1.3
+	Bchild 1.3
+	Badult 1.3
+	Bold 1.3
+scenario 445 Probability 0.00133333
+	epsilon 0.763249
+	b 0.662101
+	m 1.08112
+	Achild 0.7
+	Aadult 1.3
+	Aold 0.7
+	Bchild 0.7
+	Badult 0.7
+	Bold 1.3
+scenario 446 Probability 0.00133333
+	epsilon 0.847978
+	b 0.562529
+	m 0.925408
+	Achild 0.7
+	Aadult 0.7
+	Aold 0.7
+	Bchild 1.3
+	Badult 1.3
+	Bold 0.7
+scenario 447 Probability 0.00133333
+	epsilon 0.856692
+	b 0.52345
+	m 0.798088
+	Achild 0.7
+	Aadult 0.7
+	Aold 0.7
+	Bchild 0.7
+	Badult 1.3
+	Bold 1.3
+scenario 448 Probability 0.00133333
+	epsilon 0.880663
+	b 0.549823
+	m 1.13168
+	Achild 0.7
+	Aadult 0.7
+	Aold 1.3
+	Bchild 0.7
+	Badult 0.7
+	Bold 1.3
+scenario 449 Probability 0.00133333
+	epsilon 0.867255
+	b 0.698055
+	m 0.797214
+	Achild 1.3
+	Aadult 0.7
+	Aold 1.3
+	Bchild 1.3
+	Badult 0.7
+	Bold 1.3
+scenario 450 Probability 0.00133333
+	epsilon 0.791321
+	b 0.626297
+	m 0.752799
+	Achild 0.7
+	Aadult 1.3
+	Aold 0.7
+	Bchild 1.3
+	Badult 0.7
+	Bold 0.7
+scenario 451 Probability 0.00133333
+	epsilon 0.867888
+	b 0.650566
+	m 0.913973
+	Achild 1.3
+	Aadult 0.7
+	Aold 1.3
+	Bchild 1.3
+	Badult 0.7
+	Bold 1.3
+scenario 452 Probability 0.00133333
+	epsilon 0.790106
+	b 0.558016
+	m 1.1133
+	Achild 1.3
+	Aadult 1.3
+	Aold 1.3
+	Bchild 0.7
+	Badult 0.7
+	Bold 0.7
+scenario 453 Probability 0.00133333
+	epsilon 0.799929
+	b 0.696425
+	m 1.11042
+	Achild 1.3
+	Aadult 0.7
+	Aold 1.3
+	Bchild 0.7
+	Badult 1.3
+	Bold 0.7
+scenario 454 Probability 0.00133333
+	epsilon 0.795917
+	b 0.606993
+	m 1.08403
+	Achild 1.3
+	Aadult 0.7
+	Aold 0.7
+	Bchild 0.7
+	Badult 0.7
+	Bold 0.7
+scenario 455 Probability 0.00133333
+	epsilon 0.896113
+	b 0.586605
+	m 0.859414
+	Achild 1.3
+	Aadult 1.3
+	Aold 1.3
+	Bchild 0.7
+	Badult 1.3
+	Bold 1.3
+scenario 456 Probability 0.00133333
+	epsilon 0.873897
+	b 0.520797
+	m 1.08987
+	Achild 0.7
+	Aadult 0.7
+	Aold 1.3
+	Bchild 0.7
+	Badult 1.3
+	Bold 1.3
+scenario 457 Probability 0.00133333
+	epsilon 0.871277
+	b 0.693188
+	m 0.761485
+	Achild 0.7
+	Aadult 1.3
+	Aold 1.3
+	Bchild 0.7
+	Badult 0.7
+	Bold 0.7
+scenario 458 Probability 0.00133333
+	epsilon 0.913347
+	b 0.555257
+	m 0.998677
+	Achild 1.3
+	Aadult 1.3
+	Aold 1.3
+	Bchild 1.3
+	Badult 1.3
+	Bold 0.7
+scenario 459 Probability 0.00133333
+	epsilon 0.889797
+	b 0.60121
+	m 0.981633
+	Achild 1.3
+	Aadult 0.7
+	Aold 1.3
+	Bchild 1.3
+	Badult 0.7
+	Bold 0.7
+scenario 460 Probability 0.00133333
+	epsilon 0.756361
+	b 0.656395
+	m 0.971572
+	Achild 1.3
+	Aadult 0.7
+	Aold 1.3
+	Bchild 0.7
+	Badult 1.3
+	Bold 1.3
+scenario 461 Probability 0.00133333
+	epsilon 0.860104
+	b 0.639466
+	m 1.04345
+	Achild 1.3
+	Aadult 0.7
+	Aold 0.7
+	Bchild 1.3
+	Badult 1.3
+	Bold 1.3
+scenario 462 Probability 0.00133333
+	epsilon 0.928031
+	b 0.659484
+	m 1.02445
+	Achild 1.3
+	Aadult 1.3
+	Aold 0.7
+	Bchild 1.3
+	Badult 0.7
+	Bold 1.3
+scenario 463 Probability 0.00133333
+	epsilon 0.827645
+	b 0.507121
+	m 0.94397
+	Achild 0.7
+	Aadult 1.3
+	Aold 0.7
+	Bchild 0.7
+	Badult 1.3
+	Bold 0.7
+scenario 464 Probability 0.00133333
+	epsilon 0.923806
+	b 0.618602
+	m 1.00172
+	Achild 1.3
+	Aadult 1.3
+	Aold 0.7
+	Bchild 0.7
+	Badult 0.7
+	Bold 1.3
+scenario 465 Probability 0.00133333
+	epsilon 0.887889
+	b 0.687013
+	m 0.86542
+	Achild 1.3
+	Aadult 1.3
+	Aold 1.3
+	Bchild 1.3
+	Badult 0.7
+	Bold 0.7
+scenario 466 Probability 0.00133333
+	epsilon 0.878262
+	b 0.502811
+	m 0.956935
+	Achild 1.3
+	Aadult 1.3
+	Aold 1.3
+	Bchild 1.3
+	Badult 1.3
+	Bold 0.7
+scenario 467 Probability 0.00133333
+	epsilon 0.854488
+	b 0.646792
+	m 0.757854
+	Achild 1.3
+	Aadult 1.3
+	Aold 1.3
+	Bchild 1.3
+	Badult 0.7
+	Bold 0.7
+scenario 468 Probability 0.00133333
+	epsilon 0.868801
+	b 0.506096
+	m 0.939491
+	Achild 0.7
+	Aadult 0.7
+	Aold 0.7
+	Bchild 1.3
+	Badult 1.3
+	Bold 0.7
+scenario 469 Probability 0.00133333
+	epsilon 0.811539
+	b 0.59389
+	m 1.02888
+	Achild 0.7
+	Aadult 0.7
+	Aold 0.7
+	Bchild 1.3
+	Badult 1.3
+	Bold 1.3
+scenario 470 Probability 0.00133333
+	epsilon 0.842948
+	b 0.618158
+	m 0.782139
+	Achild 0.7
+	Aadult 0.7
+	Aold 1.3
+	Bchild 0.7
+	Badult 1.3
+	Bold 1.3
+scenario 471 Probability 0.00133333
+	epsilon 0.852622
+	b 0.562747
+	m 1.23985
+	Achild 0.7
+	Aadult 0.7
+	Aold 1.3
+	Bchild 1.3
+	Badult 1.3
+	Bold 1.3
+scenario 472 Probability 0.00133333
+	epsilon 0.826045
+	b 0.52946
+	m 0.907662
+	Achild 0.7
+	Aadult 0.7
+	Aold 0.7
+	Bchild 1.3
+	Badult 0.7
+	Bold 0.7
+scenario 473 Probability 0.00133333
+	epsilon 0.859213
+	b 0.544683
+	m 1.05879
+	Achild 0.7
+	Aadult 0.7
+	Aold 1.3
+	Bchild 1.3
+	Badult 0.7
+	Bold 1.3
+scenario 474 Probability 0.00133333
+	epsilon 0.84444
+	b 0.566096
+	m 1.06614
+	Achild 0.7
+	Aadult 1.3
+	Aold 0.7
+	Bchild 0.7
+	Badult 0.7
+	Bold 0.7
+scenario 475 Probability 0.00133333
+	epsilon 0.930028
+	b 0.529299
+	m 1.0781
+	Achild 0.7
+	Aadult 1.3
+	Aold 1.3
+	Bchild 1.3
+	Badult 0.7
+	Bold 1.3
+scenario 476 Probability 0.00133333
+	epsilon 0.810394
+	b 0.602072
+	m 0.961774
+	Achild 0.7
+	Aadult 1.3
+	Aold 0.7
+	Bchild 1.3
+	Badult 1.3
+	Bold 1.3
+scenario 477 Probability 0.00133333
+	epsilon 0.804923
+	b 0.522302
+	m 1.01057
+	Achild 1.3
+	Aadult 1.3
+	Aold 0.7
+	Bchild 0.7
+	Badult 0.7
+	Bold 1.3
+scenario 478 Probability 0.00133333
+	epsilon 0.754863
+	b 0.698586
+	m 0.782686
+	Achild 0.7
+	Aadult 1.3
+	Aold 1.3
+	Bchild 1.3
+	Badult 1.3
+	Bold 0.7
+scenario 479 Probability 0.00133333
+	epsilon 0.786544
+	b 0.5868
+	m 0.799368
+	Achild 1.3
+	Aadult 1.3
+	Aold 0.7
+	Bchild 1.3
+	Badult 1.3
+	Bold 0.7
+scenario 480 Probability 0.00133333
+	epsilon 0.84963
+	b 0.510591
+	m 1.07307
+	Achild 0.7
+	Aadult 0.7
+	Aold 1.3
+	Bchild 1.3
+	Badult 0.7
+	Bold 0.7
+scenario 481 Probability 0.00133333
+	epsilon 0.921185
+	b 0.602782
+	m 1.19156
+	Achild 1.3
+	Aadult 1.3
+	Aold 1.3
+	Bchild 0.7
+	Badult 1.3
+	Bold 0.7
+scenario 482 Probability 0.00133333
+	epsilon 0.781236
+	b 0.562618
+	m 0.97851
+	Achild 1.3
+	Aadult 0.7
+	Aold 0.7
+	Bchild 0.7
+	Badult 0.7
+	Bold 0.7
+scenario 483 Probability 0.00133333
+	epsilon 0.945763
+	b 0.586894
+	m 1.23191
+	Achild 1.3
+	Aadult 0.7
+	Aold 0.7
+	Bchild 0.7
+	Badult 1.3
+	Bold 1.3
+scenario 484 Probability 0.00133333
+	epsilon 0.911863
+	b 0.520851
+	m 0.880988
+	Achild 1.3
+	Aadult 1.3
+	Aold 0.7
+	Bchild 1.3
+	Badult 1.3
+	Bold 0.7
+scenario 485 Probability 0.00133333
+	epsilon 0.866969
+	b 0.62116
+	m 1.23745
+	Achild 0.7
+	Aadult 1.3
+	Aold 1.3
+	Bchild 1.3
+	Badult 0.7
+	Bold 0.7
+scenario 486 Probability 0.00133333
+	epsilon 0.868797
+	b 0.611194
+	m 0.884549
+	Achild 1.3
+	Aadult 0.7
+	Aold 1.3
+	Bchild 0.7
+	Badult 0.7
+	Bold 1.3
+scenario 487 Probability 0.00133333
+	epsilon 0.781182
+	b 0.625216
+	m 1.21415
+	Achild 1.3
+	Aadult 1.3
+	Aold 0.7
+	Bchild 0.7
+	Badult 1.3
+	Bold 1.3
+scenario 488 Probability 0.00133333
+	epsilon 0.879652
+	b 0.679331
+	m 1.08676
+	Achild 0.7
+	Aadult 0.7
+	Aold 1.3
+	Bchild 0.7
+	Badult 0.7
+	Bold 0.7
+scenario 489 Probability 0.00133333
+	epsilon 0.868374
+	b 0.536521
+	m 1.12821
+	Achild 1.3
+	Aadult 1.3
+	Aold 0.7
+	Bchild 0.7
+	Badult 1.3
+	Bold 0.7
+scenario 490 Probability 0.00133333
+	epsilon 0.850683
+	b 0.537757
+	m 1.20996
+	Achild 1.3
+	Aadult 0.7
+	Aold 1.3
+	Bchild 0.7
+	Badult 0.7
+	Bold 1.3
+scenario 491 Probability 0.00133333
+	epsilon 0.862658
+	b 0.576602
+	m 0.883809
+	Achild 0.7
+	Aadult 0.7
+	Aold 1.3
+	Bchild 1.3
+	Badult 0.7
+	Bold 1.3
+scenario 492 Probability 0.00133333
+	epsilon 0.81387
+	b 0.551
+	m 1.08818
+	Achild 0.7
+	Aadult 0.7
+	Aold 1.3
+	Bchild 0.7
+	Badult 1.3
+	Bold 1.3
+scenario 493 Probability 0.00133333
+	epsilon 0.843971
+	b 0.596117
+	m 0.989649
+	Achild 1.3
+	Aadult 0.7
+	Aold 1.3
+	Bchild 1.3
+	Badult 1.3
+	Bold 0.7
+scenario 494 Probability 0.00133333
+	epsilon 0.936345
+	b 0.607419
+	m 1.21012
+	Achild 0.7
+	Aadult 0.7
+	Aold 1.3
+	Bchild 1.3
+	Badult 0.7
+	Bold 1.3
+scenario 495 Probability 0.00133333
+	epsilon 0.932721
+	b 0.598167
+	m 1.2341
+	Achild 1.3
+	Aadult 1.3
+	Aold 0.7
+	Bchild 0.7
+	Badult 1.3
+	Bold 1.3
+scenario 496 Probability 0.00133333
+	epsilon 0.856129
+	b 0.585742
+	m 0.758897
+	Achild 0.7
+	Aadult 1.3
+	Aold 1.3
+	Bchild 1.3
+	Badult 1.3
+	Bold 1.3
+scenario 497 Probability 0.00133333
+	epsilon 0.813738
+	b 0.606522
+	m 1.18586
+	Achild 1.3
+	Aadult 0.7
+	Aold 1.3
+	Bchild 1.3
+	Badult 1.3
+	Bold 0.7
+scenario 498 Probability 0.00133333
+	epsilon 0.835411
+	b 0.588577
+	m 1.14198
+	Achild 1.3
+	Aadult 0.7
+	Aold 0.7
+	Bchild 1.3
+	Badult 0.7
+	Bold 1.3
+scenario 499 Probability 0.00133333
+	epsilon 0.910473
+	b 0.570373
+	m 1.0363
+	Achild 1.3
+	Aadult 0.7
+	Aold 0.7
+	Bchild 1.3
+	Badult 0.7
+	Bold 1.3
+scenario 500 Probability 0.00133333
+	epsilon 0.788798
+	b 0.615611
+	m 0.77032
+	Achild 1.3
+	Aadult 0.7
+	Aold 1.3
+	Bchild 0.7
+	Badult 0.7
+	Bold 0.7
+scenario 501 Probability 0.00133333
+	epsilon 0.83131
+	b 0.514189
+	m 0.995131
+	Achild 1.3
+	Aadult 1.3
+	Aold 1.3
+	Bchild 0.7
+	Badult 1.3
+	Bold 0.7
+scenario 502 Probability 0.00133333
+	epsilon 0.835319
+	b 0.546965
+	m 0.924553
+	Achild 0.7
+	Aadult 1.3
+	Aold 0.7
+	Bchild 1.3
+	Badult 0.7
+	Bold 0.7
+scenario 503 Probability 0.00133333
+	epsilon 0.875645
+	b 0.676806
+	m 1.15236
+	Achild 0.7
+	Aadult 0.7
+	Aold 0.7
+	Bchild 0.7
+	Badult 1.3
+	Bold 1.3
+scenario 504 Probability 0.00133333
+	epsilon 0.882547
+	b 0.652173
+	m 1.06686
+	Achild 1.3
+	Aadult 1.3
+	Aold 1.3
+	Bchild 1.3
+	Badult 0.7
+	Bold 1.3
+scenario 505 Probability 0.00133333
+	epsilon 0.871349
+	b 0.69677
+	m 1.08596
+	Achild 1.3
+	Aadult 1.3
+	Aold 1.3
+	Bchild 0.7
+	Badult 0.7
+	Bold 0.7
+scenario 506 Probability 0.00133333
+	epsilon 0.86574
+	b 0.677307
+	m 0.969279
+	Achild 0.7
+	Aadult 0.7
+	Aold 0.7
+	Bchild 1.3
+	Badult 0.7
+	Bold 0.7
+scenario 507 Probability 0.00133333
+	epsilon 0.895001
+	b 0.56376
+	m 0.984052
+	Achild 1.3
+	Aadult 0.7
+	Aold 0.7
+	Bchild 1.3
+	Badult 0.7
+	Bold 1.3
+scenario 508 Probability 0.00133333
+	epsilon 0.855212
+	b 0.54711
+	m 0.941716
+	Achild 0.7
+	Aadult 1.3
+	Aold 0.7
+	Bchild 1.3
+	Badult 0.7
+	Bold 1.3
+scenario 509 Probability 0.00133333
+	epsilon 0.913226
+	b 0.56785
+	m 1.02155
+	Achild 1.3
+	Aadult 0.7
+	Aold 0.7
+	Bchild 1.3
+	Badult 1.3
+	Bold 0.7
+scenario 510 Probability 0.00133333
+	epsilon 0.882357
+	b 0.677473
+	m 1.07894
+	Achild 0.7
+	Aadult 1.3
+	Aold 1.3
+	Bchild 0.7
+	Badult 1.3
+	Bold 1.3
+scenario 511 Probability 0.00133333
+	epsilon 0.862496
+	b 0.670453
+	m 0.890554
+	Achild 0.7
+	Aadult 0.7
+	Aold 0.7
+	Bchild 0.7
+	Badult 0.7
+	Bold 0.7
+scenario 512 Probability 0.00133333
+	epsilon 0.852144
+	b 0.616665
+	m 1.04676
+	Achild 0.7
+	Aadult 0.7
+	Aold 1.3
+	Bchild 0.7
+	Badult 1.3
+	Bold 1.3
+scenario 513 Probability 0.00133333
+	epsilon 0.857679
+	b 0.586489
+	m 1.02687
+	Achild 0.7
+	Aadult 1.3
+	Aold 0.7
+	Bchild 0.7
+	Badult 0.7
+	Bold 1.3
+scenario 514 Probability 0.00133333
+	epsilon 0.760097
+	b 0.668098
+	m 1.11535
+	Achild 0.7
+	Aadult 1.3
+	Aold 1.3
+	Bchild 0.7
+	Badult 0.7
+	Bold 1.3
+scenario 515 Probability 0.00133333
+	epsilon 0.834471
+	b 0.622695
+	m 0.811804
+	Achild 0.7
+	Aadult 0.7
+	Aold 0.7
+	Bchild 1.3
+	Badult 1.3
+	Bold 1.3
+scenario 516 Probability 0.00133333
+	epsilon 0.931266
+	b 0.530823
+	m 0.963333
+	Achild 1.3
+	Aadult 0.7
+	Aold 0.7
+	Bchild 0.7
+	Badult 1.3
+	Bold 0.7
+scenario 517 Probability 0.00133333
+	epsilon 0.78018
+	b 0.518734
+	m 1.21659
+	Achild 0.7
+	Aadult 1.3
+	Aold 0.7
+	Bchild 1.3
+	Badult 1.3
+	Bold 0.7
+scenario 518 Probability 0.00133333
+	epsilon 0.899654
+	b 0.580745
+	m 1.0468
+	Achild 0.7
+	Aadult 0.7
+	Aold 1.3
+	Bchild 1.3
+	Badult 0.7
+	Bold 1.3
+scenario 519 Probability 0.00133333
+	epsilon 0.823125
+	b 0.669948
+	m 0.84911
+	Achild 0.7
+	Aadult 0.7
+	Aold 0.7
+	Bchild 0.7
+	Badult 0.7
+	Bold 1.3
+scenario 520 Probability 0.00133333
+	epsilon 0.773161
+	b 0.538329
+	m 1.10461
+	Achild 0.7
+	Aadult 1.3
+	Aold 0.7
+	Bchild 0.7
+	Badult 1.3
+	Bold 0.7
+scenario 521 Probability 0.00133333
+	epsilon 0.866756
+	b 0.61934
+	m 0.798481
+	Achild 0.7
+	Aadult 0.7
+	Aold 0.7
+	Bchild 0.7
+	Badult 1.3
+	Bold 1.3
+scenario 522 Probability 0.00133333
+	epsilon 0.830993
+	b 0.586202
+	m 0.918559
+	Achild 0.7
+	Aadult 1.3
+	Aold 1.3
+	Bchild 1.3
+	Badult 0.7
+	Bold 0.7
+scenario 523 Probability 0.00133333
+	epsilon 0.830308
+	b 0.519965
+	m 0.981945
+	Achild 1.3
+	Aadult 1.3
+	Aold 0.7
+	Bchild 0.7
+	Badult 0.7
+	Bold 0.7
+scenario 524 Probability 0.00133333
+	epsilon 0.929662
+	b 0.589263
+	m 0.806798
+	Achild 0.7
+	Aadult 0.7
+	Aold 0.7
+	Bchild 1.3
+	Badult 1.3
+	Bold 1.3
+scenario 525 Probability 0.00133333
+	epsilon 0.905572
+	b 0.540389
+	m 1.16996
+	Achild 0.7
+	Aadult 1.3
+	Aold 1.3
+	Bchild 0.7
+	Badult 1.3
+	Bold 1.3
+scenario 526 Probability 0.00133333
+	epsilon 0.859485
+	b 0.610911
+	m 0.882433
+	Achild 0.7
+	Aadult 0.7
+	Aold 1.3
+	Bchild 1.3
+	Badult 1.3
+	Bold 1.3
+scenario 527 Probability 0.00133333
+	epsilon 0.918624
+	b 0.627548
+	m 0.942687
+	Achild 1.3
+	Aadult 0.7
+	Aold 1.3
+	Bchild 0.7
+	Badult 0.7
+	Bold 0.7
+scenario 528 Probability 0.00133333
+	epsilon 0.769297
+	b 0.501251
+	m 1.02233
+	Achild 0.7
+	Aadult 1.3
+	Aold 1.3
+	Bchild 0.7
+	Badult 0.7
+	Bold 1.3
+scenario 529 Probability 0.00133333
+	epsilon 0.849716
+	b 0.599369
+	m 0.890401
+	Achild 0.7
+	Aadult 1.3
+	Aold 0.7
+	Bchild 1.3
+	Badult 0.7
+	Bold 1.3
+scenario 530 Probability 0.00133333
+	epsilon 0.751169
+	b 0.590649
+	m 0.995061
+	Achild 0.7
+	Aadult 1.3
+	Aold 0.7
+	Bchild 1.3
+	Badult 0.7
+	Bold 0.7
+scenario 531 Probability 0.00133333
+	epsilon 0.866295
+	b 0.668207
+	m 0.852808
+	Achild 0.7
+	Aadult 1.3
+	Aold 0.7
+	Bchild 1.3
+	Badult 0.7
+	Bold 0.7
+scenario 532 Probability 0.00133333
+	epsilon 0.829472
+	b 0.685653
+	m 1.08269
+	Achild 1.3
+	Aadult 0.7
+	Aold 1.3
+	Bchild 0.7
+	Badult 0.7
+	Bold 1.3
+scenario 533 Probability 0.00133333
+	epsilon 0.828867
+	b 0.678571
+	m 0.806484
+	Achild 1.3
+	Aadult 1.3
+	Aold 0.7
+	Bchild 0.7
+	Badult 1.3
+	Bold 0.7
+scenario 534 Probability 0.00133333
+	epsilon 0.842212
+	b 0.587911
+	m 0.765162
+	Achild 0.7
+	Aadult 0.7
+	Aold 0.7
+	Bchild 1.3
+	Badult 1.3
+	Bold 0.7
+scenario 535 Probability 0.00133333
+	epsilon 0.947617
+	b 0.663192
+	m 1.11095
+	Achild 0.7
+	Aadult 1.3
+	Aold 1.3
+	Bchild 0.7
+	Badult 1.3
+	Bold 1.3
+scenario 536 Probability 0.00133333
+	epsilon 0.816284
+	b 0.622527
+	m 0.791851
+	Achild 0.7
+	Aadult 1.3
+	Aold 1.3
+	Bchild 0.7
+	Badult 0.7
+	Bold 0.7
+scenario 537 Probability 0.00133333
+	epsilon 0.804119
+	b 0.514942
+	m 0.817552
+	Achild 0.7
+	Aadult 1.3
+	Aold 0.7
+	Bchild 1.3
+	Badult 1.3
+	Bold 1.3
+scenario 538 Probability 0.00133333
+	epsilon 0.821588
+	b 0.571158
+	m 1.05893
+	Achild 0.7
+	Aadult 0.7
+	Aold 0.7
+	Bchild 0.7
+	Badult 1.3
+	Bold 1.3
+scenario 539 Probability 0.00133333
+	epsilon 0.803056
+	b 0.580989
+	m 1.1392
+	Achild 0.7
+	Aadult 0.7
+	Aold 1.3
+	Bchild 0.7
+	Badult 0.7
+	Bold 1.3
+scenario 540 Probability 0.00133333
+	epsilon 0.887537
+	b 0.642996
+	m 0.789241
+	Achild 0.7
+	Aadult 0.7
+	Aold 1.3
+	Bchild 1.3
+	Badult 0.7
+	Bold 0.7
+scenario 541 Probability 0.00133333
+	epsilon 0.821637
+	b 0.658877
+	m 1.05234
+	Achild 1.3
+	Aadult 0.7
+	Aold 0.7
+	Bchild 1.3
+	Badult 1.3
+	Bold 1.3
+scenario 542 Probability 0.00133333
+	epsilon 0.832966
+	b 0.6425
+	m 1.03181
+	Achild 0.7
+	Aadult 1.3
+	Aold 1.3
+	Bchild 0.7
+	Badult 0.7
+	Bold 0.7
+scenario 543 Probability 0.00133333
+	epsilon 0.912871
+	b 0.567669
+	m 0.824806
+	Achild 0.7
+	Aadult 0.7
+	Aold 1.3
+	Bchild 0.7
+	Badult 0.7
+	Bold 0.7
+scenario 544 Probability 0.00133333
+	epsilon 0.794443
+	b 0.578904
+	m 0.924119
+	Achild 0.7
+	Aadult 0.7
+	Aold 1.3
+	Bchild 0.7
+	Badult 0.7
+	Bold 1.3
+scenario 545 Probability 0.00133333
+	epsilon 0.864155
+	b 0.607186
+	m 0.964796
+	Achild 1.3
+	Aadult 0.7
+	Aold 1.3
+	Bchild 1.3
+	Badult 1.3
+	Bold 0.7
+scenario 546 Probability 0.00133333
+	epsilon 0.862047
+	b 0.601315
+	m 0.971238
+	Achild 1.3
+	Aadult 0.7
+	Aold 0.7
+	Bchild 0.7
+	Badult 0.7
+	Bold 0.7
+scenario 547 Probability 0.00133333
+	epsilon 0.830893
+	b 0.563131
+	m 0.888072
+	Achild 1.3
+	Aadult 1.3
+	Aold 0.7
+	Bchild 0.7
+	Badult 0.7
+	Bold 0.7
+scenario 548 Probability 0.00133333
+	epsilon 0.77697
+	b 0.572721
+	m 0.858905
+	Achild 0.7
+	Aadult 1.3
+	Aold 0.7
+	Bchild 0.7
+	Badult 0.7
+	Bold 0.7
+scenario 549 Probability 0.00133333
+	epsilon 0.882176
+	b 0.599976
+	m 0.833806
+	Achild 1.3
+	Aadult 0.7
+	Aold 0.7
+	Bchild 1.3
+	Badult 0.7
+	Bold 0.7
+scenario 550 Probability 0.00133333
+	epsilon 0.867222
+	b 0.699828
+	m 1.03241
+	Achild 1.3
+	Aadult 0.7
+	Aold 0.7
+	Bchild 0.7
+	Badult 1.3
+	Bold 1.3
+scenario 551 Probability 0.00133333
+	epsilon 0.872202
+	b 0.651033
+	m 0.998799
+	Achild 0.7
+	Aadult 1.3
+	Aold 1.3
+	Bchild 1.3
+	Badult 1.3
+	Bold 0.7
+scenario 552 Probability 0.00133333
+	epsilon 0.868441
+	b 0.525425
+	m 0.814446
+	Achild 1.3
+	Aadult 1.3
+	Aold 1.3
+	Bchild 1.3
+	Badult 1.3
+	Bold 1.3
+scenario 553 Probability 0.00133333
+	epsilon 0.892874
+	b 0.563263
+	m 1.07916
+	Achild 0.7
+	Aadult 0.7
+	Aold 0.7
+	Bchild 0.7
+	Badult 1.3
+	Bold 0.7
+scenario 554 Probability 0.00133333
+	epsilon 0.754213
+	b 0.621701
+	m 1.00564
+	Achild 1.3
+	Aadult 1.3
+	Aold 1.3
+	Bchild 1.3
+	Badult 0.7
+	Bold 0.7
+scenario 555 Probability 0.00133333
+	epsilon 0.871826
+	b 0.60281
+	m 1.02845
+	Achild 0.7
+	Aadult 0.7
+	Aold 0.7
+	Bchild 1.3
+	Badult 0.7
+	Bold 0.7
+scenario 556 Probability 0.00133333
+	epsilon 0.860782
+	b 0.543374
+	m 1.15925
+	Achild 0.7
+	Aadult 0.7
+	Aold 1.3
+	Bchild 0.7
+	Badult 0.7
+	Bold 0.7
+scenario 557 Probability 0.00133333
+	epsilon 0.90287
+	b 0.509488
+	m 1.05401
+	Achild 0.7
+	Aadult 0.7
+	Aold 0.7
+	Bchild 1.3
+	Badult 0.7
+	Bold 1.3
+scenario 558 Probability 0.00133333
+	epsilon 0.818253
+	b 0.600886
+	m 1.03767
+	Achild 1.3
+	Aadult 0.7
+	Aold 0.7
+	Bchild 0.7
+	Badult 0.7
+	Bold 0.7
+scenario 559 Probability 0.00133333
+	epsilon 0.843321
+	b 0.529855
+	m 0.996999
+	Achild 1.3
+	Aadult 1.3
+	Aold 0.7
+	Bchild 1.3
+	Badult 0.7
+	Bold 0.7
+scenario 560 Probability 0.00133333
+	epsilon 0.820221
+	b 0.565188
+	m 1.00198
+	Achild 1.3
+	Aadult 0.7
+	Aold 0.7
+	Bchild 1.3
+	Badult 1.3
+	Bold 1.3
+scenario 561 Probability 0.00133333
+	epsilon 0.775251
+	b 0.529528
+	m 0.99339
+	Achild 1.3
+	Aadult 0.7
+	Aold 1.3
+	Bchild 1.3
+	Badult 0.7
+	Bold 0.7
+scenario 562 Probability 0.00133333
+	epsilon 0.931231
+	b 0.660843
+	m 0.903061
+	Achild 1.3
+	Aadult 0.7
+	Aold 1.3
+	Bchild 0.7
+	Badult 0.7
+	Bold 0.7
+scenario 563 Probability 0.00133333
+	epsilon 0.858583
+	b 0.593226
+	m 0.78477
+	Achild 0.7
+	Aadult 0.7
+	Aold 0.7
+	Bchild 1.3
+	Badult 0.7
+	Bold 1.3
+scenario 564 Probability 0.00133333
+	epsilon 0.819117
+	b 0.691065
+	m 0.961293
+	Achild 1.3
+	Aadult 1.3
+	Aold 0.7
+	Bchild 0.7
+	Badult 0.7
+	Bold 0.7
+scenario 565 Probability 0.00133333
+	epsilon 0.881029
+	b 0.628757
+	m 0.846036
+	Achild 0.7
+	Aadult 0.7
+	Aold 1.3
+	Bchild 1.3
+	Badult 0.7
+	Bold 0.7
+scenario 566 Probability 0.00133333
+	epsilon 0.755869
+	b 0.680028
+	m 0.96527
+	Achild 0.7
+	Aadult 1.3
+	Aold 0.7
+	Bchild 0.7
+	Badult 0.7
+	Bold 1.3
+scenario 567 Probability 0.00133333
+	epsilon 0.846724
+	b 0.553723
+	m 0.998876
+	Achild 0.7
+	Aadult 1.3
+	Aold 1.3
+	Bchild 1.3
+	Badult 0.7
+	Bold 0.7
+scenario 568 Probability 0.00133333
+	epsilon 0.822901
+	b 0.538375
+	m 0.807722
+	Achild 1.3
+	Aadult 0.7
+	Aold 1.3
+	Bchild 1.3
+	Badult 1.3
+	Bold 0.7
+scenario 569 Probability 0.00133333
+	epsilon 0.772149
+	b 0.57898
+	m 0.93367
+	Achild 1.3
+	Aadult 0.7
+	Aold 0.7
+	Bchild 0.7
+	Badult 1.3
+	Bold 0.7
+scenario 570 Probability 0.00133333
+	epsilon 0.753133
+	b 0.697568
+	m 1.08713
+	Achild 1.3
+	Aadult 0.7
+	Aold 0.7
+	Bchild 1.3
+	Badult 1.3
+	Bold 0.7
+scenario 571 Probability 0.00133333
+	epsilon 0.862721
+	b 0.535793
+	m 0.943349
+	Achild 1.3
+	Aadult 0.7
+	Aold 1.3
+	Bchild 0.7
+	Badult 0.7
+	Bold 1.3
+scenario 572 Probability 0.00133333
+	epsilon 0.868503
+	b 0.586287
+	m 0.886335
+	Achild 0.7
+	Aadult 1.3
+	Aold 0.7
+	Bchild 0.7
+	Badult 0.7
+	Bold 0.7
+scenario 573 Probability 0.00133333
+	epsilon 0.83658
+	b 0.541409
+	m 0.959236
+	Achild 0.7
+	Aadult 1.3
+	Aold 1.3
+	Bchild 0.7
+	Badult 1.3
+	Bold 1.3
+scenario 574 Probability 0.00133333
+	epsilon 0.889511
+	b 0.626246
+	m 0.852243
+	Achild 0.7
+	Aadult 1.3
+	Aold 0.7
+	Bchild 0.7
+	Badult 1.3
+	Bold 1.3
+scenario 575 Probability 0.00133333
+	epsilon 0.877371
+	b 0.683886
+	m 1.23243
+	Achild 1.3
+	Aadult 1.3
+	Aold 1.3
+	Bchild 1.3
+	Badult 1.3
+	Bold 1.3
+scenario 576 Probability 0.00133333
+	epsilon 0.84337
+	b 0.550024
+	m 1.01959
+	Achild 0.7
+	Aadult 1.3
+	Aold 0.7
+	Bchild 1.3
+	Badult 0.7
+	Bold 1.3
+scenario 577 Probability 0.00133333
+	epsilon 0.914155
+	b 0.630895
+	m 0.862977
+	Achild 0.7
+	Aadult 0.7
+	Aold 1.3
+	Bchild 0.7
+	Badult 0.7
+	Bold 0.7
+scenario 578 Probability 0.00133333
+	epsilon 0.944971
+	b 0.512065
+	m 1.01713
+	Achild 0.7
+	Aadult 1.3
+	Aold 0.7
+	Bchild 0.7
+	Badult 1.3
+	Bold 0.7
+scenario 579 Probability 0.00133333
+	epsilon 0.926951
+	b 0.667007
+	m 1.18472
+	Achild 0.7
+	Aadult 0.7
+	Aold 0.7
+	Bchild 0.7
+	Badult 0.7
+	Bold 1.3
+scenario 580 Probability 0.00133333
+	epsilon 0.769043
+	b 0.614975
+	m 1.17061
+	Achild 0.7
+	Aadult 1.3
+	Aold 1.3
+	Bchild 0.7
+	Badult 0.7
+	Bold 1.3
+scenario 581 Probability 0.00133333
+	epsilon 0.828802
+	b 0.52487
+	m 0.896742
+	Achild 0.7
+	Aadult 0.7
+	Aold 0.7
+	Bchild 0.7
+	Badult 0.7
+	Bold 1.3
+scenario 582 Probability 0.00133333
+	epsilon 0.823169
+	b 0.629734
+	m 1.17343
+	Achild 1.3
+	Aadult 1.3
+	Aold 0.7
+	Bchild 1.3
+	Badult 0.7
+	Bold 0.7
+scenario 583 Probability 0.00133333
+	epsilon 0.804611
+	b 0.52856
+	m 0.810684
+	Achild 0.7
+	Aadult 1.3
+	Aold 0.7
+	Bchild 1.3
+	Badult 0.7
+	Bold 0.7
+scenario 584 Probability 0.00133333
+	epsilon 0.797909
+	b 0.635968
+	m 0.99211
+	Achild 0.7
+	Aadult 0.7
+	Aold 1.3
+	Bchild 1.3
+	Badult 1.3
+	Bold 1.3
+scenario 585 Probability 0.00133333
+	epsilon 0.917888
+	b 0.636829
+	m 1.03013
+	Achild 1.3
+	Aadult 1.3
+	Aold 0.7
+	Bchild 0.7
+	Badult 1.3
+	Bold 1.3
+scenario 586 Probability 0.00133333
+	epsilon 0.879427
+	b 0.558637
+	m 0.99597
+	Achild 0.7
+	Aadult 0.7
+	Aold 1.3
+	Bchild 1.3
+	Badult 1.3
+	Bold 1.3
+scenario 587 Probability 0.00133333
+	epsilon 0.91086
+	b 0.600938
+	m 1.04842
+	Achild 0.7
+	Aadult 1.3
+	Aold 0.7
+	Bchild 0.7
+	Badult 0.7
+	Bold 0.7
+scenario 588 Probability 0.00133333
+	epsilon 0.903015
+	b 0.556453
+	m 0.889844
+	Achild 1.3
+	Aadult 1.3
+	Aold 1.3
+	Bchild 0.7
+	Badult 1.3
+	Bold 0.7
+scenario 589 Probability 0.00133333
+	epsilon 0.833554
+	b 0.652668
+	m 0.987901
+	Achild 1.3
+	Aadult 1.3
+	Aold 1.3
+	Bchild 1.3
+	Badult 0.7
+	Bold 0.7
+scenario 590 Probability 0.00133333
+	epsilon 0.84351
+	b 0.520318
+	m 0.926516
+	Achild 1.3
+	Aadult 1.3
+	Aold 0.7
+	Bchild 0.7
+	Badult 1.3
+	Bold 1.3
+scenario 591 Probability 0.00133333
+	epsilon 0.784977
+	b 0.621292
+	m 0.998324
+	Achild 0.7
+	Aadult 1.3
+	Aold 1.3
+	Bchild 1.3
+	Badult 0.7
+	Bold 1.3
+scenario 592 Probability 0.00133333
+	epsilon 0.86806
+	b 0.588536
+	m 1.10404
+	Achild 1.3
+	Aadult 0.7
+	Aold 0.7
+	Bchild 0.7
+	Badult 1.3
+	Bold 1.3
+scenario 593 Probability 0.00133333
+	epsilon 0.827037
+	b 0.563312
+	m 1.12781
+	Achild 1.3
+	Aadult 1.3
+	Aold 1.3
+	Bchild 1.3
+	Badult 0.7
+	Bold 1.3
+scenario 594 Probability 0.00133333
+	epsilon 0.751414
+	b 0.545402
+	m 0.976833
+	Achild 0.7
+	Aadult 0.7
+	Aold 0.7
+	Bchild 0.7
+	Badult 0.7
+	Bold 1.3
+scenario 595 Probability 0.00133333
+	epsilon 0.865287
+	b 0.5994
+	m 0.95432
+	Achild 0.7
+	Aadult 1.3
+	Aold 0.7
+	Bchild 1.3
+	Badult 0.7
+	Bold 1.3
+scenario 596 Probability 0.00133333
+	epsilon 0.863162
+	b 0.605624
+	m 0.876865
+	Achild 1.3
+	Aadult 1.3
+	Aold 0.7
+	Bchild 0.7
+	Badult 1.3
+	Bold 1.3
+scenario 597 Probability 0.00133333
+	epsilon 0.884118
+	b 0.639865
+	m 1.00085
+	Achild 1.3
+	Aadult 0.7
+	Aold 0.7
+	Bchild 0.7
+	Badult 0.7
+	Bold 1.3
+scenario 598 Probability 0.00133333
+	epsilon 0.827733
+	b 0.614342
+	m 1.06976
+	Achild 0.7
+	Aadult 1.3
+	Aold 1.3
+	Bchild 1.3
+	Badult 1.3
+	Bold 0.7
+scenario 599 Probability 0.00133333
+	epsilon 0.760037
+	b 0.565322
+	m 1.01671
+	Achild 1.3
+	Aadult 1.3
+	Aold 1.3
+	Bchild 1.3
+	Badult 1.3
+	Bold 0.7
+scenario 600 Probability 0.00133333
+	epsilon 0.865138
+	b 0.510359
+	m 1.04553
+	Achild 1.3
+	Aadult 0.7
+	Aold 0.7
+	Bchild 1.3
+	Badult 1.3
+	Bold 0.7
+scenario 601 Probability 0.00133333
+	epsilon 0.755697
+	b 0.584464
+	m 0.82062
+	Achild 1.3
+	Aadult 1.3
+	Aold 1.3
+	Bchild 0.7
+	Badult 1.3
+	Bold 0.7
+scenario 602 Probability 0.00133333
+	epsilon 0.789878
+	b 0.631755
+	m 0.999228
+	Achild 0.7
+	Aadult 0.7
+	Aold 1.3
+	Bchild 0.7
+	Badult 1.3
+	Bold 0.7
+scenario 603 Probability 0.00133333
+	epsilon 0.769563
+	b 0.509902
+	m 1.18799
+	Achild 0.7
+	Aadult 1.3
+	Aold 0.7
+	Bchild 1.3
+	Badult 0.7
+	Bold 1.3
+scenario 604 Probability 0.00133333
+	epsilon 0.876907
+	b 0.529553
+	m 1.18779
+	Achild 1.3
+	Aadult 0.7
+	Aold 1.3
+	Bchild 1.3
+	Badult 0.7
+	Bold 0.7
+scenario 605 Probability 0.00133333
+	epsilon 0.841201
+	b 0.594679
+	m 0.88519
+	Achild 1.3
+	Aadult 1.3
+	Aold 1.3
+	Bchild 0.7
+	Badult 1.3
+	Bold 1.3
+scenario 606 Probability 0.00133333
+	epsilon 0.820668
+	b 0.579273
+	m 0.778909
+	Achild 0.7
+	Aadult 0.7
+	Aold 0.7
+	Bchild 0.7
+	Badult 1.3
+	Bold 0.7
+scenario 607 Probability 0.00133333
+	epsilon 0.929547
+	b 0.586942
+	m 0.803337
+	Achild 1.3
+	Aadult 1.3
+	Aold 1.3
+	Bchild 1.3
+	Badult 0.7
+	Bold 1.3
+scenario 608 Probability 0.00133333
+	epsilon 0.866241
+	b 0.636684
+	m 0.904273
+	Achild 0.7
+	Aadult 0.7
+	Aold 0.7
+	Bchild 0.7
+	Badult 0.7
+	Bold 0.7
+scenario 609 Probability 0.00133333
+	epsilon 0.761238
+	b 0.577378
+	m 0.926516
+	Achild 1.3
+	Aadult 1.3
+	Aold 1.3
+	Bchild 0.7
+	Badult 0.7
+	Bold 1.3
+scenario 610 Probability 0.00133333
+	epsilon 0.939544
+	b 0.565266
+	m 0.777092
+	Achild 0.7
+	Aadult 1.3
+	Aold 0.7
+	Bchild 0.7
+	Badult 0.7
+	Bold 1.3
+scenario 611 Probability 0.00133333
+	epsilon 0.864064
+	b 0.570901
+	m 1.16618
+	Achild 1.3
+	Aadult 0.7
+	Aold 1.3
+	Bchild 0.7
+	Badult 0.7
+	Bold 0.7
+scenario 612 Probability 0.00133333
+	epsilon 0.838919
+	b 0.609902
+	m 1.13531
+	Achild 0.7
+	Aadult 0.7
+	Aold 1.3
+	Bchild 0.7
+	Badult 0.7
+	Bold 0.7
+scenario 613 Probability 0.00133333
+	epsilon 0.852522
+	b 0.564459
+	m 0.932243
+	Achild 0.7
+	Aadult 0.7
+	Aold 1.3
+	Bchild 1.3
+	Badult 1.3
+	Bold 0.7
+scenario 614 Probability 0.00133333
+	epsilon 0.934687
+	b 0.540561
+	m 0.88132
+	Achild 1.3
+	Aadult 1.3
+	Aold 1.3
+	Bchild 0.7
+	Badult 1.3
+	Bold 0.7
+scenario 615 Probability 0.00133333
+	epsilon 0.780841
+	b 0.531103
+	m 1.21035
+	Achild 1.3
+	Aadult 1.3
+	Aold 0.7
+	Bchild 1.3
+	Badult 1.3
+	Bold 0.7
+scenario 616 Probability 0.00133333
+	epsilon 0.769434
+	b 0.572336
+	m 1.033
+	Achild 0.7
+	Aadult 1.3
+	Aold 0.7
+	Bchild 1.3
+	Badult 1.3
+	Bold 0.7
+scenario 617 Probability 0.00133333
+	epsilon 0.897266
+	b 0.595831
+	m 0.992472
+	Achild 0.7
+	Aadult 1.3
+	Aold 1.3
+	Bchild 0.7
+	Badult 1.3
+	Bold 0.7
+scenario 618 Probability 0.00133333
+	epsilon 0.94127
+	b 0.646331
+	m 0.763104
+	Achild 0.7
+	Aadult 1.3
+	Aold 1.3
+	Bchild 0.7
+	Badult 1.3
+	Bold 0.7
+scenario 619 Probability 0.00133333
+	epsilon 0.770446
+	b 0.587144
+	m 1.05777
+	Achild 0.7
+	Aadult 0.7
+	Aold 1.3
+	Bchild 1.3
+	Badult 1.3
+	Bold 1.3
+scenario 620 Probability 0.00133333
+	epsilon 0.82417
+	b 0.596696
+	m 0.856302
+	Achild 1.3
+	Aadult 0.7
+	Aold 0.7
+	Bchild 1.3
+	Badult 0.7
+	Bold 1.3
+scenario 621 Probability 0.00133333
+	epsilon 0.837255
+	b 0.627275
+	m 0.766078
+	Achild 0.7
+	Aadult 1.3
+	Aold 1.3
+	Bchild 0.7
+	Badult 0.7
+	Bold 0.7
+scenario 622 Probability 0.00133333
+	epsilon 0.893712
+	b 0.673087
+	m 1.02736
+	Achild 1.3
+	Aadult 1.3
+	Aold 0.7
+	Bchild 1.3
+	Badult 1.3
+	Bold 1.3
+scenario 623 Probability 0.00133333
+	epsilon 0.943476
+	b 0.550781
+	m 0.882482
+	Achild 1.3
+	Aadult 1.3
+	Aold 0.7
+	Bchild 0.7
+	Badult 0.7
+	Bold 0.7
+scenario 624 Probability 0.00133333
+	epsilon 0.852675
+	b 0.576633
+	m 1.19072
+	Achild 0.7
+	Aadult 0.7
+	Aold 0.7
+	Bchild 0.7
+	Badult 0.7
+	Bold 1.3
+scenario 625 Probability 0.00133333
+	epsilon 0.79464
+	b 0.595285
+	m 1.04487
+	Achild 0.7
+	Aadult 1.3
+	Aold 1.3
+	Bchild 1.3
+	Badult 1.3
+	Bold 1.3
+scenario 626 Probability 0.00133333
+	epsilon 0.880113
+	b 0.698913
+	m 1.18824
+	Achild 0.7
+	Aadult 1.3
+	Aold 0.7
+	Bchild 0.7
+	Badult 0.7
+	Bold 0.7
+scenario 627 Probability 0.00133333
+	epsilon 0.851631
+	b 0.530303
+	m 1.19343
+	Achild 0.7
+	Aadult 0.7
+	Aold 1.3
+	Bchild 0.7
+	Badult 0.7
+	Bold 0.7
+scenario 628 Probability 0.00133333
+	epsilon 0.837736
+	b 0.52538
+	m 0.921187
+	Achild 0.7
+	Aadult 1.3
+	Aold 0.7
+	Bchild 1.3
+	Badult 0.7
+	Bold 0.7
+scenario 629 Probability 0.00133333
+	epsilon 0.887045
+	b 0.552026
+	m 0.818074
+	Achild 1.3
+	Aadult 1.3
+	Aold 0.7
+	Bchild 1.3
+	Badult 0.7
+	Bold 1.3
+scenario 630 Probability 0.00133333
+	epsilon 0.912414
+	b 0.59586
+	m 1.00061
+	Achild 0.7
+	Aadult 1.3
+	Aold 0.7
+	Bchild 1.3
+	Badult 0.7
+	Bold 1.3
+scenario 631 Probability 0.00133333
+	epsilon 0.939656
+	b 0.55977
+	m 0.994203
+	Achild 1.3
+	Aadult 0.7
+	Aold 0.7
+	Bchild 0.7
+	Badult 0.7
+	Bold 1.3
+scenario 632 Probability 0.00133333
+	epsilon 0.841839
+	b 0.574442
+	m 0.981986
+	Achild 1.3
+	Aadult 1.3
+	Aold 0.7
+	Bchild 0.7
+	Badult 0.7
+	Bold 1.3
+scenario 633 Probability 0.00133333
+	epsilon 0.844971
+	b 0.608297
+	m 0.864529
+	Achild 0.7
+	Aadult 0.7
+	Aold 0.7
+	Bchild 0.7
+	Badult 1.3
+	Bold 0.7
+scenario 634 Probability 0.00133333
+	epsilon 0.856692
+	b 0.523542
+	m 1.11604
+	Achild 0.7
+	Aadult 0.7
+	Aold 0.7
+	Bchild 1.3
+	Badult 0.7
+	Bold 1.3
+scenario 635 Probability 0.00133333
+	epsilon 0.816374
+	b 0.669568
+	m 0.885914
+	Achild 1.3
+	Aadult 1.3
+	Aold 0.7
+	Bchild 0.7
+	Badult 1.3
+	Bold 0.7
+scenario 636 Probability 0.00133333
+	epsilon 0.905881
+	b 0.576944
+	m 0.984206
+	Achild 1.3
+	Aadult 1.3
+	Aold 0.7
+	Bchild 1.3
+	Badult 0.7
+	Bold 1.3
+scenario 637 Probability 0.00133333
+	epsilon 0.920781
+	b 0.564128
+	m 0.842006
+	Achild 1.3
+	Aadult 0.7
+	Aold 0.7
+	Bchild 1.3
+	Badult 1.3
+	Bold 0.7
+scenario 638 Probability 0.00133333
+	epsilon 0.822504
+	b 0.587165
+	m 1.03709
+	Achild 0.7
+	Aadult 1.3
+	Aold 1.3
+	Bchild 0.7
+	Badult 1.3
+	Bold 1.3
+scenario 639 Probability 0.00133333
+	epsilon 0.913433
+	b 0.619303
+	m 1.20277
+	Achild 1.3
+	Aadult 1.3
+	Aold 1.3
+	Bchild 1.3
+	Badult 0.7
+	Bold 0.7
+scenario 640 Probability 0.00133333
+	epsilon 0.773358
+	b 0.618937
+	m 1.14831
+	Achild 0.7
+	Aadult 1.3
+	Aold 1.3
+	Bchild 1.3
+	Badult 0.7
+	Bold 1.3
+scenario 641 Probability 0.00133333
+	epsilon 0.772089
+	b 0.536048
+	m 1.02153
+	Achild 0.7
+	Aadult 1.3
+	Aold 1.3
+	Bchild 0.7
+	Badult 1.3
+	Bold 0.7
+scenario 642 Probability 0.00133333
+	epsilon 0.86203
+	b 0.521816
+	m 1.12146
+	Achild 1.3
+	Aadult 1.3
+	Aold 1.3
+	Bchild 0.7
+	Badult 1.3
+	Bold 1.3
+scenario 643 Probability 0.00133333
+	epsilon 0.836167
+	b 0.664393
+	m 0.928158
+	Achild 1.3
+	Aadult 0.7
+	Aold 1.3
+	Bchild 0.7
+	Badult 1.3
+	Bold 1.3
+scenario 644 Probability 0.00133333
+	epsilon 0.82561
+	b 0.594679
+	m 1.16581
+	Achild 1.3
+	Aadult 1.3
+	Aold 0.7
+	Bchild 0.7
+	Badult 1.3
+	Bold 0.7
+scenario 645 Probability 0.00133333
+	epsilon 0.76794
+	b 0.609528
+	m 0.932753
+	Achild 0.7
+	Aadult 0.7
+	Aold 0.7
+	Bchild 0.7
+	Badult 0.7
+	Bold 1.3
+scenario 646 Probability 0.00133333
+	epsilon 0.929176
+	b 0.639005
+	m 0.965541
+	Achild 1.3
+	Aadult 0.7
+	Aold 0.7
+	Bchild 0.7
+	Badult 0.7
+	Bold 0.7
+scenario 647 Probability 0.00133333
+	epsilon 0.871341
+	b 0.576006
+	m 1.11628
+	Achild 1.3
+	Aadult 1.3
+	Aold 0.7
+	Bchild 1.3
+	Badult 0.7
+	Bold 0.7
+scenario 648 Probability 0.00133333
+	epsilon 0.866503
+	b 0.650112
+	m 0.808593
+	Achild 1.3
+	Aadult 1.3
+	Aold 0.7
+	Bchild 0.7
+	Badult 1.3
+	Bold 0.7
+scenario 649 Probability 0.00133333
+	epsilon 0.865822
+	b 0.687928
+	m 0.989267
+	Achild 0.7
+	Aadult 1.3
+	Aold 1.3
+	Bchild 1.3
+	Badult 0.7
+	Bold 1.3
+scenario 650 Probability 0.00133333
+	epsilon 0.841709
+	b 0.598855
+	m 1.07211
+	Achild 0.7
+	Aadult 0.7
+	Aold 1.3
+	Bchild 0.7
+	Badult 0.7
+	Bold 0.7
+scenario 651 Probability 0.00133333
+	epsilon 0.91005
+	b 0.674575
+	m 0.993186
+	Achild 0.7
+	Aadult 1.3
+	Aold 1.3
+	Bchild 1.3
+	Badult 0.7
+	Bold 1.3
+scenario 652 Probability 0.00133333
+	epsilon 0.874021
+	b 0.699061
+	m 0.978319
+	Achild 0.7
+	Aadult 0.7
+	Aold 0.7
+	Bchild 1.3
+	Badult 1.3
+	Bold 0.7
+scenario 653 Probability 0.00133333
+	epsilon 0.911976
+	b 0.616237
+	m 0.930164
+	Achild 0.7
+	Aadult 1.3
+	Aold 0.7
+	Bchild 1.3
+	Badult 1.3
+	Bold 1.3
+scenario 654 Probability 0.00133333
+	epsilon 0.776881
+	b 0.608746
+	m 0.939598
+	Achild 0.7
+	Aadult 0.7
+	Aold 1.3
+	Bchild 0.7
+	Badult 1.3
+	Bold 1.3
+scenario 655 Probability 0.00133333
+	epsilon 0.852848
+	b 0.571471
+	m 0.85154
+	Achild 0.7
+	Aadult 0.7
+	Aold 0.7
+	Bchild 0.7
+	Badult 0.7
+	Bold 0.7
+scenario 656 Probability 0.00133333
+	epsilon 0.811848
+	b 0.609696
+	m 1.05444
+	Achild 0.7
+	Aadult 1.3
+	Aold 0.7
+	Bchild 0.7
+	Badult 1.3
+	Bold 1.3
+scenario 657 Probability 0.00133333
+	epsilon 0.769023
+	b 0.648761
+	m 1.23905
+	Achild 1.3
+	Aadult 1.3
+	Aold 0.7
+	Bchild 1.3
+	Badult 1.3
+	Bold 1.3
+scenario 658 Probability 0.00133333
+	epsilon 0.795053
+	b 0.593001
+	m 1.02834
+	Achild 0.7
+	Aadult 0.7
+	Aold 0.7
+	Bchild 0.7
+	Badult 0.7
+	Bold 1.3
+scenario 659 Probability 0.00133333
+	epsilon 0.905498
+	b 0.530883
+	m 1.02397
+	Achild 1.3
+	Aadult 0.7
+	Aold 0.7
+	Bchild 1.3
+	Badult 0.7
+	Bold 1.3
+scenario 660 Probability 0.00133333
+	epsilon 0.823253
+	b 0.600251
+	m 0.847865
+	Achild 1.3
+	Aadult 1.3
+	Aold 0.7
+	Bchild 0.7
+	Badult 1.3
+	Bold 0.7
+scenario 661 Probability 0.00133333
+	epsilon 0.810842
+	b 0.678719
+	m 1.01381
+	Achild 0.7
+	Aadult 0.7
+	Aold 0.7
+	Bchild 0.7
+	Badult 1.3
+	Bold 0.7
+scenario 662 Probability 0.00133333
+	epsilon 0.947828
+	b 0.571981
+	m 1.12465
+	Achild 0.7
+	Aadult 0.7
+	Aold 0.7
+	Bchild 1.3
+	Badult 0.7
+	Bold 0.7
+scenario 663 Probability 0.00133333
+	epsilon 0.843451
+	b 0.505446
+	m 0.955499
+	Achild 0.7
+	Aadult 0.7
+	Aold 0.7
+	Bchild 0.7
+	Badult 0.7
+	Bold 1.3
+scenario 664 Probability 0.00133333
+	epsilon 0.777696
+	b 0.693468
+	m 1.02946
+	Achild 1.3
+	Aadult 0.7
+	Aold 1.3
+	Bchild 0.7
+	Badult 0.7
+	Bold 1.3
+scenario 665 Probability 0.00133333
+	epsilon 0.869529
+	b 0.675078
+	m 1.14559
+	Achild 1.3
+	Aadult 0.7
+	Aold 1.3
+	Bchild 0.7
+	Badult 0.7
+	Bold 1.3
+scenario 666 Probability 0.00133333
+	epsilon 0.948316
+	b 0.529082
+	m 0.873597
+	Achild 0.7
+	Aadult 1.3
+	Aold 0.7
+	Bchild 0.7
+	Badult 0.7
+	Bold 0.7
+scenario 667 Probability 0.00133333
+	epsilon 0.866173
+	b 0.60832
+	m 0.987965
+	Achild 1.3
+	Aadult 0.7
+	Aold 0.7
+	Bchild 1.3
+	Badult 1.3
+	Bold 0.7
+scenario 668 Probability 0.00133333
+	epsilon 0.816199
+	b 0.538955
+	m 0.980506
+	Achild 0.7
+	Aadult 0.7
+	Aold 0.7
+	Bchild 0.7
+	Badult 1.3
+	Bold 0.7
+scenario 669 Probability 0.00133333
+	epsilon 0.754404
+	b 0.58504
+	m 0.998623
+	Achild 1.3
+	Aadult 1.3
+	Aold 0.7
+	Bchild 0.7
+	Badult 1.3
+	Bold 1.3
+scenario 670 Probability 0.00133333
+	epsilon 0.888322
+	b 0.598289
+	m 0.889963
+	Achild 1.3
+	Aadult 0.7
+	Aold 1.3
+	Bchild 0.7
+	Badult 1.3
+	Bold 1.3
+scenario 671 Probability 0.00133333
+	epsilon 0.83066
+	b 0.647984
+	m 0.827467
+	Achild 1.3
+	Aadult 0.7
+	Aold 1.3
+	Bchild 1.3
+	Badult 0.7
+	Bold 1.3
+scenario 672 Probability 0.00133333
+	epsilon 0.929527
+	b 0.598886
+	m 1.15164
+	Achild 1.3
+	Aadult 1.3
+	Aold 1.3
+	Bchild 0.7
+	Badult 0.7
+	Bold 0.7
+scenario 673 Probability 0.00133333
+	epsilon 0.9097
+	b 0.55463
+	m 1.04837
+	Achild 0.7
+	Aadult 0.7
+	Aold 1.3
+	Bchild 0.7
+	Badult 1.3
+	Bold 1.3
+scenario 674 Probability 0.00133333
+	epsilon 0.825637
+	b 0.646812
+	m 0.934623
+	Achild 0.7
+	Aadult 0.7
+	Aold 1.3
+	Bchild 0.7
+	Badult 1.3
+	Bold 0.7
+scenario 675 Probability 0.00133333
+	epsilon 0.781109
+	b 0.629541
+	m 0.822753
+	Achild 0.7
+	Aadult 0.7
+	Aold 0.7
+	Bchild 1.3
+	Badult 1.3
+	Bold 0.7
+scenario 676 Probability 0.00133333
+	epsilon 0.80022
+	b 0.546199
+	m 0.8374
+	Achild 0.7
+	Aadult 1.3
+	Aold 1.3
+	Bchild 0.7
+	Badult 0.7
+	Bold 0.7
+scenario 677 Probability 0.00133333
+	epsilon 0.832327
+	b 0.678451
+	m 0.965068
+	Achild 1.3
+	Aadult 0.7
+	Aold 1.3
+	Bchild 1.3
+	Badult 1.3
+	Bold 1.3
+scenario 678 Probability 0.00133333
+	epsilon 0.862261
+	b 0.674459
+	m 1.09634
+	Achild 0.7
+	Aadult 1.3
+	Aold 0.7
+	Bchild 0.7
+	Badult 0.7
+	Bold 0.7
+scenario 679 Probability 0.00133333
+	epsilon 0.835827
+	b 0.548104
+	m 0.853836
+	Achild 1.3
+	Aadult 1.3
+	Aold 1.3
+	Bchild 0.7
+	Badult 1.3
+	Bold 1.3
+scenario 680 Probability 0.00133333
+	epsilon 0.846582
+	b 0.521201
+	m 0.921637
+	Achild 1.3
+	Aadult 0.7
+	Aold 1.3
+	Bchild 1.3
+	Badult 0.7
+	Bold 1.3
+scenario 681 Probability 0.00133333
+	epsilon 0.891905
+	b 0.67489
+	m 0.854465
+	Achild 0.7
+	Aadult 0.7
+	Aold 1.3
+	Bchild 1.3
+	Badult 1.3
+	Bold 0.7
+scenario 682 Probability 0.00133333
+	epsilon 0.789722
+	b 0.511297
+	m 1.14463
+	Achild 0.7
+	Aadult 1.3
+	Aold 1.3
+	Bchild 1.3
+	Badult 1.3
+	Bold 1.3
+scenario 683 Probability 0.00133333
+	epsilon 0.863145
+	b 0.528934
+	m 0.917214
+	Achild 1.3
+	Aadult 0.7
+	Aold 0.7
+	Bchild 1.3
+	Badult 1.3
+	Bold 1.3
+scenario 684 Probability 0.00133333
+	epsilon 0.776691
+	b 0.581867
+	m 0.945056
+	Achild 0.7
+	Aadult 0.7
+	Aold 0.7
+	Bchild 0.7
+	Badult 0.7
+	Bold 0.7
+scenario 685 Probability 0.00133333
+	epsilon 0.853235
+	b 0.520223
+	m 1.01949
+	Achild 0.7
+	Aadult 1.3
+	Aold 0.7
+	Bchild 1.3
+	Badult 1.3
+	Bold 1.3
+scenario 686 Probability 0.00133333
+	epsilon 0.89183
+	b 0.583132
+	m 0.857533
+	Achild 1.3
+	Aadult 0.7
+	Aold 0.7
+	Bchild 0.7
+	Badult 0.7
+	Bold 1.3
+scenario 687 Probability 0.00133333
+	epsilon 0.768721
+	b 0.606009
+	m 1.00882
+	Achild 1.3
+	Aadult 0.7
+	Aold 0.7
+	Bchild 0.7
+	Badult 1.3
+	Bold 1.3
+scenario 688 Probability 0.00133333
+	epsilon 0.773738
+	b 0.575528
+	m 1.1321
+	Achild 1.3
+	Aadult 1.3
+	Aold 1.3
+	Bchild 1.3
+	Badult 1.3
+	Bold 0.7
+scenario 689 Probability 0.00133333
+	epsilon 0.799317
+	b 0.651512
+	m 0.804657
+	Achild 0.7
+	Aadult 1.3
+	Aold 0.7
+	Bchild 0.7
+	Badult 1.3
+	Bold 0.7
+scenario 690 Probability 0.00133333
+	epsilon 0.761119
+	b 0.560769
+	m 1.04212
+	Achild 0.7
+	Aadult 0.7
+	Aold 0.7
+	Bchild 0.7
+	Badult 1.3
+	Bold 1.3
+scenario 691 Probability 0.00133333
+	epsilon 0.812693
+	b 0.635302
+	m 0.925192
+	Achild 1.3
+	Aadult 1.3
+	Aold 1.3
+	Bchild 0.7
+	Badult 1.3
+	Bold 1.3
+scenario 692 Probability 0.00133333
+	epsilon 0.858357
+	b 0.691528
+	m 0.928138
+	Achild 1.3
+	Aadult 0.7
+	Aold 0.7
+	Bchild 1.3
+	Badult 1.3
+	Bold 0.7
+scenario 693 Probability 0.00133333
+	epsilon 0.794284
+	b 0.697253
+	m 1.08265
+	Achild 0.7
+	Aadult 0.7
+	Aold 0.7
+	Bchild 0.7
+	Badult 0.7
+	Bold 1.3
+scenario 694 Probability 0.00133333
+	epsilon 0.863329
+	b 0.578174
+	m 0.980572
+	Achild 1.3
+	Aadult 1.3
+	Aold 1.3
+	Bchild 0.7
+	Badult 1.3
+	Bold 1.3
+scenario 695 Probability 0.00133333
+	epsilon 0.822368
+	b 0.651374
+	m 1.13647
+	Achild 0.7
+	Aadult 0.7
+	Aold 0.7
+	Bchild 0.7
+	Badult 0.7
+	Bold 0.7
+scenario 696 Probability 0.00133333
+	epsilon 0.81095
+	b 0.582349
+	m 1.2321
+	Achild 1.3
+	Aadult 0.7
+	Aold 1.3
+	Bchild 0.7
+	Badult 0.7
+	Bold 0.7
+scenario 697 Probability 0.00133333
+	epsilon 0.772587
+	b 0.518328
+	m 0.850876
+	Achild 0.7
+	Aadult 0.7
+	Aold 1.3
+	Bchild 1.3
+	Badult 1.3
+	Bold 1.3
+scenario 698 Probability 0.00133333
+	epsilon 0.868371
+	b 0.670583
+	m 0.774134
+	Achild 1.3
+	Aadult 1.3
+	Aold 0.7
+	Bchild 1.3
+	Badult 0.7
+	Bold 1.3
+scenario 699 Probability 0.00133333
+	epsilon 0.791101
+	b 0.562906
+	m 1.09462
+	Achild 1.3
+	Aadult 1.3
+	Aold 0.7
+	Bchild 0.7
+	Badult 0.7
+	Bold 1.3
+scenario 700 Probability 0.00133333
+	epsilon 0.835362
+	b 0.661591
+	m 0.754515
+	Achild 0.7
+	Aadult 0.7
+	Aold 1.3
+	Bchild 1.3
+	Badult 0.7
+	Bold 0.7
+scenario 701 Probability 0.00133333
+	epsilon 0.832385
+	b 0.517718
+	m 1.19254
+	Achild 0.7
+	Aadult 1.3
+	Aold 1.3
+	Bchild 0.7
+	Badult 1.3
+	Bold 1.3
+scenario 702 Probability 0.00133333
+	epsilon 0.893556
+	b 0.612485
+	m 1.20111
+	Achild 0.7
+	Aadult 1.3
+	Aold 0.7
+	Bchild 0.7
+	Badult 0.7
+	Bold 0.7
+scenario 703 Probability 0.00133333
+	epsilon 0.831184
+	b 0.518348
+	m 1.14555
+	Achild 0.7
+	Aadult 1.3
+	Aold 0.7
+	Bchild 1.3
+	Badult 1.3
+	Bold 1.3
+scenario 704 Probability 0.00133333
+	epsilon 0.847619
+	b 0.529922
+	m 1.09921
+	Achild 1.3
+	Aadult 0.7
+	Aold 1.3
+	Bchild 0.7
+	Badult 1.3
+	Bold 0.7
+scenario 705 Probability 0.00133333
+	epsilon 0.845732
+	b 0.59265
+	m 0.863491
+	Achild 0.7
+	Aadult 1.3
+	Aold 1.3
+	Bchild 0.7
+	Badult 1.3
+	Bold 0.7
+scenario 706 Probability 0.00133333
+	epsilon 0.791617
+	b 0.650591
+	m 1.17079
+	Achild 0.7
+	Aadult 0.7
+	Aold 1.3
+	Bchild 0.7
+	Badult 0.7
+	Bold 0.7
+scenario 707 Probability 0.00133333
+	epsilon 0.811879
+	b 0.599606
+	m 1.16482
+	Achild 1.3
+	Aadult 0.7
+	Aold 1.3
+	Bchild 1.3
+	Badult 0.7
+	Bold 0.7
+scenario 708 Probability 0.00133333
+	epsilon 0.833777
+	b 0.586003
+	m 1.01969
+	Achild 1.3
+	Aadult 1.3
+	Aold 1.3
+	Bchild 1.3
+	Badult 0.7
+	Bold 0.7
+scenario 709 Probability 0.00133333
+	epsilon 0.763503
+	b 0.569399
+	m 1.19834
+	Achild 0.7
+	Aadult 0.7
+	Aold 0.7
+	Bchild 0.7
+	Badult 0.7
+	Bold 1.3
+scenario 710 Probability 0.00133333
+	epsilon 0.765562
+	b 0.658137
+	m 1.01653
+	Achild 1.3
+	Aadult 1.3
+	Aold 1.3
+	Bchild 0.7
+	Badult 1.3
+	Bold 0.7
+scenario 711 Probability 0.00133333
+	epsilon 0.89823
+	b 0.593344
+	m 0.839424
+	Achild 1.3
+	Aadult 0.7
+	Aold 1.3
+	Bchild 0.7
+	Badult 1.3
+	Bold 1.3
+scenario 712 Probability 0.00133333
+	epsilon 0.864275
+	b 0.604338
+	m 0.886275
+	Achild 0.7
+	Aadult 0.7
+	Aold 0.7
+	Bchild 1.3
+	Badult 1.3
+	Bold 1.3
+scenario 713 Probability 0.00133333
+	epsilon 0.936555
+	b 0.582305
+	m 0.89688
+	Achild 1.3
+	Aadult 0.7
+	Aold 0.7
+	Bchild 1.3
+	Badult 0.7
+	Bold 1.3
+scenario 714 Probability 0.00133333
+	epsilon 0.878838
+	b 0.582524
+	m 0.847416
+	Achild 1.3
+	Aadult 1.3
+	Aold 0.7
+	Bchild 1.3
+	Badult 0.7
+	Bold 1.3
+scenario 715 Probability 0.00133333
+	epsilon 0.93043
+	b 0.684701
+	m 0.97474
+	Achild 0.7
+	Aadult 0.7
+	Aold 1.3
+	Bchild 1.3
+	Badult 1.3
+	Bold 0.7
+scenario 716 Probability 0.00133333
+	epsilon 0.878294
+	b 0.53864
+	m 1.15815
+	Achild 1.3
+	Aadult 0.7
+	Aold 0.7
+	Bchild 1.3
+	Badult 0.7
+	Bold 0.7
+scenario 717 Probability 0.00133333
+	epsilon 0.880381
+	b 0.582156
+	m 1.19458
+	Achild 0.7
+	Aadult 1.3
+	Aold 0.7
+	Bchild 0.7
+	Badult 0.7
+	Bold 1.3
+scenario 718 Probability 0.00133333
+	epsilon 0.825004
+	b 0.654277
+	m 0.806633
+	Achild 1.3
+	Aadult 1.3
+	Aold 0.7
+	Bchild 1.3
+	Badult 1.3
+	Bold 1.3
+scenario 719 Probability 0.00133333
+	epsilon 0.837546
+	b 0.560117
+	m 0.752922
+	Achild 1.3
+	Aadult 1.3
+	Aold 1.3
+	Bchild 0.7
+	Badult 0.7
+	Bold 0.7
+scenario 720 Probability 0.00133333
+	epsilon 0.917677
+	b 0.54482
+	m 1.20829
+	Achild 0.7
+	Aadult 0.7
+	Aold 0.7
+	Bchild 1.3
+	Badult 1.3
+	Bold 1.3
+scenario 721 Probability 0.00133333
+	epsilon 0.927784
+	b 0.523345
+	m 0.877189
+	Achild 0.7
+	Aadult 1.3
+	Aold 0.7
+	Bchild 0.7
+	Badult 1.3
+	Bold 0.7
+scenario 722 Probability 0.00133333
+	epsilon 0.790699
+	b 0.588056
+	m 1.12038
+	Achild 1.3
+	Aadult 1.3
+	Aold 0.7
+	Bchild 1.3
+	Badult 0.7
+	Bold 1.3
+scenario 723 Probability 0.00133333
+	epsilon 0.787455
+	b 0.601139
+	m 0.997508
+	Achild 0.7
+	Aadult 1.3
+	Aold 1.3
+	Bchild 1.3
+	Badult 1.3
+	Bold 0.7
+scenario 724 Probability 0.00133333
+	epsilon 0.828769
+	b 0.586507
+	m 1.1292
+	Achild 1.3
+	Aadult 1.3
+	Aold 0.7
+	Bchild 1.3
+	Badult 1.3
+	Bold 1.3
+scenario 725 Probability 0.00133333
+	epsilon 0.814014
+	b 0.617957
+	m 0.877688
+	Achild 0.7
+	Aadult 0.7
+	Aold 1.3
+	Bchild 0.7
+	Badult 0.7
+	Bold 1.3
+scenario 726 Probability 0.00133333
+	epsilon 0.783902
+	b 0.52801
+	m 0.912159
+	Achild 1.3
+	Aadult 0.7
+	Aold 1.3
+	Bchild 1.3
+	Badult 1.3
+	Bold 0.7
+scenario 727 Probability 0.00133333
+	epsilon 0.759661
+	b 0.541841
+	m 0.887127
+	Achild 0.7
+	Aadult 1.3
+	Aold 0.7
+	Bchild 1.3
+	Badult 1.3
+	Bold 0.7
+scenario 728 Probability 0.00133333
+	epsilon 0.825329
+	b 0.615259
+	m 0.884161
+	Achild 0.7
+	Aadult 1.3
+	Aold 0.7
+	Bchild 1.3
+	Badult 1.3
+	Bold 1.3
+scenario 729 Probability 0.00133333
+	epsilon 0.871081
+	b 0.513089
+	m 1.081
+	Achild 0.7
+	Aadult 1.3
+	Aold 0.7
+	Bchild 1.3
+	Badult 1.3
+	Bold 1.3
+scenario 730 Probability 0.00133333
+	epsilon 0.915386
+	b 0.548002
+	m 0.957867
+	Achild 1.3
+	Aadult 1.3
+	Aold 0.7
+	Bchild 0.7
+	Badult 0.7
+	Bold 1.3
+scenario 731 Probability 0.00133333
+	epsilon 0.765391
+	b 0.530236
+	m 1.22987
+	Achild 1.3
+	Aadult 0.7
+	Aold 0.7
+	Bchild 0.7
+	Badult 0.7
+	Bold 1.3
+scenario 732 Probability 0.00133333
+	epsilon 0.937319
+	b 0.517878
+	m 0.988317
+	Achild 1.3
+	Aadult 0.7
+	Aold 0.7
+	Bchild 1.3
+	Badult 0.7
+	Bold 1.3
+scenario 733 Probability 0.00133333
+	epsilon 0.936359
+	b 0.622275
+	m 0.848299
+	Achild 1.3
+	Aadult 1.3
+	Aold 0.7
+	Bchild 1.3
+	Badult 0.7
+	Bold 1.3
+scenario 734 Probability 0.00133333
+	epsilon 0.908274
+	b 0.605676
+	m 1.0615
+	Achild 0.7
+	Aadult 1.3
+	Aold 1.3
+	Bchild 0.7
+	Badult 1.3
+	Bold 1.3
+scenario 735 Probability 0.00133333
+	epsilon 0.834685
+	b 0.571572
+	m 0.837531
+	Achild 1.3
+	Aadult 1.3
+	Aold 0.7
+	Bchild 1.3
+	Badult 1.3
+	Bold 1.3
+scenario 736 Probability 0.00133333
+	epsilon 0.930703
+	b 0.594595
+	m 0.945075
+	Achild 1.3
+	Aadult 1.3
+	Aold 0.7
+	Bchild 0.7
+	Badult 1.3
+	Bold 0.7
+scenario 737 Probability 0.00133333
+	epsilon 0.833489
+	b 0.507152
+	m 0.912104
+	Achild 0.7
+	Aadult 1.3
+	Aold 0.7
+	Bchild 1.3
+	Badult 1.3
+	Bold 0.7
+scenario 738 Probability 0.00133333
+	epsilon 0.912494
+	b 0.628027
+	m 1.14444
+	Achild 0.7
+	Aadult 1.3
+	Aold 1.3
+	Bchild 0.7
+	Badult 0.7
+	Bold 1.3
+scenario 739 Probability 0.00133333
+	epsilon 0.859606
+	b 0.631517
+	m 1.0084
+	Achild 1.3
+	Aadult 0.7
+	Aold 1.3
+	Bchild 1.3
+	Badult 0.7
+	Bold 0.7
+scenario 740 Probability 0.00133333
+	epsilon 0.865786
+	b 0.579055
+	m 0.92298
+	Achild 0.7
+	Aadult 0.7
+	Aold 1.3
+	Bchild 1.3
+	Badult 1.3
+	Bold 0.7
+scenario 741 Probability 0.00133333
+	epsilon 0.880551
+	b 0.680355
+	m 1.10754
+	Achild 0.7
+	Aadult 0.7
+	Aold 1.3
+	Bchild 0.7
+	Badult 0.7
+	Bold 1.3
+scenario 742 Probability 0.00133333
+	epsilon 0.82186
+	b 0.680389
+	m 0.978393
+	Achild 0.7
+	Aadult 1.3
+	Aold 0.7
+	Bchild 0.7
+	Badult 1.3
+	Bold 1.3
+scenario 743 Probability 0.00133333
+	epsilon 0.863678
+	b 0.584389
+	m 1.06596
+	Achild 1.3
+	Aadult 1.3
+	Aold 0.7
+	Bchild 1.3
+	Badult 0.7
+	Bold 0.7
+scenario 744 Probability 0.00133333
+	epsilon 0.81076
+	b 0.599661
+	m 1.18319
+	Achild 0.7
+	Aadult 0.7
+	Aold 0.7
+	Bchild 0.7
+	Badult 1.3
+	Bold 1.3
+scenario 745 Probability 0.00133333
+	epsilon 0.940573
+	b 0.608357
+	m 0.957008
+	Achild 1.3
+	Aadult 0.7
+	Aold 1.3
+	Bchild 0.7
+	Badult 1.3
+	Bold 0.7
+scenario 746 Probability 0.00133333
+	epsilon 0.891123
+	b 0.633059
+	m 0.906966
+	Achild 1.3
+	Aadult 0.7
+	Aold 0.7
+	Bchild 0.7
+	Badult 0.7
+	Bold 0.7
+scenario 747 Probability 0.00133333
+	epsilon 0.800656
+	b 0.524819
+	m 0.862514
+	Achild 1.3
+	Aadult 1.3
+	Aold 0.7
+	Bchild 1.3
+	Badult 1.3
+	Bold 0.7
+scenario 748 Probability 0.00133333
+	epsilon 0.815408
+	b 0.532712
+	m 0.846825
+	Achild 1.3
+	Aadult 1.3
+	Aold 0.7
+	Bchild 0.7
+	Badult 0.7
+	Bold 0.7
+scenario 749 Probability 0.00133333
+	epsilon 0.846847
+	b 0.646773
+	m 1.1815
+	Achild 0.7
+	Aadult 1.3
+	Aold 1.3
+	Bchild 1.3
+	Badult 0.7
+	Bold 1.3
+scenario 750 Probability 0.00133333
+	epsilon 0.797914
+	b 0.613218
+	m 0.983954
+	Achild 0.7
+	Aadult 0.7
+	Aold 0.7
+	Bchild 1.3
+	Badult 0.7
+	Bold 1.3
+ENDATA
