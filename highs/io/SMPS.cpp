@@ -471,19 +471,16 @@ StochasticTree ScenarioStructure::constructTree() {
 bool Node::rescale_to_children_probability() {
   if (is_leaf() && node_probability > 0) return true;
   auto child_prob = sum_children_prob();
-  if (child_prob == 0) { std::cout << node_probability << " " << timestage << " " << children.size() << std::endl;
-    return false;}
+  if (child_prob == 0) return false;
   node_probability = child_prob;
   for (auto & child : children) child->node_probability /= node_probability;
   return true;
 }
 
 bool Node::rescale_tree_to_leaf_probability() {
-  // std::cout << "Enter: "<<  timestage << " " << node_probability << std::endl;
   for (auto & child : children)
     if(!child->rescale_tree_to_leaf_probability())
       return false;
-  // std::cout << "Exit: "<<  timestage << " " << node_probability << std::endl;
   return rescale_to_children_probability();
 }
 
@@ -561,7 +558,7 @@ HighsLp modify_problem(SmpsCoreStructure const & core, Node & node) {
       else {
         //TODO modify with a new val
         auto idx = find_csr_value_index(lp.a_matrix_, mod.col_idx, mod.row_idx);
-        assert (idx > -1);
+        assert(idx > -1);
         lp.a_matrix_.value_.at(idx) = mod.value;
       }
     }
