@@ -716,19 +716,13 @@ std::pair<SmpsCoreStructure, StochasticTree> build_stochastic_tree(
                               std::string const & stoch_filename,
                               HighsOptions const & highs_mps_options) {
   SmpsCoreStructure core(highs_mps_options, core_filename);  
-  assert(core.is_valid());
    if (!core.is_valid()) return {core, nullptr};
 
   SmpsTimeStructure time(time_filename);
-  assert(time.is_valid());
   if (!time.is_valid()) return {core, nullptr};
   if (!core.load_time_stages(time)) return {core, nullptr};
 
   auto stoch = read_stochastic_file(stoch_filename, core, time);  
-  assert(stoch!=nullptr);
-  assert(stoch->is_valid());
-  assert(stoch->verify_stages(time));
-  assert(stoch->fill_missing_stages(time));
   if (stoch == nullptr || !stoch->is_valid() ||
        !stoch->verify_stages(time) || !stoch->fill_missing_stages(time)) return {core, nullptr};
   return {core, stoch->constructTree()};             

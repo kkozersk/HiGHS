@@ -1212,6 +1212,49 @@ TEST_CASE("test-create-scenario-structure-with-comments", "[highs_smps]") {
   REQUIRE(smps.get_scenario("S04") == scen4);
 }
 
+TEST_CASE("test-create-empty-stochastic-structure", "[highs_smps]") {
+  std::istringstream timedata("TIME NAME\n"
+                                       "PERIODS\n"
+                                 "C1 R1 PERIOD2\n"
+                             "ENDATA");
+  SmpsTimeStructure time(timedata);
+  REQUIRE(time.is_valid());
+  REQUIRE(time.is_valid());
+  auto path = std::string(HIGHS_DIR) + "/check/instances/stoch/simple.cor";
+  SmpsCoreStructure core({}, path);
+  REQUIRE(core.is_valid());
+  std::istringstream empty_scenario("STOCH NAME\nSCENARIOS DISCRETE\n"
+                          "SC S01 ROOT 0.5 PERIOD2\n"
+                          "RHS R1 50\n"
+                          "RHS R2 40\n"
+                          "SC S02 ROOT 0.3 PERIOD2\n"
+                          "SC S03 S02 0.6 PERIOD3\n"
+                          "RHS R3 30\n"
+                          "SC S04 S03 0.3 PERIOD4\n"
+                          "RHS R4 25\n"
+                          "ENDATA");
+  auto smps = ScenarioStructure(empty_scenario, time, core);
+  REQUIRE(smps.is_valid());
+  REQUIRE(smps.get_no_scenarios() == 4);
+  ScenarioModifications scen1 {
+      {{"R1","RHS",50}, {"R2", "RHS", 40}},
+      0.5, "PERIOD2", "S01", "ROOT" };
+  REQUIRE(smps.get_scenario(0) == scen1);
+  REQUIRE(smps.get_scenario("S01") == scen1);
+  ScenarioModifications scen2 {{}, 0.3, "PERIOD2", "S02", "ROOT" };
+  REQUIRE(smps.get_scenario(1) == scen2);
+  REQUIRE(smps.get_scenario("S02") == scen2);
+  ScenarioModifications scen3 {
+      {{"R3","RHS",30}},
+      0.6, "PERIOD3", "S03", "S02" };
+  REQUIRE(smps.get_scenario(2) == scen3);
+  REQUIRE(smps.get_scenario("S03") == scen3);
+  ScenarioModifications scen4 {
+      {{"R4","RHS",25}},
+      0.3, "PERIOD4", "S04", "S03" };
+  REQUIRE(smps.get_scenario(3) == scen4);
+  REQUIRE(smps.get_scenario("S04") == scen4);
+}
 TEST_CASE("test-create-malformed-stochastic-structure", "[highs_smps]") {
    std::istringstream timedata("TIME NAME\n"
                                        "PERIODS\n"
@@ -1285,20 +1328,6 @@ TEST_CASE("test-create-malformed-stochastic-structure", "[highs_smps]") {
                             "RHS R4 25\n"
                             "ENDATA");
     auto smps = ScenarioStructure(malformed_scenario_entry2, time, core);
-    REQUIRE(!smps.is_valid());
-  }
-  {
-    std::istringstream empty_scenario("STOCH NAME\nSCENARIOS DISCRETE\n"
-                            "SC S01 ROOT 0.5 PERIOD2\n"
-                            "RHS R1 50\n"
-                            "RHS R2 40\n"
-                            "SC S02 ROOT 0.3 PERIOD2\n"
-                            "SC S03 S02 0.6 PERIOD3\n"
-                            "RHS R3 30\n"
-                            "SC S04 S03 0.3 PERIOD4\n"
-                            "RHS R4 25\n"
-                            "ENDATA");
-    auto smps = ScenarioStructure(empty_scenario, time, core);
     REQUIRE(!smps.is_valid());
   }
   {
@@ -2445,6 +2474,8 @@ TEST_CASE("test-smps-indep-fxm-read", "[highs-smps]") {
     auto stoch = read_stochastic_file(stochfile, core, time);
     REQUIRE(stoch != nullptr);
     REQUIRE(stoch->is_valid());
+    REQUIRE(stoch->verify_stages(time));
+    REQUIRE(stoch->fill_missing_stages(time));
 
     auto tree = stoch->constructTree();
     REQUIRE(stoch != nullptr);
@@ -2487,6 +2518,8 @@ TEST_CASE("test-smps-indep-fxm-read", "[highs-smps]") {
     auto stoch = read_stochastic_file(stochfile, core, time);
     REQUIRE(stoch != nullptr);
     REQUIRE(stoch->is_valid());
+    REQUIRE(stoch->verify_stages(time));
+    REQUIRE(stoch->fill_missing_stages(time));
 
     auto tree = stoch->constructTree();
     REQUIRE(stoch != nullptr);
@@ -2582,6 +2615,8 @@ TEST_CASE("test-smps-block-pltexp-read", "[highs-smps]") {
     auto stoch = read_stochastic_file(stochfile, core, time);
     REQUIRE(stoch != nullptr);
     REQUIRE(stoch->is_valid());
+    REQUIRE(stoch->verify_stages(time));
+    REQUIRE(stoch->fill_missing_stages(time));
 
     auto tree = stoch->constructTree();
     REQUIRE(stoch != nullptr);
