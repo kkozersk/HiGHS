@@ -1,13 +1,9 @@
 #include "benders/Benders.h"
 #include "HCheckConfig.h"
 #include "io/SMPS.h"
-#include "io/FilereaderLp.h"
-#include "io/FilereaderMps.h"
 #include "Highs.h"
 #include "catch.hpp"
 #include <cmath>
-// #include <fstream>
-#include <numeric>
 #include <set>
 #include <vector>
 

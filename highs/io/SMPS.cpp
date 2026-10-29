@@ -547,24 +547,31 @@ HighsLp modify_problem(SmpsCoreStructure const & core, Node & node) {
     lp.ensureRowwise();
     auto node_modifications = core.annotate_lp_entries(node.get_lp_modifications());
     auto const & node_ranges = core.stage_submatrix.at(node.get_timestage());
-    for (auto const & mod : node_modifications) {
-      if (mod.is_objective)
-        lp.col_cost_.at(mod.col_idx) = mod.value;
-      else if (mod.is_rhs) {
-        auto LB = lp.row_lower_.at(mod.row_idx);
-        lp.row_lower_.at(mod.row_idx) = update_lb(LB, mod.value);
-        auto UB = lp.row_upper_.at(mod.row_idx);
-        lp.row_upper_.at(mod.row_idx) = update_ub(UB, mod.value);
+    for (auto const & mod : node_modifications)
+      switch(mod.entry_type) {
+        case LpIdxEntry::Objective:        
+          lp.col_cost_.at(mod.col_idx) = mod.value;
+        break;
+        case LpIdxEntry::RHS:
+          lp.row_lower_.at(mod.row_idx) = update_lb(lp.row_lower_.at(mod.row_idx), mod.value);
+          lp.row_upper_.at(mod.row_idx) = update_ub(lp.row_upper_.at(mod.row_idx), mod.value);
+       break;
+       case LpIdxEntry::Matrix:
+        lp.a_matrix_.value_.at(find_csr_value_index(lp.a_matrix_, mod.col_idx, mod.row_idx)) = mod.value;
+       break;
+       case LpIdxEntry::LowerBnd:
+         lp.col_lower_.at(mod.col_idx) = mod.value;
+       break;
+       case LpIdxEntry::UpperBnd:
+         lp.col_upper_.at(mod.col_idx) = mod.value;
+       break;
+       case LpIdxEntry::FixBnd:
+         lp.col_lower_.at(mod.col_idx) = mod.value;
+         lp.col_upper_.at(mod.col_idx) = mod.value;
+       break;
+       default: assert(1==0);
       }
-      else {
-        //TODO modify with a new val
-        auto idx = find_csr_value_index(lp.a_matrix_, mod.col_idx, mod.row_idx);
-        assert(idx > -1);
-        lp.a_matrix_.value_.at(idx) = mod.value;
-      }
-    }
     auto prob = node.get_in_tree_probability();
-    //TODO transform
     std::transform(lp.col_cost_.begin() + node_ranges.col_idx_begin, 
                   lp.col_cost_.begin() + node_ranges.col_idx_end,
                   lp.col_cost_.begin() + node_ranges.col_idx_begin,
@@ -590,11 +597,17 @@ void add_node_entry(SmpsCoreStructure const & core, Node & node, Highs & result)
       auto UB = core.row_upper_.at(row);
       auto row_data = SparseVector::get_matrix_row(core.a_matrix_, row);
       for (auto const & mod : node_modifications)
-        if (mod.row_idx == row && mod.is_rhs) {
-          LB = update_lb(LB, mod.value);
-          UB = update_ub(UB, mod.value);
-        } else if (mod.row_idx == row)
-           row_data.set(mod.col_idx, mod.value);
+        if (mod.row_idx == row)
+          switch (mod.entry_type) {
+            case LpIdxEntry::RHS:
+              LB = update_lb(LB, mod.value);
+              UB = update_ub(UB, mod.value);
+            break;
+            case LpIdxEntry::Matrix:
+             row_data.set(mod.col_idx, mod.value);
+            break;
+            default: assert(1==0);
+          }
       row_data.translate_to_in_problem(translator);
       lbs.at(row - node_ranges.row_idx_begin) = LB;
       ubs.at(row - node_ranges.row_idx_begin) = UB;
@@ -607,7 +620,7 @@ void add_node_entry(SmpsCoreStructure const & core, Node & node, Highs & result)
       if (core.col_cost_.at(col) != 0)
         result.changeColCost(translator(col), core.col_cost_.at(col) * prob);
     for (auto const & mod : node_modifications)
-      if (mod.is_objective) 
+      if (mod.entry_type == LpIdxEntry::LpEntryType::Objective) 
         result.changeColCost(translator(mod.col_idx), mod.value * prob);
 }
 
@@ -624,9 +637,21 @@ void add_tree_entries(const SmpsCoreStructure &core, const StochasticTree &tree,
 }
 
 LpIdxEntry SmpsCoreStructure::annotate_lp_entry(LpEntry const & entry) const {
+  LpIdxEntry::LpEntryType type;
   bool is_objective = entry.row == objective_name_;
   bool is_rhs = entry.col == "RHS";
-  return {entry, is_objective, is_rhs, is_objective ? -1 : row_hash_.name2index.at(entry.row), is_rhs ? -1 : col_hash_.name2index.at(entry.col)};
+  bool is_up_bnd = entry.row == "UPBND";
+  bool is_lo_bnd = entry.row == "LOBND";
+  bool is_fx_bnd = entry.row == "FXBND";
+  bool is_bnd = is_up_bnd || is_fx_bnd || is_lo_bnd;
+  if (is_objective + is_rhs + is_up_bnd + is_lo_bnd + is_fx_bnd >= 2) type = LpIdxEntry::Error;
+  else if (is_objective) type = LpIdxEntry::Objective;
+  else if (is_rhs) type = LpIdxEntry::RHS;
+  else if (is_up_bnd) type = LpIdxEntry::UpperBnd;
+  else if (is_lo_bnd) type = LpIdxEntry::LowerBnd;
+  else if (is_fx_bnd) type = LpIdxEntry::FixBnd;
+  else type = LpIdxEntry::Matrix;
+  return {entry, type, is_objective || is_bnd ? -1 : row_hash_.name2index.at(entry.row), is_rhs ? -1 : col_hash_.name2index.at(entry.col)};
 }
 
 std::vector<LpIdxEntry> SmpsCoreStructure::annotate_lp_entries(std::vector<LpEntry> const & entries) const {

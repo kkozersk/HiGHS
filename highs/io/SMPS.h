@@ -90,14 +90,14 @@ struct LpEntry {
 using BlockLpEntry = std::vector<LpEntry>;
 
 struct LpIdxEntry : public LpEntry {
-  bool is_objective;
-  bool is_rhs;
+  enum LpEntryType { Matrix=0, Objective, RHS, LowerBnd, UpperBnd, FixBnd, Error };
+  LpEntryType entry_type;
   int row_idx;
   int col_idx;  
-  LpIdxEntry(LpEntry const & lp, bool is_objective, bool is_rhs, int row_idx, int col_idx) :
-    LpEntry(lp), is_objective(is_objective), is_rhs(is_rhs), row_idx(row_idx), col_idx(col_idx) {}
+  LpIdxEntry(LpEntry const & lp, LpEntryType entry_type, int row_idx, int col_idx) :
+    LpEntry(lp), entry_type(entry_type), row_idx(row_idx), col_idx(col_idx) {}
   bool operator==(LpIdxEntry const & other) const
-    { return LpEntry::operator==(other) && other.is_objective == is_objective && other.is_rhs == is_rhs && other.row_idx == row_idx && other.col_idx == col_idx; }
+    { return LpEntry::operator==(other) && other.entry_type == entry_type && other.row_idx == row_idx && other.col_idx == col_idx; }
 };
 
 class SmpsCoreStructure : public HighsLp {

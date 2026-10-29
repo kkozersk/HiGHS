@@ -1972,9 +1972,9 @@ TEST_CASE("test-annotate-lp-entry", "[highs_smps]") {
   std::vector<LpEntry> entries {{"R1", "C1", 5}, {"R2", "RHS", 4}, {".COST", "C2", 3}};
   auto annotated = smps.annotate_lp_entries(entries);
   REQUIRE(annotated == std::vector<LpIdxEntry> {
-          {entries[0], false, false, 0, 0},
-          {entries[1], false, true, 1, -1},
-          {entries[2], true, false, -1, 1},
+          {entries[0], LpIdxEntry::Matrix, 0, 0},
+          {entries[1], LpIdxEntry::RHS, 1, -1},
+          {entries[2], LpIdxEntry::Objective, -1, 1},
   });
 }
 
