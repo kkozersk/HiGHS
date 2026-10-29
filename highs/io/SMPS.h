@@ -68,7 +68,8 @@ struct SubMatrixRange {
   bool operator==(SubMatrixRange const & other) const { return row_idx_begin == other.row_idx_begin && row_idx_end == other.row_idx_end && col_idx_begin == other.col_idx_begin && col_idx_end == other.col_idx_end; };
   int num_cols() const { return col_idx_end - col_idx_begin; }
   int num_rows() const { return row_idx_end - row_idx_begin; }
-  bool expand_problem_by_range_vars(Highs & problem, std::vector<double> const & var_lower, std::vector<double> const & var_upper) const;
+  bool expand_problem_by_range_vars(Highs & problem, std::vector<double> const & var_lower, std::vector<double> const & var_upper,
+                                     std::vector<HighsVarType> const & integrality = {}) const;
   SubMatrixRange create_in_problem_range(Highs const & problem) const {
     return {problem.getNumRow(), problem.getNumRow() + num_rows(), problem.getNumCol(), problem.getNumCol() + num_cols()};
   }

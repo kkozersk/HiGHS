@@ -349,7 +349,7 @@ BendersRet benders_l_shaped(SmpsCoreStructure & core, StochasticTree & tree,
     create_feasibility_subproblem(problems.feas_subproblems.at(i), base_sub_lp, master_variables, row_division.mixed_rows, row_division.master_only_rows, a);
   }
   BendersAlgorithm benders(eps, max_iter, gap_type);
-  return benders.benders_loop(problems, master_variables, {}, master_solver);
+  return benders.benders_loop(problems, master_variables, starting_point, master_solver);
 }
 
 void add_vec_to_vec(std::vector<double> & base, NonZeroVector const & addition) {

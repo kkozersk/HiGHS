@@ -11,6 +11,7 @@
 #include <vector>
 #include "Filereader.h"
 #include "FilereaderMps.h"
+#include "HConst.h"
 #include "lp_data/HighsLp.h"
 #include "lp_data/HStruct.h"
 #include "model/HighsModel.h"
@@ -578,7 +579,7 @@ void add_node_entry(SmpsCoreStructure const & core, Node & node, Highs & result)
     auto const & node_ranges = core.stage_submatrix.at(node.get_timestage());
     auto node_modifications = core.annotate_lp_entries(node.get_lp_modifications());
     node.set_in_problem_range(node_ranges.create_in_problem_range(result));
-    node_ranges.expand_problem_by_range_vars(result, core.col_lower_, core.col_upper_);
+    node_ranges.expand_problem_by_range_vars(result, core.col_lower_, core.col_upper_, core.integrality_);
     IdxTranslator translator {core.stage_submatrix, create_stochastic_path_translation(node)};
     HighsSparseMatrix a; a.ensureRowwise(); a.num_col_ = result.getNumCol();
     int no_new_rows = node_ranges.row_idx_end-node_ranges.row_idx_begin;
@@ -663,9 +664,12 @@ void SparseVector::truncate(std::vector<int>::size_type num_nz) {
  }
 
 bool SubMatrixRange::expand_problem_by_range_vars(
-  Highs & problem, std::vector<double> const & col_lower, std::vector<double> const & col_upper) const {
+  Highs & problem, std::vector<double> const & col_lower, std::vector<double> const & col_upper,
+  std::vector<HighsVarType> const & col_integrality) const {
   //TODO integrality!
   auto status = problem.addVars(num_cols(),  col_lower.data() + col_idx_begin, col_upper.data() + col_idx_begin );
+  if (!col_integrality.empty())  
+      problem.changeColsIntegrality(problem.getNumCols() - num_cols(), problem.getNumCols() - 1, col_integrality.data() + col_idx_begin);
   return status ==  HighsStatus::kOk;
 }
 
