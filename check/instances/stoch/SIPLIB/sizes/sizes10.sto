@@ -1,6 +1,6 @@
 STOCH         SIZES
 SCENARIOS     DISCRETE
- SC SCEN01    ROOT          0.100000   STAGE-2
+ SC SCEN01    ROOT          0.100000   STAGE-1
     RHS      D01JJ02           1.250
     RHS      D02JJ02           3.750
     RHS      D03JJ02           6.250
@@ -11,7 +11,7 @@ SCENARIOS     DISCRETE
     RHS      D08JJ02           6.250
     RHS      D09JJ02           6.250
     RHS      D10JJ02           2.500
- SC SCEN02    ROOT          0.100000   STAGE-2
+ SC SCEN02    SCEN01          0.100000   STAGE-2
     RHS      D01JJ02           1.500
     RHS      D02JJ02           4.500
     RHS      D03JJ02           7.500
@@ -22,7 +22,7 @@ SCENARIOS     DISCRETE
     RHS      D08JJ02           7.500
     RHS      D09JJ02           7.500
     RHS      D10JJ02           3.000
- SC SCEN03    ROOT          0.100000   STAGE-2
+ SC SCEN03    SCEN01          0.100000   STAGE-2
     RHS      D01JJ02           1.750
     RHS      D02JJ02           5.250
     RHS      D03JJ02           8.750
@@ -33,7 +33,7 @@ SCENARIOS     DISCRETE
     RHS      D08JJ02           8.750
     RHS      D09JJ02           8.750
     RHS      D10JJ02           3.500
- SC SCEN04    ROOT          0.100000   STAGE-2
+ SC SCEN04    SCEN01          0.100000   STAGE-2
     RHS      D01JJ02           2.000
     RHS      D02JJ02           6.000
     RHS      D03JJ02          10.000
@@ -44,7 +44,7 @@ SCENARIOS     DISCRETE
     RHS      D08JJ02          10.000
     RHS      D09JJ02          10.000
     RHS      D10JJ02           4.000
- SC SCEN05    ROOT          0.100000   STAGE-2
+ SC SCEN05    SCEN01          0.100000   STAGE-2
     RHS      D01JJ02           2.250
     RHS      D02JJ02           6.750
     RHS      D03JJ02          11.250
@@ -55,7 +55,7 @@ SCENARIOS     DISCRETE
     RHS      D08JJ02          11.250
     RHS      D09JJ02          11.250
     RHS      D10JJ02           4.500
- SC SCEN06    ROOT          0.100000   STAGE-2
+ SC SCEN06    SCEN01          0.100000   STAGE-2
     RHS      D01JJ02           2.750
     RHS      D02JJ02           8.250
     RHS      D03JJ02          13.750
@@ -66,7 +66,7 @@ SCENARIOS     DISCRETE
     RHS      D08JJ02          13.750
     RHS      D09JJ02          13.750
     RHS      D10JJ02           5.500
- SC SCEN07    ROOT          0.100000   STAGE-2
+ SC SCEN07    SCEN01          0.100000   STAGE-2
     RHS      D01JJ02           3.000
     RHS      D02JJ02           9.000
     RHS      D03JJ02          15.000
@@ -77,7 +77,7 @@ SCENARIOS     DISCRETE
     RHS      D08JJ02          15.000
     RHS      D09JJ02          15.000
     RHS      D10JJ02           6.000
- SC SCEN08    ROOT          0.100000   STAGE-2
+ SC SCEN08    SCEN01          0.100000   STAGE-2
     RHS      D01JJ02           3.250
     RHS      D02JJ02           9.750
     RHS      D03JJ02          16.250
@@ -88,7 +88,7 @@ SCENARIOS     DISCRETE
     RHS      D08JJ02          16.250
     RHS      D09JJ02          16.250
     RHS      D10JJ02           6.500
- SC SCEN09    ROOT          0.100000   STAGE-2
+ SC SCEN09    SCEN01          0.100000   STAGE-2
     RHS      D01JJ02           3.500
     RHS      D02JJ02          10.500
     RHS      D03JJ02          17.500
@@ -99,7 +99,7 @@ SCENARIOS     DISCRETE
     RHS      D08JJ02          17.500
     RHS      D09JJ02          17.500
     RHS      D10JJ02           7.000
- SC SCEN10    ROOT          0.100000   STAGE-2
+ SC SCEN10    SCEN01          0.100000   STAGE-2
     RHS      D01JJ02           3.750
     RHS      D02JJ02          11.250
     RHS      D03JJ02          18.750

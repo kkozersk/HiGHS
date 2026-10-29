@@ -1,6 +1,6 @@
 STOCH sslp_15_45_5
 SCENARIOS	DISCRETE
- SC SCEN1    ROOT 0.200000	STAGE-2
+ SC SCEN1    ROOT 0.200000	STAGE-1
       RHS   c17     1
       RHS   c18     0
       RHS   c19     1
@@ -46,7 +46,7 @@ SCENARIOS	DISCRETE
       RHS   c59     0
       RHS   c60     0
       RHS   c61     1
- SC SCEN2    ROOT 0.200000	STAGE-2
+ SC SCEN2    SCEN1 0.200000	STAGE-2
       RHS   c17     1
       RHS   c18     1
       RHS   c19     1
@@ -92,7 +92,7 @@ SCENARIOS	DISCRETE
       RHS   c59     0
       RHS   c60     0
       RHS   c61     0
- SC SCEN3    ROOT 0.200000	STAGE-2
+ SC SCEN3    SCEN1 0.200000	STAGE-2
       RHS   c17     1
       RHS   c18     1
       RHS   c19     0
@@ -138,7 +138,7 @@ SCENARIOS	DISCRETE
       RHS   c59     1
       RHS   c60     1
       RHS   c61     0
- SC SCEN4    ROOT 0.200000	STAGE-2
+ SC SCEN4    SCEN1 0.200000	STAGE-2
       RHS   c17     0
       RHS   c18     0
       RHS   c19     0
@@ -184,7 +184,7 @@ SCENARIOS	DISCRETE
       RHS   c59     0
       RHS   c60     0
       RHS   c61     1
- SC SCEN5    ROOT 0.200000	STAGE-2
+ SC SCEN5    SCEN1 0.200000	STAGE-2
       RHS   c17     0
       RHS   c18     1
       RHS   c19     1

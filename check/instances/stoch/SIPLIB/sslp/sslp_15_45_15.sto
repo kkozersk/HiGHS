@@ -1,6 +1,6 @@
 STOCH SSLP_15_45_15
 SCENARIOS	DISCRETE
- SC SCEN1    ROOT 0.066667	STAGE-2
+ SC SCEN1    ROOT 0.066667	STAGE-1
       RHS   c17     1
       RHS   c18     0
       RHS   c19     0
@@ -46,7 +46,7 @@ SCENARIOS	DISCRETE
       RHS   c59     0
       RHS   c60     0
       RHS   c61     0
- SC SCEN2    ROOT 0.066667	STAGE-2
+ SC SCEN2    SCEN1 0.066667	STAGE-2
       RHS   c17     1
       RHS   c18     1
       RHS   c19     1
@@ -92,7 +92,7 @@ SCENARIOS	DISCRETE
       RHS   c59     1
       RHS   c60     0
       RHS   c61     0
- SC SCEN3    ROOT 0.066667	STAGE-2
+ SC SCEN3    SCEN1 0.066667	STAGE-2
       RHS   c17     0
       RHS   c18     1
       RHS   c19     1
@@ -138,7 +138,7 @@ SCENARIOS	DISCRETE
       RHS   c59     0
       RHS   c60     1
       RHS   c61     1
- SC SCEN4    ROOT 0.066667	STAGE-2
+ SC SCEN4    SCEN1 0.066667	STAGE-2
       RHS   c17     1
       RHS   c18     0
       RHS   c19     1
@@ -184,7 +184,7 @@ SCENARIOS	DISCRETE
       RHS   c59     0
       RHS   c60     1
       RHS   c61     1
- SC SCEN5    ROOT 0.066667	STAGE-2
+ SC SCEN5    SCEN1 0.066667	STAGE-2
       RHS   c17     0
       RHS   c18     0
       RHS   c19     0
@@ -230,7 +230,7 @@ SCENARIOS	DISCRETE
       RHS   c59     0
       RHS   c60     0
       RHS   c61     0
- SC SCEN6    ROOT 0.066667	STAGE-2
+ SC SCEN6    SCEN1 0.066667	STAGE-2
       RHS   c17     1
       RHS   c18     1
       RHS   c19     1
@@ -276,7 +276,7 @@ SCENARIOS	DISCRETE
       RHS   c59     0
       RHS   c60     0
       RHS   c61     0
- SC SCEN7    ROOT 0.066667	STAGE-2
+ SC SCEN7    SCEN1 0.066667	STAGE-2
       RHS   c17     0
       RHS   c18     1
       RHS   c19     1
@@ -322,7 +322,7 @@ SCENARIOS	DISCRETE
       RHS   c59     0
       RHS   c60     1
       RHS   c61     1
- SC SCEN8    ROOT 0.066667	STAGE-2
+ SC SCEN8    SCEN1 0.066667	STAGE-2
       RHS   c17     0
       RHS   c18     0
       RHS   c19     0
@@ -368,7 +368,7 @@ SCENARIOS	DISCRETE
       RHS   c59     1
       RHS   c60     0
       RHS   c61     0
- SC SCEN9    ROOT 0.066667	STAGE-2
+ SC SCEN9    SCEN1 0.066667	STAGE-2
       RHS   c17     1
       RHS   c18     0
       RHS   c19     1
@@ -414,7 +414,7 @@ SCENARIOS	DISCRETE
       RHS   c59     1
       RHS   c60     1
       RHS   c61     1
- SC SCEN10    ROOT 0.066667	STAGE-2
+ SC SCEN10    SCEN1 0.066667	STAGE-2
       RHS   c17     1
       RHS   c18     0
       RHS   c19     1
@@ -460,7 +460,7 @@ SCENARIOS	DISCRETE
       RHS   c59     0
       RHS   c60     1
       RHS   c61     1
- SC SCEN11    ROOT 0.066667	STAGE-2
+ SC SCEN11    SCEN1 0.066667	STAGE-2
       RHS   c17     1
       RHS   c18     1
       RHS   c19     0
@@ -506,7 +506,7 @@ SCENARIOS	DISCRETE
       RHS   c59     0
       RHS   c60     1
       RHS   c61     1
- SC SCEN12    ROOT 0.066667	STAGE-2
+ SC SCEN12    SCEN1 0.066667	STAGE-2
       RHS   c17     0
       RHS   c18     1
       RHS   c19     1
@@ -552,7 +552,7 @@ SCENARIOS	DISCRETE
       RHS   c59     1
       RHS   c60     1
       RHS   c61     1
- SC SCEN13    ROOT 0.066667	STAGE-2
+ SC SCEN13    SCEN1 0.066667	STAGE-2
       RHS   c17     0
       RHS   c18     0
       RHS   c19     1
@@ -598,7 +598,7 @@ SCENARIOS	DISCRETE
       RHS   c59     1
       RHS   c60     1
       RHS   c61     1
- SC SCEN14    ROOT 0.066667	STAGE-2
+ SC SCEN14    SCEN1 0.066667	STAGE-2
       RHS   c17     0
       RHS   c18     0
       RHS   c19     1
@@ -644,7 +644,7 @@ SCENARIOS	DISCRETE
       RHS   c59     0
       RHS   c60     0
       RHS   c61     0
- SC SCEN15    ROOT 0.066667	STAGE-2
+ SC SCEN15    SCEN1 0.066667	STAGE-2
       RHS   c17     1
       RHS   c18     0
       RHS   c19     0

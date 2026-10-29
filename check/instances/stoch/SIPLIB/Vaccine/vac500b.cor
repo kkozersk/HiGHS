@@ -607,6 +607,7 @@ COLUMNS
     x301      c31       0.0092141445
     x302      obj       2.1538461538   c30                  1
     x302      c31       0.0046570073
+	xend	c31	1
 RHS
     rhs       c1                   1   c2                   1
     rhs       c3                   1   c4                   1
@@ -625,6 +626,7 @@ RHS
     rhs       c29                  1   c30                  1
     rhs       c31                  1
 BOUNDS
+ UP bnd		xend		0
  UP bnd       x1                   1
  UP bnd       x2                   1
  UP bnd       x3                   1
