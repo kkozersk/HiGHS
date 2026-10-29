@@ -1969,12 +1969,35 @@ TEST_CASE("test-annotate-lp-entry", "[highs_smps]") {
   HighsOptions opt;
   SmpsCoreStructure smps(opt, path);
   REQUIRE(smps.is_valid());
-  std::vector<LpEntry> entries {{"R1", "C1", 5}, {"R2", "RHS", 4}, {".COST", "C2", 3}};
+  std::vector<LpEntry> entries {
+    {"R1", "C1", 5}, {"R2", "RHS", 4}, {".COST", "C2", 3},
+    {"FXBND", "C1", 1}, {"UPBND", "C2", 2}, {"LOBND", "C2", 3},
+  };
   auto annotated = smps.annotate_lp_entries(entries);
   REQUIRE(annotated == std::vector<LpIdxEntry> {
           {entries[0], LpIdxEntry::Matrix, 0, 0},
           {entries[1], LpIdxEntry::RHS, 1, -1},
           {entries[2], LpIdxEntry::Objective, -1, 1},
+          {entries[3], LpIdxEntry::FixBnd, -1, 0},
+          {entries[4], LpIdxEntry::UpperBnd, -1, 1},
+          {entries[5], LpIdxEntry::LowerBnd, -1, 1},
+  });
+}
+
+TEST_CASE("test-annotate-malformed-lp-entry", "[highs_smps]") {
+  auto path = std::string(HIGHS_DIR) + "/check/instances/stoch/simple.cor";
+  HighsOptions opt;
+  SmpsCoreStructure smps(opt, path);
+  REQUIRE(smps.is_valid());
+  std::vector<LpEntry> entries {
+    {".COST", "RHS", 1}, {"UPBND", "RHS", 2}, {"LOBND", "RHS", 3}, {"FXBND", "RHS", 4},
+  };
+  auto annotated = smps.annotate_lp_entries(entries);
+  REQUIRE(annotated == std::vector<LpIdxEntry> {
+          {entries[0], LpIdxEntry::Error, -1, -1},
+          {entries[1], LpIdxEntry::Error, -1, -1},
+          {entries[2], LpIdxEntry::Error, -1, -1},
+          {entries[3], LpIdxEntry::Error, -1, -1},
   });
 }
 
