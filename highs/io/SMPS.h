@@ -94,7 +94,7 @@ struct LpIdxEntry : public LpEntry {
   LpEntryType entry_type;
   int row_idx;
   int col_idx;  
-  LpIdxEntry(LpEntry const & lp, LpEntryType entry_type, int row_idx, int col_idx) :
+  LpIdxEntry(LpEntry const & lp, LpEntryType entry_type, int row_idx=-1, int col_idx=-1) :
     LpEntry(lp), entry_type(entry_type), row_idx(row_idx), col_idx(col_idx) {}
   bool operator==(LpIdxEntry const & other) const
     { return LpEntry::operator==(other) && other.entry_type == entry_type && other.row_idx == row_idx && other.col_idx == col_idx; }

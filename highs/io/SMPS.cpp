@@ -637,15 +637,15 @@ void add_tree_entries(const SmpsCoreStructure &core, const StochasticTree &tree,
 }
 
 LpIdxEntry SmpsCoreStructure::annotate_lp_entry(LpEntry const & entry) const {
-  LpIdxEntry::LpEntryType type;
   bool is_objective = entry.row == objective_name_;
   bool is_rhs = entry.col == "RHS";
   bool is_up_bnd = entry.row == "UPBND";
   bool is_lo_bnd = entry.row == "LOBND";
   bool is_fx_bnd = entry.row == "FXBND";
   bool is_bnd = is_up_bnd || is_fx_bnd || is_lo_bnd;
-  if (is_objective + is_rhs + is_up_bnd + is_lo_bnd + is_fx_bnd >= 2) type = LpIdxEntry::Error;
-  else if (is_objective) type = LpIdxEntry::Objective;
+  if (is_objective + is_rhs + is_bnd >= 2) return {entry, LpIdxEntry::Error};
+  LpIdxEntry::LpEntryType type;
+  if (is_objective) type = LpIdxEntry::Objective;
   else if (is_rhs) type = LpIdxEntry::RHS;
   else if (is_up_bnd) type = LpIdxEntry::UpperBnd;
   else if (is_lo_bnd) type = LpIdxEntry::LowerBnd;
