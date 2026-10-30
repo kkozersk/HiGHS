@@ -180,9 +180,9 @@ class MasterProblem {
   static void add_cut_to_problem(Highs & problem, CutData const & cut, std::string const & name);
   public:
   virtual void pass_model(HighsModel const & model, int no_mu=1) {
+    master.setOptionValue("output_flag", false); master.setOptionValue("log_to_console", false);
     master.passModel(model); num_mu = no_mu;  
     starting_num_row = model.lp_.num_row_;
-    master.setOptionValue("output_flag", false); master.setOptionValue("log_to_console", false);
     // master.setOptionValue("output_flag", true); master.setOptionValue("log_to_console", true);
   };
   virtual ~MasterProblem() {};

@@ -91,6 +91,8 @@ void create_master_problem(Highs & master, HighsLp const & base_problem, std::se
 }
 
 void create_subproblem(Highs & subproblem, HighsLp const & base_problem, std::set<HighsInt> const & master_variables, std::set<HighsInt> const & master_only_rows) {
+  subproblem.setOptionValue("output_flag", false);
+  subproblem.setOptionValue("log_to_console", false);
   subproblem.passModel(base_problem);
   subproblem.changeObjectiveOffset(0);
   auto nonsub_variables = set_to_vector(master_variables);
@@ -98,8 +100,6 @@ void create_subproblem(Highs & subproblem, HighsLp const & base_problem, std::se
   subproblem.changeColsCost(master_variables.size(), nonsub_variables.data(), zeros.data());
   std::vector<int> to_delete = set_to_vector(master_only_rows);
   subproblem.deleteRows(to_delete.size(), to_delete.data());
-  subproblem.setOptionValue("output_flag", false);
-  subproblem.setOptionValue("log_to_console", false);
 }
 
 void create_feasibility_subproblem(Highs & feas_subproblem, HighsLp const & base_problem, std::set<HighsInt> const & master_variables, std::set<HighsInt> const & mixed_rows, std::set<HighsInt> const & master_only_rows) {
@@ -128,7 +128,9 @@ void create_feasibility_subproblem(Highs & feas_subproblem, HighsLp const & base
   HighsSparseMatrix const & extension_matrix) {
   
     // return;
-      feas_subproblem.passModel(base_problem);
+  feas_subproblem.setOptionValue("output_flag", false);
+  feas_subproblem.setOptionValue("log_to_console", false);
+  feas_subproblem.passModel(base_problem);
   feas_subproblem.changeObjectiveOffset(0);
   std::vector<double> zeros(base_problem.num_col_, 0);
   feas_subproblem.changeColsCost(0, base_problem.num_col_ - 1, zeros.data());
@@ -140,8 +142,6 @@ void create_feasibility_subproblem(Highs & feas_subproblem, HighsLp const & base
   );
   std::vector<int> to_delete = set_to_vector(master_only_rows);
   feas_subproblem.deleteRows(to_delete.size(), to_delete.data());
-  feas_subproblem.setOptionValue("output_flag", false);
-  feas_subproblem.setOptionValue("log_to_console", false);
 }
 
 //TODO sub and feas sub have too many rows and columns
@@ -489,10 +489,10 @@ HighsHessian LevelSetQpMasterProblem::create_level_set_hessian(int num_master_va
 }
 
 void LevelSetMasterProblem::pass_model(HighsModel const & model, int no_mu) {
-  MasterProblem::pass_model(model, no_mu);
-  level_set_master.passModel(model);
   level_set_master.setOptionValue("output_flag", false);
   level_set_master.setOptionValue("log_to_console", false);
+  MasterProblem::pass_model(model, no_mu);
+  level_set_master.passModel(model);
   add_nonzero_row(level_set_master, -kHighsInf, kHighsInf, {model.lp_.col_cost_}, "LEVEL");
   level_set_constraint = level_set_master.getNumRow() - 1;
   std::vector<double> zeros (level_set_master.getNumCol(), 0);
