@@ -991,3 +991,7 @@ set(CPACK_COMPONENT_LIBS_DISPLAY_NAME "HiGHS Libraries")
 if(NOT CPack_CMake_INCLUDED)
   include(CPack)
 endif()
+
+add_executable(experiments experiment/main.cpp)
+target_link_libraries(experiments PRIVATE highs::highs)
+
