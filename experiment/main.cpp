@@ -5,8 +5,8 @@
 #include <cstdlib>
 const int max_iters = 5000;
 const double eps = 1e-6;
-const std::string baselogfile = "/tmp/results";
-const std::string dir = "/home/s2860325/Desktop/HiGHS_IPM_Benders/";
+const std::string baselogfile = "../../results";
+const std::string dir = "../";
 
 int main() {
   Highs highs;
@@ -24,7 +24,7 @@ int main() {
   auto core_and_tree = build_stochastic_tree(dir + corefile, dir + timefile, dir + stochfile);
   MasterProblem * master;
   if (algorithm == "standard") { master = new StandardMasterProblem(); }
-  else if (algorithm == "qp")  { master = new LevelSetQpMasterProblem(0.5, 0.49); }
+  else if (algorithm == "qp")  { master = new LevelSetQpMasterProblem(0.5, 0.9); }
   else if (algorithm == "pd")  { master = new PrimalDualMasterProblem(1.); }
   else if (algorithm == "ipm") { master = new LevelSetIpmMasterProblem(0.49, 0.51); }
   else { assert (1==0); }
