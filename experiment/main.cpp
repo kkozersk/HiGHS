@@ -4,12 +4,12 @@
 #include <string>
 #include <cstdlib>
 const int max_iters = 5000;
-const double eps = 1e-6;
-const std::string baselogfile = "../../results";
 const std::string dir = "../";
 
 int main() {
   Highs highs;
+  double eps = std::stod(getenv("EPS"));
+  std::string baselogfile = getenv("BASELOGFILE");
   std::string corefile =  getenv("COREFILE");
   std::string stochfile =  getenv("STOCHFILE");
   std::string timefile =  getenv("TIMEFILE");
