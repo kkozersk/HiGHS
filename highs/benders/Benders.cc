@@ -564,7 +564,7 @@ void LevelSetIpmMasterProblem::pass_model(HighsModel const & model, int no_mu) {
   level_set_master.setOptionValue("solver", kHipoString);
   level_set_master.setOptionValue("max_centring_steps_hipo", 200);
   level_set_master.setOptionValue("run_crossover", kHighsOffString);
-  level_set_master.setOptionValue("centring_gamma", 1-1e-5);
+  level_set_master.setOptionValue("centring_gamma", recentring);
   level_set_master.setOptionValue("recentring_step", 1.0);
   level_set_master.setOptionValue("ipm_iteration_limit", 0);
   level_set_master.setOptionValue("fixed_mu", 1.);
@@ -626,7 +626,7 @@ bool PrimalDualMasterProblem::solve(double UBD, double LBD, double eps, double s
     master.setOptionValue("ipm_optimality_tolerance", tolerance);
     master.setOptionValue("solver", kHipoString);
     master.setOptionValue("run_crossover", kHighsOffString);
-    master.setOptionValue("centring_gamma", 1e-5);
+    master.setOptionValue("centring_gamma", recentring);
     master.setOptionValue("max_centring_steps_hipo", 100);
     master.setOptionValue("recentring_step", 1.0);
     master.setOptionValue("refine_with_ipx", false);

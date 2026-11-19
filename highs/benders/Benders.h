@@ -260,8 +260,9 @@ class PrimalDualMasterProblem : public MasterProblem {
   int mu_idx = -1;
   std::vector<bool> was_cut_objective {};
   double D;
+  double recentring;
   public:
-  PrimalDualMasterProblem(double D) :D(D) {}
+  PrimalDualMasterProblem(double D, double accuracy=1e-5) :D(D), recentring(1-accuracy) {}
   void pass_model(HighsModel const & model, int num_mu=1);
   bool solve(double UBD, double LBD, double eps, double solution_cost); 
   std::vector<double> getMasterValues() const {return in_proximal ? solution : MasterProblem::getMasterValues(); }
@@ -304,11 +305,12 @@ class LevelSetQpMasterProblem : public LevelSetMasterProblem {
 class LevelSetIpmMasterProblem : public LevelSetMasterProblem {
   double gamma_l;
   double gamma_u;
+  double recentring;
   bool is_in_level(double UBD, double LBD, double eps) const {
     return (UBD == kHighsInf) || !is_close(UBD, LBD, eps);
   }
   public:
-  LevelSetIpmMasterProblem(double gamma_l, double gamma_u): gamma_l(gamma_l), gamma_u(gamma_u) {}
+  LevelSetIpmMasterProblem(double gamma_l, double gamma_u, double accuracy=1e-5): gamma_l(gamma_l), gamma_u(gamma_u), recentring(1-accuracy) {}
   bool solve(double UBD, double LBD, double eps, double solution_cost); 
   void pass_model(HighsModel const & model, int num_mu=1);
 };
