@@ -2,7 +2,6 @@
 #$ -N experiments
 #$ -cwd
 #$ -l h_rss=128G
-#$ -l h_vmem=128G
 #$ -l h_rt=48:00:00
 
 cp ../build/bin/experiments .

@@ -138,14 +138,14 @@ check/instances/stoch/SIPLIB/smkp/smkp_29.cor,check/instances/stoch/SIPLIB/smkp/
 check/instances/stoch/SIPLIB/smkp/smkp_30.cor,check/instances/stoch/SIPLIB/smkp/smkp_30.tim,check/instances/stoch/SIPLIB/smkp/smkp_30.sto,smkp_30,inf,0
 check/instances/stoch//SIPLIB/sslp/sslp_5_25_50.cor,check/instances/stoch//SIPLIB/sslp/sslp_5_25_50.tim,check/instances/stoch/SIPLIB/sslp/sslp_5_25_50.sto,sslp_5_25_50,inf,-1000
 check/instances/stoch//SIPLIB/sslp/sslp_5_25_100.cor,check/instances/stoch//SIPLIB/sslp/sslp_5_25_100.tim,check/instances/stoch/SIPLIB/sslp/sslp_5_25_100.sto,sslp_5_25_100,inf,-1000
-check/instances/stoch//SIPLIB/sslp/sslp_15_45_5.cor,check/instances/stoch//SIPLIB/sslp/sslp_15_45_5.tim,check/instances/stoch/SIPLIB/sslp/sslp_15_45_5.sto,sslp_15_45_5,inf,-1000
-check/instances/stoch//SIPLIB/sslp/sslp_15_45_10.cor,check/instances/stoch//SIPLIB/sslp/sslp_15_45_10.tim,check/instances/stoch/SIPLIB/sslp/sslp_15_45_10.sto,sslp_15_45_10,inf,-1000
-check/instances/stoch//SIPLIB/sslp/sslp_15_45_15.cor,check/instances/stoch//SIPLIB/sslp/sslp_15_45_15.tim,check/instances/stoch/SIPLIB/sslp/sslp_15_45_15.sto,sslp_15_45_15,inf,-1000
 check/instances/stoch//SIPLIB/sslp/sslp_10_50_50.cor,check/instances/stoch//SIPLIB/sslp/sslp_10_50_50.tim,check/instances/stoch/SIPLIB/sslp/sslp_10_50_50.sto,sslp_10_50_50,inf,-1000
 check/instances/stoch//SIPLIB/sslp/sslp_10_50_100.cor,check/instances/stoch//SIPLIB/sslp/sslp_10_50_100.tim,check/instances/stoch/SIPLIB/sslp/sslp_10_50_100.sto,sslp_10_50_100,inf,-1000
 check/instances/stoch//SIPLIB/sslp/sslp_10_50_500.cor,check/instances/stoch//SIPLIB/sslp/sslp_10_50_500.tim,check/instances/stoch/SIPLIB/sslp/sslp_10_50_500.sto,sslp_10_50_500,inf,-1000
 check/instances/stoch//SIPLIB/sslp/sslp_10_50_1000.cor,check/instances/stoch//SIPLIB/sslp/sslp_10_50_1000.tim,check/instances/stoch/SIPLIB/sslp/sslp_10_50_1000.sto,sslp_10_50_1000,inf,-1000
 check/instances/stoch//SIPLIB/sslp/sslp_10_50_2000.cor,check/instances/stoch//SIPLIB/sslp/sslp_10_50_2000.tim,check/instances/stoch/SIPLIB/sslp/sslp_10_50_2000.sto,sslp_10_50_2000,inf,-1000
+check/instances/stoch//SIPLIB/sslp/sslp_15_45_5.cor,check/instances/stoch//SIPLIB/sslp/sslp_15_45_5.tim,check/instances/stoch/SIPLIB/sslp/sslp_15_45_5.sto,sslp_15_45_5,inf,-1000
+check/instances/stoch//SIPLIB/sslp/sslp_15_45_10.cor,check/instances/stoch//SIPLIB/sslp/sslp_15_45_10.tim,check/instances/stoch/SIPLIB/sslp/sslp_15_45_10.sto,sslp_15_45_10,inf,-1000
+check/instances/stoch//SIPLIB/sslp/sslp_15_45_15.cor,check/instances/stoch//SIPLIB/sslp/sslp_15_45_15.tim,check/instances/stoch/SIPLIB/sslp/sslp_15_45_15.sto,sslp_15_45_15,inf,-1000
 check/instances/stoch/SIPLIB/Vaccine/vac100a.cor,check/instances/stoch/SIPLIB/Vaccine/vac100a.tim,check/instances/stoch/SIPLIB/Vaccine/vac100a.sto,vac100a,inf,0
 check/instances/stoch/SIPLIB/Vaccine/vac100b.cor,check/instances/stoch/SIPLIB/Vaccine/vac100b.tim,check/instances/stoch/SIPLIB/Vaccine/vac100b.sto,vac100b,inf,0
 check/instances/stoch/SIPLIB/Vaccine/vac100c.cor,check/instances/stoch/SIPLIB/Vaccine/vac100c.tim,check/instances/stoch/SIPLIB/Vaccine/vac100c.sto,vac100c,inf,0
