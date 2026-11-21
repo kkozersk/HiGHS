@@ -495,6 +495,7 @@ void LevelSetMasterProblem::pass_model(HighsModel const & model, int no_mu) {
   level_set_master.passModel(model);
   add_nonzero_row(level_set_master, -kHighsInf, kHighsInf, {model.lp_.col_cost_}, "LEVEL");
   level_set_constraint = level_set_master.getNumRow() - 1;
+  add_nonzero_row(level_set_master, -kHighsInf, kHighsInf, {model.lp_.col_cost_}, "LEVEL2");
   std::vector<double> zeros (level_set_master.getNumCol(), 0);
   level_set_master.changeColsCost(0, level_set_master.getNumCol()-1, zeros.data());
 }
@@ -574,14 +575,29 @@ void LevelSetIpmMasterProblem::pass_model(HighsModel const & model, int no_mu) {
 
 bool LevelSetIpmMasterProblem::solve(double UBD, double LBD, double eps, double solution_cost) {
     solve_problem_with_logging(master);
+    double oldLBD = LBD;
     LBD = master.getObjectiveValue();
+    double target_l = LBD + gamma_l * (UBD-LBD);
+    double target_u = LBD + gamma_u * (UBD-LBD);
     if ((in_level = is_in_level(UBD, LBD, eps))) {
       if (UBD < kHighsInf) {
-        double target_l = LBD + gamma_l * (UBD-LBD);
-        double target_u = LBD + gamma_u * (UBD-LBD);
-        level_set_master.changeRowBounds(level_set_constraint, target_l, target_u);
+        level_set_master.changeRowBounds(level_set_constraint, target_l, kHighsInf);
+        level_set_master.changeRowBounds(level_set_constraint+1, -kHighsInf, target_u);
       }
       solve_problem_with_logging(level_set_master);
+      CsvLogger log("/tmp/data.csv");
+      log
+       << level_set_master.getSolution().row_dual[level_set_constraint]
+       << level_set_master.getSolution().row_dual[level_set_constraint+1]
+       << level_set_master.getObjectiveValue()
+       << target_l
+       << target_u
+       << (UBD == kHighsInf ? UBD : (UBD-LBD)/(1+std::fabs(UBD)))
+       << UBD - LBD
+       << (UBD == kHighsInf ? UBD : (UBD-oldLBD)/(1+std::fabs(UBD)))
+       << UBD - oldLBD
+      ;
+    log.newline();
     }
     return !error;
 }

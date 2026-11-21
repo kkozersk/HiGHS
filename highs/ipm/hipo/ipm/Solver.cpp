@@ -144,6 +144,7 @@ void Solver::runIpm(WorkingPoint const & starting_point) {
   if (iter_ == options_.max_iter) checkTermination();
   // if (it_->pdgap > 1e-8) recentring();
   recentring();
+  std::ofstream("/tmp/data.csv", std::ios::app) << it_->pdgap <<","<<it_->dobj <<",";
 
   terminate();
 }
