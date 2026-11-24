@@ -286,7 +286,6 @@ class LevelSetQpMasterProblem : public LevelSetMasterProblem {
   double gamma;
   double orig_gamma;
   double omega;
-  double rounding;
   double projected_improvement;
   int error_counter = 0;
   double prev_UBD = kHighsInf;
@@ -297,7 +296,7 @@ class LevelSetQpMasterProblem : public LevelSetMasterProblem {
   HighsHessian create_level_set_hessian(int num_master_variables, int num_mu) const;
   std::pair<NonZeroVector, double> create_distance_costs() const;
   public:
-  LevelSetQpMasterProblem(double gamma, double omega, double rounding=1e-8) : gamma(gamma), orig_gamma(gamma), omega(omega), rounding(rounding) {}
+  LevelSetQpMasterProblem(double gamma, double omega) : gamma(gamma), orig_gamma(gamma), omega(omega) {}
    bool solve(double UBD, double LBD, double eps, double solution_cost); 
    void pass_model(HighsModel const & model, int num_mu=1);
 };

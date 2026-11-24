@@ -519,7 +519,6 @@ std::pair<NonZeroVector, double> LevelSetQpMasterProblem::create_distance_costs(
   double constant = 0; // TODO num_mu inconsistent
   for (int i = 0; i < master.getNumCol() - num_mu; ++i) {
       auto val = prev_solution.at(i);
-      val = std::round(val / rounding) * rounding;
       linear_factor.at(i) = -val;
       constant += val * val / 2;
   }      
